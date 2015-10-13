@@ -5,17 +5,17 @@
  *      Author: cjustin
  */
 
-#include "Common/ReadsProcessor.h"
+#include "BloomFilter/ReadsProcessor.h"
 #include <assert.h>
 #include <string>
 #include <iostream>
-#include "Common/city.h"
+#include "BloomFilter/city.h"
 #include <stdio.h>
 #include <string.h>
 
 using namespace std;
 
-int main(int argc, char **argv) {
+int main() {
 
 	int16_t kmerSize = 4;
 

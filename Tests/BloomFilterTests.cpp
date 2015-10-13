@@ -5,14 +5,14 @@
  *      Author: cjustin
  */
 
-#include "Common/BloomFilter.h"
+#include "BloomFilter/BloomFilter.h"
 #include <string>
 #include <assert.h>
 #include <vector>
 #include <iostream>
 #include <fstream>
 #include <sstream>
-#include "Common/ReadsProcessor.h"
+#include "BloomFilter/ReadsProcessor.h"
 #if _OPENMP
 # include <omp.h>
 #endif
@@ -20,8 +20,8 @@
 using namespace std;
 
 //returns memory of program in kb
-int memory_usage() {
-	int mem = 0;
+unsigned memory_usage() {
+	unsigned mem = 0;
 	ifstream proc("/proc/self/status");
 	string s;
 	while (getline(proc, s), !proc.fail()) {
@@ -37,7 +37,7 @@ int memory_usage() {
 	return mem;
 }
 
-int main(int argc, char **argv) {
+int main() {
 	//memory usage from before
 	int memUsage = memory_usage();
 

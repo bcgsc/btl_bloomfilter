@@ -3,7 +3,7 @@
  * BloomFilterGenerator Unit tests
  */
 
-#include "Common/BloomFilterInfo.h"
+#include "BloomFilter/BloomFilterInfo.h"
 #include <assert.h>
 #include <iostream>
 #include <vector>
@@ -13,7 +13,7 @@
 
 using namespace std;
 
-int main(int argc, char **argv)
+int main()
 {
 
 	string infoFile = "Test.txt";
@@ -22,7 +22,8 @@ int main(int argc, char **argv)
 
 	map.push_back("/original/file/path");
 
-	BloomFilterInfo info("filename", 6, 33, 0.02, 47000000, map);
+	//filter_prefex, hashfunctions, k-mer size, fpr, expected number of elements
+	BloomFilterInfo info("filter_prefix", 6, 33, 0.02, 47000000, map);
 
 //	//test getting Optimal Number of hash functions' function.
 //	assert(info.calcOptiHashNum(16,1) == 11);
