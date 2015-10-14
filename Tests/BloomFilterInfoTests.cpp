@@ -3,7 +3,7 @@
  * BloomFilterGenerator Unit tests
  */
 
-#include "BloomFilter/BloomFilterInfo.h"
+#include "BloomFilter/BloomFilterInfo.hpp"
 #include <assert.h>
 #include <iostream>
 #include <vector>
