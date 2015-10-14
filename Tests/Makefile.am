@@ -1,9 +1,5 @@
-noinst_PROGRAMS = ReadProcessorTests \
-	BloomFilterTests \
+noinst_PROGRAMS = BloomFilterTests \
 	BloomFilterInfoTests
-
-ReadProcessorTests_LDADD = $(top_builddir)/BloomFilter/libbloomfilter.a -lz
-ReadProcessorTests_SOURCES = ReadProcessorTests.cpp
 
 BloomFilterTests_LDADD = $(top_builddir)/BloomFilter/libbloomfilter.a -lz
 BloomFilterTests_SOURCES = BloomFilterTests.cpp

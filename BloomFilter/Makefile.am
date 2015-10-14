@@ -8,5 +8,3 @@ libbloomfilter_a_SOURCES = \
 	BloomFilter.hpp \
 	BloomFilterInfo.hpp \
 	city.cc city.h citycrc.h \
-	ReadsProcessor.cpp ReadsProcessor.h
-	
