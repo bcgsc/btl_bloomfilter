@@ -12,7 +12,6 @@
 #include <iostream>
 #include <fstream>
 #include <sstream>
-#include "BloomFilter/ReadsProcessor.h"
 #if _OPENMP
 # include <omp.h>
 #endif
@@ -43,21 +42,19 @@ int main() {
 
 	size_t filterSize = 1000000000;
 	BloomFilter filter(filterSize, 5, 20);
-	ReadsProcessor proc(20);
-
-	filter.insert(proc.prepSeq("ATCGGGTCATCAACCAATAT", 0));
-	filter.insert(proc.prepSeq("ATCGGGTCATCAACCAATAC", 0));
-	filter.insert(proc.prepSeq("ATCGGGTCATCAACCAATAG", 0));
-	filter.insert(proc.prepSeq("ATCGGGTCATCAACCAATAA", 0));
+	filter.insert((unsigned char*)"ATCGGGTCATCAACCAATAT");
+	filter.insert((unsigned char*)"ATCGGGTCATCAACCAATAC");
+	filter.insert((unsigned char*)"ATCGGGTCATCAACCAATAG");
+	filter.insert((unsigned char*)"ATCGGGTCATCAACCAATAA");
 
 	//Check if filter is able to report expected results
-	assert(filter.contains(proc.prepSeq("ATCGGGTCATCAACCAATAT", 0)));
-	assert(filter.contains(proc.prepSeq("ATCGGGTCATCAACCAATAC", 0)));
-	assert(filter.contains(proc.prepSeq("ATCGGGTCATCAACCAATAG", 0)));
-	assert(filter.contains(proc.prepSeq("ATCGGGTCATCAACCAATAA", 0)));
+	assert(filter.contains((unsigned char*)"ATCGGGTCATCAACCAATAT"));
+	assert(filter.contains((unsigned char*)"ATCGGGTCATCAACCAATAC"));
+	assert(filter.contains((unsigned char*)"ATCGGGTCATCAACCAATAG"));
+	assert(filter.contains((unsigned char*)"ATCGGGTCATCAACCAATAA"));
 
-	assert(!filter.contains(proc.prepSeq("ATCGGGTCATCAACCAATTA",0)));
-	assert(!filter.contains(proc.prepSeq("ATCGGGTCATCAACCAATTC",0)));
+	assert(!filter.contains((unsigned char*)"ATCGGGTCATCAACCAATTA"));
+	assert(!filter.contains((unsigned char*)"ATCGGGTCATCAACCAATTC"));
 
 	//should be size of bf (amortized)
 	cout << memory_usage() - memUsage << "kb" << endl;
@@ -89,13 +86,13 @@ int main() {
 	cout << memory_usage() - memUsage << "kb" << endl;
 
 	//Check if loaded filter is able to report expected results
-	assert(filter2.contains(proc.prepSeq("ATCGGGTCATCAACCAATAT", 0)));
-	assert(filter2.contains(proc.prepSeq("ATCGGGTCATCAACCAATAC", 0)));
-	assert(filter2.contains(proc.prepSeq("ATCGGGTCATCAACCAATAG", 0)));
-	assert(filter2.contains(proc.prepSeq("ATCGGGTCATCAACCAATAA", 0)));
+	assert(filter2.contains((unsigned char*)"ATCGGGTCATCAACCAATAT"));
+	assert(filter2.contains((unsigned char*)"ATCGGGTCATCAACCAATAC"));
+	assert(filter2.contains((unsigned char*)"ATCGGGTCATCAACCAATAG"));
+	assert(filter2.contains((unsigned char*)"ATCGGGTCATCAACCAATAA"));
 
-	assert(!filter2.contains(proc.prepSeq("ATCGGGTCATCAACCAATTA",0)));
-	assert(!filter2.contains(proc.prepSeq("ATCGGGTCATCAACCAATTC",0)));
+	assert(!filter2.contains((unsigned char*)"ATCGGGTCATCAACCAATTA"));
+	assert(!filter2.contains((unsigned char*)"ATCGGGTCATCAACCAATTC"));
 	cout << "premade bf tests done" << endl;
 
 	//memory leak tests
