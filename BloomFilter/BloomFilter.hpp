@@ -21,6 +21,7 @@
 #include <cstdlib>
 #include <stdio.h>
 #include <cstring>
+#include "rolling.h"
 
 using namespace std;
 
@@ -83,10 +84,9 @@ public:
 	//TODO: change to rolling hash
 	vector<size_t> multiHash(const unsigned char* kmer) {
 		vector<size_t> tempHashValues(m_hashNum);
-
+        uint64_t hVal = getChval(kmer, m_kmerSize);
 		for (size_t i = 0; i < m_hashNum; ++i) {
-			tempHashValues[i] = CityHash64WithSeed(
-					reinterpret_cast<const char*>(kmer), m_kmerSize, i);
+            tempHashValues[i] = (i ^ (m_kmerSize * varSeed) ^ hVal);
 		}
 		return tempHashValues;
 	}
@@ -95,11 +95,29 @@ public:
 	 * For precomputing hash values. kmerSize is the number of bytes of the original string used.
 	 */
 	//TODO: For rolling hash
-	vector<size_t> multiHash(size_t previousValue, unsigned char in,
-			unsigned char out) {
-		return 0;
-	}
+    vector<size_t> multiHash(const unsigned char * kmer, uint64_t& fhVal, uint64_t& rhVal) {
+        vector<size_t> tempHashValues(m_hashNum);
+        fhVal = getFhval(kmer, m_kmerSize);
+        rhVal = getRhval(kmer, m_kmerSize);
+        uint64_t hVal = (rhVal<fhVal)? rhVal : fhVal;
+        for (unsigned i = 0; i < m_hashNum; i++) {
+            tempHashValues[i] = (i ^ (m_kmerSize * varSeed) ^ hVal);
+        }
+        return tempHashValues;
+    }
+	
+     vector<size_t> multiHash(uint64_t& fhVal, uint64_t& rhVal, const unsigned char charOut, const unsigned char charIn) {
+         vector<size_t> tempHashValues(m_hashNum);
+         fhVal = rol(fhVal, 1) ^ rol(seedTab[charOut], m_kmerSize) ^ seedTab[charIn];
+         rhVal = ror(rhVal, 1) ^ ror(seedTab[charOut+cpOff], 1) ^ rol(seedTab[charIn+cpOff], m_kmerSize-1);
+         uint64_t hVal = (rhVal<fhVal)? rhVal : fhVal;
+         for (unsigned i = 0; i < m_hashNum; i++) {
+             tempHashValues[i] = (i ^ (m_kmerSize * varSeed) ^ hVal);
+         }
+         return tempHashValues;
+     }
 
+                             
 	/*
 	 * Accepts a list of precomputed hash values. Faster than rehashing each time.
 	 */
@@ -116,23 +134,36 @@ public:
 	}
 
 	//TODO: change to rolling hash
-	void insert(const unsigned char* kmer) {
-		//iterates through hashed values adding it to the filter
-		for (size_t i = 0; i < m_hashNum; ++i) {
-			size_t normalizedValue = CityHash64WithSeed(
-					reinterpret_cast<const char*>(kmer), m_kmerSize, i)
-					% m_size;
-			__sync_or_and_fetch(&m_filter[normalizedValue / bitsPerChar],
-					bitMask[normalizedValue % bitsPerChar]);
-			//		m_filter[normalizedValue / bitsPerChar] |= bitMask[normalizedValue
-			//				% bitsPerChar];
-		}
-	}
+    void insert(const unsigned char* kmer) {
+        uint64_t hVal = getChval(kmer, m_kmerSize);
+        for (unsigned i = 0; i < m_hashNum; i++) {
+            size_t hLoc = (i ^ (m_kmerSize * varSeed) ^ hVal) % m_size;
+            __sync_or_and_fetch(&m_filter[hLoc/8], (1 << (7 - hLoc % 8)));
+        }
+    }
+    
 
 	//TODO: For rolling hash
-	void insert(const unsigned char* kmer, unsigned char in,
-			unsigned char out) {
-	}
+    void insert(const unsigned char * kmer, uint64_t& fhVal, uint64_t& rhVal) {
+        fhVal = getFhval(kmer, m_kmerSize);
+        rhVal = getRhval(kmer, m_kmerSize);
+        uint64_t hVal = (rhVal<fhVal)? rhVal : fhVal;
+        for (unsigned i = 0; i < m_hashNum; i++) {
+            size_t hLoc = (i ^ (m_kmerSize * varSeed) ^ hVal) % m_size;
+            __sync_or_and_fetch(&m_filter[hLoc/8], (1 << (7 - hLoc % 8)));
+        }
+    }
+    
+    //TODO: For rolling hash
+    void insert(uint64_t& fhVal, uint64_t& rhVal, const unsigned char charOut, const unsigned char charIn) {
+        fhVal = rol(fhVal, 1) ^ rol(seedTab[charOut], m_kmerSize) ^ seedTab[charIn];
+        rhVal = ror(rhVal, 1) ^ ror(seedTab[charOut+cpOff], 1) ^ rol(seedTab[charIn+cpOff], m_kmerSize-1);
+        uint64_t hVal = (rhVal<fhVal)? rhVal : fhVal;
+        for (unsigned i = 0; i < m_hashNum; i++) {
+            size_t hLoc = (i ^ (m_kmerSize * varSeed) ^ hVal) % m_size;
+            __sync_or_and_fetch(&m_filter[hLoc/8], (1 << (7 - hLoc % 8)));
+        }
+    }
 
 	/*
 	 * Accepts a list of precomputed hash values. Faster than rehashing each time.
@@ -153,26 +184,38 @@ public:
 	 */
 	//TODO: change to rolling hash
 	bool contains(const unsigned char* kmer) const {
-		for (unsigned i = 0; i < m_hashNum; ++i) {
-			size_t normalizedValue = CityHash64WithSeed(
-					reinterpret_cast<const char*>(kmer), m_kmerSize, i)
-					% m_size;
-			unsigned char bit = bitMask[normalizedValue % bitsPerChar];
-			if ((m_filter[normalizedValue / bitsPerChar] & bit) != bit) {
-				return false;
-			}
-		}
-		return true;
+        uint64_t hVal = getChval(kmer, m_kmerSize);
+        for (unsigned i = 0; i < m_hashNum; i++) {
+            size_t hLoc = (i ^ (m_kmerSize * varSeed) ^ hVal) % m_size;
+            if((m_filter[hLoc/8] & (1 << (7 - hLoc % 8))) == 0)
+                return false;
+        }
+        return true;
 	}
 
-	/*
-	 * Single pass filtering, computes hash values on the fly
-	 */
-	//TODO: For rolling hash
-	bool contains(const unsigned char* kmer, unsigned char in,
-			unsigned char out) const {
-		return false;
-	}
+    bool contains(const unsigned char * kmer, uint64_t& fhVal, uint64_t& rhVal) {
+        fhVal = getFhval(kmer, m_kmerSize);
+        rhVal = getRhval(kmer, m_kmerSize);
+        uint64_t hVal = (rhVal<fhVal)? rhVal : fhVal;
+        for (unsigned i = 0; i < m_hashNum; i++) {
+            size_t hLoc = (i ^ (m_kmerSize * varSeed) ^ hVal) % m_size;
+            if((m_filter[hLoc/8] & (1 << (7 - hLoc % 8))) == 0)
+                return false;
+        }
+        return true;
+    }
+
+    bool contains(uint64_t& fhVal, uint64_t& rhVal, const unsigned char charOut, const unsigned char charIn) {
+        fhVal = rol(fhVal, 1) ^ rol(seedTab[charOut], m_kmerSize) ^ seedTab[charIn];
+        rhVal = ror(rhVal, 1) ^ ror(seedTab[charOut+cpOff], 1) ^ rol(seedTab[charIn+cpOff], m_kmerSize-1);
+        uint64_t hVal = (rhVal<fhVal)? rhVal : fhVal;
+        for (unsigned i = 0; i < m_hashNum; i++) {
+            size_t hLoc = (i ^ (m_kmerSize * varSeed) ^ hVal) % m_size;
+            if((m_filter[hLoc/8] & (1 << (7 - hLoc % 8))) == 0)
+                return false;
+        }
+        return true;
+    }
 
 	/*
 	 * Stores the filter as a binary file to the path specified

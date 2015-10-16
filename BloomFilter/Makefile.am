@@ -7,4 +7,4 @@ libbloomfilter_a_SOURCES = \
 	ptree.hpp \
 	BloomFilter.hpp \
 	BloomFilterInfo.hpp \
-	city.cc city.h citycrc.h \
+	city.cc city.h citycrc.h 
