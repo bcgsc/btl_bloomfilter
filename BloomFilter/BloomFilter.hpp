@@ -11,7 +11,6 @@
 #include <string>
 #include <vector>
 #include <stdint.h>
-#include "city.h"
 #include <math.h>
 #include <fstream>
 #include <iostream>
@@ -81,7 +80,6 @@ public:
 	/*
 	 * For precomputing hash values. kmerSize is the number of bytes of the original string used.
 	 */
-	//TODO: change to rolling hash
 	vector<size_t> multiHash(const unsigned char* kmer) {
 		vector<size_t> tempHashValues(m_hashNum);
         uint64_t hVal = getChval(kmer, m_kmerSize);
@@ -94,7 +92,6 @@ public:
 	/*
 	 * For precomputing hash values. kmerSize is the number of bytes of the original string used.
 	 */
-	//TODO: For rolling hash
     vector<size_t> multiHash(const unsigned char * kmer, uint64_t& fhVal, uint64_t& rhVal) {
         vector<size_t> tempHashValues(m_hashNum);
         fhVal = getFhval(kmer, m_kmerSize);
@@ -133,7 +130,6 @@ public:
 		}
 	}
 
-	//TODO: change to rolling hash
     void insert(const unsigned char* kmer) {
         uint64_t hVal = getChval(kmer, m_kmerSize);
         for (unsigned i = 0; i < m_hashNum; i++) {
@@ -142,8 +138,6 @@ public:
         }
     }
     
-
-	//TODO: For rolling hash
     void insert(const unsigned char * kmer, uint64_t& fhVal, uint64_t& rhVal) {
         fhVal = getFhval(kmer, m_kmerSize);
         rhVal = getRhval(kmer, m_kmerSize);
@@ -154,7 +148,6 @@ public:
         }
     }
     
-    //TODO: For rolling hash
     void insert(uint64_t& fhVal, uint64_t& rhVal, const unsigned char charOut, const unsigned char charIn) {
         fhVal = rol(fhVal, 1) ^ rol(seedTab[charOut], m_kmerSize) ^ seedTab[charIn];
         rhVal = ror(rhVal, 1) ^ ror(seedTab[charOut+cpOff], 1) ^ rol(seedTab[charIn+cpOff], m_kmerSize-1);
@@ -182,7 +175,6 @@ public:
 	/*
 	 * Single pass filtering, computes hash values on the fly
 	 */
-	//TODO: change to rolling hash
 	bool contains(const unsigned char* kmer) const {
         uint64_t hVal = getChval(kmer, m_kmerSize);
         for (unsigned i = 0; i < m_hashNum; i++) {
