@@ -18,8 +18,8 @@
 #include <fstream>
 #include <sstream>
 #include <assert.h>
-#include <BloomFilter/ptree.hpp>
-#include <BloomFilter/ini_parser.hpp>
+#include <ptree.hpp>
+#include <ini_parser.hpp>
 
 using namespace std;
 
