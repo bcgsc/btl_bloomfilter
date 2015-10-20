@@ -18,7 +18,7 @@
 #include <fstream>
 #include <sstream>
 #include <assert.h>
-#include <SimpleIni.h>
+#include "SimpleIni.h"
 
 using namespace std;
 
