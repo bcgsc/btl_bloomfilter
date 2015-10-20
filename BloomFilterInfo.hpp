@@ -80,6 +80,7 @@ public:
 	 */
 	void setRedundancy(size_t redunSeq)
 	{
+		assert(m_runInfo.numEntries > 0);
 		m_runInfo.redundantSequences = redunSeq;
 		m_runInfo.redundantFPR = calcRedunancyFPR(m_runInfo.size, m_runInfo.numEntries,
 				m_hashNum);

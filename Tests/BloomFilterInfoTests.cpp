@@ -22,11 +22,17 @@ int main()
 
 	map.push_back("/original/file/path");
 
-	//filter_prefex, hashfunctions, k-mer size, fpr, expected number of elements
-	BloomFilterInfo info("filter_prefix", 6, 33, 0.02, 47000000, map);
+	//filter_prefex, k-mer size, hashfunctions, fpr, expected number of elements
+	BloomFilterInfo info("filter_prefix", 25, 5, 0.02, 47000000, map);
 
 //	//test getting Optimal Number of hash functions' function.
 //	assert(info.calcOptiHashNum(16,1) == 11);
+
+	//Need to set actual number of element inserted before output
+	info.setTotalNum(40000000);
+
+	//Need to set redundancy count to calculate actual FPR
+	info.setRedundancy(7000000);
 
 	info.printInfoFile(infoFile);
 
@@ -40,7 +46,7 @@ int main()
 	//test loading of info into new object;
 	BloomFilterInfo info2(infoFile);
 
-	//should be fairly identical
+	//should be identical
 	assert(info2.getCalcuatedFilterSize() == info.getCalcuatedFilterSize());
 	assert(info2.getFilterID() == info.getFilterID());
 
