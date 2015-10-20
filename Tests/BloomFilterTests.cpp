@@ -5,7 +5,7 @@
  *      Author: cjustin
  */
 
-#include "BloomFilter/BloomFilter.hpp"
+#include "BloomFilter.hpp"
 #include <string>
 #include <assert.h>
 #include <vector>

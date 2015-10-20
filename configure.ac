@@ -6,9 +6,11 @@ AC_INIT(BLOOMFILTER, 0.0.1, cjustin@bcgsc.ca)
 AC_CANONICAL_SYSTEM
 
 AM_INIT_AUTOMAKE()
+
 AC_CONFIG_HEADER([config.h])
 
 AC_PROG_RANLIB
+
 
 # Checks for programs.
 AC_PROG_CXX
@@ -35,7 +37,6 @@ AC_SUBST(AM_CXXFLAGS, '-Wall -Wextra -Werror')
 
 AC_CONFIG_FILES([
 		Makefile
-		BloomFilter/Makefile
 		Tests/Makefile
 ])
 AC_OUTPUT

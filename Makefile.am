@@ -1,5 +1,4 @@
 SUBDIRS = \
-	BloomFilter \
 	Tests
 
 dist_doc_DATA = \

@@ -11,15 +11,14 @@
 #define BLOOMFILTERINFO_H_
 #include <string>
 #include <vector>
-//#include <boost/property_tree/ptree.hpp>
-//#include <boost/property_tree/ini_parser.hpp>
+//#include </property_tree/ptree.hpp>
+//#include </property_tree/ini_parser.hpp>
 #include <math.h>
 #include <iostream>
 #include <fstream>
 #include <sstream>
 #include <assert.h>
-#include <ptree.hpp>
-#include <ini_parser.hpp>
+#include <SimpleIni.h>
 
 using namespace std;
 
@@ -54,26 +53,25 @@ public:
 	//Todo: convert to having variables stored in property tree for more modularity
 	BloomFilterInfo(string const &fileName)
 	{
-		boost::property_tree::ptree pt;
-		boost::property_tree::ini_parser::read_ini(fileName, pt);
-		m_filterID = pt.get<string>("user_input_options.filter_id");
-		m_kmerSize = pt.get<unsigned>("user_input_options.kmer_size");
-		m_desiredFPR = pt.get<float>("user_input_options.desired_false_positve_rate");
-		string tempSeqSrcs = pt.get<string>("user_input_options.sequence_sources");
+		CSimpleIniA reader;
+		reader.SetUnicode();
+		reader.LoadFile(fileName.c_str());
+
+		m_filterID = reader.GetValue("user_input_options", "filter_id", "");
+		m_kmerSize = reader.GetLongValue("user_input_options", "kmer_size", 0);
+		m_desiredFPR = reader.GetDoubleValue("user_input_options", "desired_false_positve_rate", 0);
+		string tempSeqSrcs = reader.GetValue("user_input_options", "sequence_sources", "");
 		m_seqSrcs = convertSeqSrcString(tempSeqSrcs);
-		m_hashNum = pt.get<unsigned>("user_input_options.number_of_hash_functions");
+		m_hashNum = reader.GetLongValue("user_input_options", "number_of_hash_functions", 0);
 
 		//runtime params
-		m_runInfo.size = pt.get<size_t>("runtime_options.size");
-		m_runInfo.numEntries = pt.get<size_t>("runtime_options.num_entries");
+		m_runInfo.size = reader.GetLongValue("runtime_options", "size", 0);
+		m_runInfo.numEntries = reader.GetLongValue("runtime_options", "num_entries", 0);
 
-		m_runInfo.redundantSequences = pt.get<size_t>(
-				"runtime_options.redundant_sequences");
-		m_runInfo.redundantFPR = pt.get<double>("runtime_options.redundant_fpr");
-		m_expectedNumEntries = pt.get<size_t>(
-				"user_input_options.expected_num_entries");
-		m_runInfo.FPR = pt.get<double>(
-				"runtime_options.approximate_false_positive_rate");
+		m_runInfo.redundantSequences = reader.GetLongValue("runtime_options", "redundant_sequences", 0);
+		m_runInfo.redundantFPR = reader.GetDoubleValue("runtime_options", "redundant_fpr", 0);
+		m_expectedNumEntries = reader.GetLongValue("user_input_options", "expected_num_entries", 0);
+		m_runInfo.FPR = reader.GetDoubleValue("runtime_options", "approximate_false_positive_rate", 0);
 	}
 
 	/**
