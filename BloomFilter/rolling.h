@@ -55,7 +55,7 @@ inline uint64_t ror(const uint64_t v, const int s) {
 }
 
 // Get forward-strand hash v of the base kmer, i.e. fhval(kmer_0)
-inline uint64_t getFhval(const unsigned char * kmerSeq, const unsigned k) {
+inline uint64_t getFhval(const char * kmerSeq, const unsigned k) {
     uint64_t hVal=0;
     for(unsigned i=0; i<k; i++)
         hVal ^= rol(seedTab[(unsigned char)kmerSeq[i]], k-1-i);
@@ -63,14 +63,14 @@ inline uint64_t getFhval(const unsigned char * kmerSeq, const unsigned k) {
 }
 
 // Get reverse-strand hash v of the base kmer, i.e. rhval(kmer_0)
-inline uint64_t getRhval(const unsigned char * kmerSeq, const unsigned k) {
+inline uint64_t getRhval(const char * kmerSeq, const unsigned k) {
     uint64_t hVal=0;
     for(unsigned i=0; i<k; i++)
         hVal ^= rol(seedTab[(unsigned char)kmerSeq[i]+cpOff], i);
     return hVal;
 }
 
-inline uint64_t getChval(const unsigned char * kmerSeq, const unsigned k)
+inline uint64_t getChval(const char * kmerSeq, const unsigned k)
 {
     uint64_t fhVal = getFhval(kmerSeq, k);
     uint64_t rhVal = getRhval(kmerSeq, k);
@@ -78,30 +78,30 @@ inline uint64_t getChval(const unsigned char * kmerSeq, const unsigned k)
 }
 
 
-inline uint64_t initHashes(const unsigned char * kmerSeq, const unsigned k)
+inline uint64_t initHashes(const char * kmerSeq, const unsigned k)
 {
     return getFhval(kmerSeq, k);
 }
 
 
-inline uint64_t initHashes(const unsigned char * kmerSeq, const unsigned k, uint64_t& fhVal, uint64_t& rhVal)
+inline uint64_t initHashes(const char * kmerSeq, const unsigned k, uint64_t& fhVal, uint64_t& rhVal)
 {
     fhVal = getFhval(kmerSeq, k);
     rhVal = getRhval(kmerSeq, k);
     return (rhVal<fhVal)? rhVal : fhVal;
 }
 
-inline uint64_t rollHashesRight(const uint64_t fhVal, const unsigned char charOut,
-                                const unsigned char charIn, const unsigned k)
+inline uint64_t rollHashesRight(const uint64_t fhVal, const char charOut,
+                                const char charIn, const unsigned k)
 {
-    return(rol(fhVal, 1) ^ rol(seedTab[charOut], k) ^ seedTab[charIn]);
+    return(rol(fhVal, 1) ^ rol(seedTab[(unsigned char)charOut], k) ^ seedTab[(unsigned char)charIn]);
 }
 
 
 inline uint64_t rollHashesRight(uint64_t& fhVal, uint64_t& rhVal,
-                                        const unsigned char charOut, const unsigned char charIn, const unsigned k)
+                                        const char charOut, const char charIn, const unsigned k)
 {
-    fhVal = rol(fhVal, 1) ^ rol(seedTab[charOut], k) ^ seedTab[charIn];
+    fhVal = rol(fhVal, 1) ^ rol(seedTab[(unsigned char)charOut], k) ^ seedTab[(unsigned char)charIn];
     rhVal = ror(rhVal, 1) ^ ror(seedTab[charOut+cpOff], 1) ^ rol(seedTab[charIn+cpOff], k-1);
     return (rhVal<fhVal)? rhVal : fhVal;
 }

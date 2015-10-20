@@ -80,7 +80,7 @@ public:
 	/*
 	 * For precomputing hash values. kmerSize is the number of bytes of the original string used.
 	 */
-	vector<size_t> multiHash(const unsigned char* kmer) {
+	vector<size_t> multiHash(const char* kmer) {
 		vector<size_t> tempHashValues(m_hashNum);
         uint64_t hVal = getChval(kmer, m_kmerSize);
 		for (size_t i = 0; i < m_hashNum; ++i) {
@@ -92,7 +92,7 @@ public:
 	/*
 	 * For precomputing hash values. kmerSize is the number of bytes of the original string used.
 	 */
-    vector<size_t> multiHash(const unsigned char * kmer, uint64_t& fhVal, uint64_t& rhVal) {
+    vector<size_t> multiHash(const char * kmer, uint64_t& fhVal, uint64_t& rhVal) {
         vector<size_t> tempHashValues(m_hashNum);
         fhVal = getFhval(kmer, m_kmerSize);
         rhVal = getRhval(kmer, m_kmerSize);
@@ -103,10 +103,10 @@ public:
         return tempHashValues;
     }
 	
-     vector<size_t> multiHash(uint64_t& fhVal, uint64_t& rhVal, const unsigned char charOut, const unsigned char charIn) {
+     vector<size_t> multiHash(uint64_t& fhVal, uint64_t& rhVal, const char charOut, const char charIn) {
          vector<size_t> tempHashValues(m_hashNum);
-         fhVal = rol(fhVal, 1) ^ rol(seedTab[charOut], m_kmerSize) ^ seedTab[charIn];
-         rhVal = ror(rhVal, 1) ^ ror(seedTab[charOut+cpOff], 1) ^ rol(seedTab[charIn+cpOff], m_kmerSize-1);
+         fhVal = rol(fhVal, 1) ^ rol(seedTab[(unsigned char)charOut], m_kmerSize) ^ seedTab[(unsigned char)charIn];
+         rhVal = ror(rhVal, 1) ^ ror(seedTab[(unsigned char)(charOut+cpOff)], 1) ^ rol(seedTab[(unsigned char)(charIn+cpOff)], m_kmerSize-1);
          uint64_t hVal = (rhVal<fhVal)? rhVal : fhVal;
          for (unsigned i = 0; i < m_hashNum; i++) {
              tempHashValues[i] = (i ^ (m_kmerSize * varSeed) ^ hVal);
@@ -130,7 +130,7 @@ public:
 		}
 	}
 
-    void insert(const unsigned char* kmer) {
+    void insert(const char* kmer) {
         uint64_t hVal = getChval(kmer, m_kmerSize);
         for (unsigned i = 0; i < m_hashNum; i++) {
             size_t hLoc = (i ^ (m_kmerSize * varSeed) ^ hVal) % m_size;
@@ -138,7 +138,7 @@ public:
         }
     }
     
-    void insert(const unsigned char * kmer, uint64_t& fhVal, uint64_t& rhVal) {
+    void insert(const char * kmer, uint64_t& fhVal, uint64_t& rhVal) {
         fhVal = getFhval(kmer, m_kmerSize);
         rhVal = getRhval(kmer, m_kmerSize);
         uint64_t hVal = (rhVal<fhVal)? rhVal : fhVal;
@@ -148,9 +148,9 @@ public:
         }
     }
     
-    void insert(uint64_t& fhVal, uint64_t& rhVal, const unsigned char charOut, const unsigned char charIn) {
-        fhVal = rol(fhVal, 1) ^ rol(seedTab[charOut], m_kmerSize) ^ seedTab[charIn];
-        rhVal = ror(rhVal, 1) ^ ror(seedTab[charOut+cpOff], 1) ^ rol(seedTab[charIn+cpOff], m_kmerSize-1);
+    void insert(uint64_t& fhVal, uint64_t& rhVal, const char charOut, const char charIn) {
+        fhVal = rol(fhVal, 1) ^ rol(seedTab[(unsigned char)charOut], m_kmerSize) ^ seedTab[(unsigned char)charIn];
+        rhVal = ror(rhVal, 1) ^ ror(seedTab[(unsigned char)(charOut+cpOff)], 1) ^ rol(seedTab[(unsigned char)(charIn+cpOff)], m_kmerSize-1);
         uint64_t hVal = (rhVal<fhVal)? rhVal : fhVal;
         for (unsigned i = 0; i < m_hashNum; i++) {
             size_t hLoc = (i ^ (m_kmerSize * varSeed) ^ hVal) % m_size;
@@ -175,7 +175,7 @@ public:
 	/*
 	 * Single pass filtering, computes hash values on the fly
 	 */
-	bool contains(const unsigned char* kmer) const {
+	bool contains(const char* kmer) const {
         uint64_t hVal = getChval(kmer, m_kmerSize);
         for (unsigned i = 0; i < m_hashNum; i++) {
             size_t hLoc = (i ^ (m_kmerSize * varSeed) ^ hVal) % m_size;
@@ -185,7 +185,7 @@ public:
         return true;
 	}
 
-    bool contains(const unsigned char * kmer, uint64_t& fhVal, uint64_t& rhVal) {
+    bool contains(const char * kmer, uint64_t& fhVal, uint64_t& rhVal) {
         fhVal = getFhval(kmer, m_kmerSize);
         rhVal = getRhval(kmer, m_kmerSize);
         uint64_t hVal = (rhVal<fhVal)? rhVal : fhVal;
@@ -197,9 +197,9 @@ public:
         return true;
     }
 
-    bool contains(uint64_t& fhVal, uint64_t& rhVal, const unsigned char charOut, const unsigned char charIn) {
-        fhVal = rol(fhVal, 1) ^ rol(seedTab[charOut], m_kmerSize) ^ seedTab[charIn];
-        rhVal = ror(rhVal, 1) ^ ror(seedTab[charOut+cpOff], 1) ^ rol(seedTab[charIn+cpOff], m_kmerSize-1);
+    bool contains(uint64_t& fhVal, uint64_t& rhVal, const char charOut, const char charIn) {
+        fhVal = rol(fhVal, 1) ^ rol(seedTab[(unsigned char)charOut], m_kmerSize) ^ seedTab[(unsigned char)charIn];
+        rhVal = ror(rhVal, 1) ^ ror(seedTab[(unsigned char)(charOut+cpOff)], 1) ^ rol(seedTab[(unsigned char)(charIn+cpOff)], m_kmerSize-1);
         uint64_t hVal = (rhVal<fhVal)? rhVal : fhVal;
         for (unsigned i = 0; i < m_hashNum; i++) {
             size_t hLoc = (i ^ (m_kmerSize * varSeed) ^ hVal) % m_size;
