@@ -3,11 +3,13 @@
 
 #include <stdint.h>
 
-// cpOff is the offset for the complement base in the random seeds table
+// offset for the complement base in the random seeds table
 const int cpOff = -20;
 
+// seed for gerenerating multiple hash values
 const uint64_t varSeed = 2577914034309095328ul;
 
+// 64-bit random seed table corresponding to bases and their complements
 static const uint64_t seedTab[256] = {
     0, 0, 0, 0, 0, 0, 0, 0, // 0..7
     0, 0, 0, 0, 0, 0, 0, 0, // 8..15
@@ -18,12 +20,12 @@ static const uint64_t seedTab[256] = {
     0, 0, 0, 3572411708064410444ul, 0, 0, 0, 0, // 48..55
     0, 0, 0, 0, 0, 0, 0, 0, // 56..63
     4362857412768957556ul, 4362857412768957556ul, 0, 3572411708064410444ul, 0, 0, 0, 2319985823310095140ul, // 64..71
-    0, 0, 0, 0, 0, 0, 0, 0, // 72..79
-    0, 0, 0, 0, 2978368046464386134ul, 0, 0, 0, // 80..87
+    0, 0, 0, 0, 0, 2978368046464386134ul, 0, 2319985823310095140ul, // 72..79
+    0, 0, 0, 3572411708064410444ul, 2978368046464386134ul, 0, 0, 0, // 80..87
     0, 0, 0, 0, 0, 0, 0, 0, // 88..95
-    0, 0, 0, 0, 0, 0, 0, 0, // 96..103
+    4362857412768957556ul, 4362857412768957556ul, 0, 3572411708064410444ul, 0, 0, 0, 2319985823310095140ul, // 96..103
     0, 0, 0, 0, 0, 0, 0, 0, // 104..111
-    0, 0, 0, 0, 0, 0, 0, 0, // 112..119
+    0, 0, 0, 0, 2978368046464386134ul, 0, 0, 0, // 112..119
     0, 0, 0, 0, 0, 0, 0, 0, // 120..127
     0, 0, 0, 0, 0, 0, 0, 0, // 128..135
     0, 0, 0, 0, 0, 0, 0, 0, // 136..143
@@ -43,18 +45,17 @@ static const uint64_t seedTab[256] = {
     0, 0, 0, 0, 0, 0, 0, 0  // 248..255
 };
 
-
-// Rotate "v" to the left by "s" positions
+// rotate "v" to the left by "s" positions
 inline uint64_t rol(const uint64_t v, const int s) {
     return (v << s) | (v >> (64 - s));
 }
 
-// Rotate "v" to the right by "s" positions
+// rotate "v" to the right by "s" positions
 inline uint64_t ror(const uint64_t v, const int s) {
     return (v >> s) | (v << (64 - s));
 }
 
-// Get forward-strand hash v of the base kmer, i.e. fhval(kmer_0)
+// forward-strand hash value of the base kmer, i.e. fhval(kmer_0)
 inline uint64_t getFhval(const char * kmerSeq, const unsigned k) {
     uint64_t hVal=0;
     for(unsigned i=0; i<k; i++)
@@ -62,7 +63,7 @@ inline uint64_t getFhval(const char * kmerSeq, const unsigned k) {
     return hVal;
 }
 
-// Get reverse-strand hash v of the base kmer, i.e. rhval(kmer_0)
+// reverse-strand hash value of the base kmer, i.e. rhval(kmer_0)
 inline uint64_t getRhval(const char * kmerSeq, const unsigned k) {
     uint64_t hVal=0;
     for(unsigned i=0; i<k; i++)
@@ -70,38 +71,33 @@ inline uint64_t getRhval(const char * kmerSeq, const unsigned k) {
     return hVal;
 }
 
-inline uint64_t getChval(const char * kmerSeq, const unsigned k)
-{
+// cannonical hash value of the base kmer, i.e. rhval(kmer_0)
+inline uint64_t getChval(const char * kmerSeq, const unsigned k) {
     uint64_t fhVal = getFhval(kmerSeq, k);
     uint64_t rhVal = getRhval(kmerSeq, k);
     return (rhVal<fhVal)? rhVal : fhVal;
 }
 
-
-inline uint64_t initHashes(const char * kmerSeq, const unsigned k)
-{
+// initialize forward-strand hash value of the first kmer, i.e. fhval(kmer_0)
+inline uint64_t initHashes(const char * kmerSeq, const unsigned k) {
     return getFhval(kmerSeq, k);
 }
 
-
-inline uint64_t initHashes(const char * kmerSeq, const unsigned k, uint64_t& fhVal, uint64_t& rhVal)
-{
+// initialize cannonical hash value of the first kmer, i.e. chval(kmer_0)
+inline uint64_t initHashes(const char * kmerSeq, const unsigned k, uint64_t& fhVal, uint64_t& rhVal) {
     fhVal = getFhval(kmerSeq, k);
     rhVal = getRhval(kmerSeq, k);
     return (rhVal<fhVal)? rhVal : fhVal;
 }
 
-inline uint64_t rollHashesRight(const uint64_t fhVal, const char charOut,
-                                const char charIn, const unsigned k)
-{
-    return(rol(fhVal, 1) ^ rol(seedTab[(unsigned char)charOut], k) ^ seedTab[(unsigned char)charIn]);
+// recursive forward-strand hash value for next k-mer
+inline uint64_t rollHashesRight(const uint64_t fhVal, const unsigned char charOut, const unsigned char charIn, const unsigned k) {
+    return(rol(fhVal, 1) ^ rol(seedTab[charOut], k) ^ seedTab[charIn]);
 }
 
-
-inline uint64_t rollHashesRight(uint64_t& fhVal, uint64_t& rhVal,
-                                        const char charOut, const char charIn, const unsigned k)
-{
-    fhVal = rol(fhVal, 1) ^ rol(seedTab[(unsigned char)charOut], k) ^ seedTab[(unsigned char)charIn];
+// recursive cannonical hash value for next k-mer
+inline uint64_t rollHashesRight(uint64_t& fhVal, uint64_t& rhVal, const unsigned char charOut, const unsigned char charIn, const unsigned k) {
+    fhVal = rol(fhVal, 1) ^ rol(seedTab[charOut], k) ^ seedTab[charIn];
     rhVal = ror(rhVal, 1) ^ ror(seedTab[charOut+cpOff], 1) ^ rol(seedTab[charIn+cpOff], k-1);
     return (rhVal<fhVal)? rhVal : fhVal;
 }
