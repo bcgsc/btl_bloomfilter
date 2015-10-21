@@ -28,6 +28,13 @@ static const uint8_t bitsPerChar = 0x08;
 static const unsigned char bitMask[0x08] = { 0x01, 0x02, 0x04, 0x08, 0x10, 0x20,
 		0x40, 0x80 };
 
+inline unsigned popCnt(unsigned char x) {
+    return ((0x876543210 >>
+             (((0x4332322132212110 >> ((x & 0xF) << 2)) & 0xF) << 2)) >>
+            ((0x4332322132212110 >> (((x & 0xF0) >> 2)) & 0xF) << 2))
+    & 0xf;
+}
+
 class BloomFilter {
 public:
 	/* De novo filter constructor.
@@ -248,7 +255,15 @@ public:
 		myFile.close();
 		assert(myFile);
 	}
-
+    
+    size_t getPop() const {
+        size_t i, popBF=0;
+        #pragma omp parallel for reduction(+:popBF)
+        for(i=0; i<(m_size + 7)/8; i++)
+            popBF = popBF + popCnt(m_filter[i]);
+        return popBF;
+    }
+    
 	unsigned getHashNum() const {
 		return m_hashNum;
 	}
