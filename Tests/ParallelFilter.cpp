@@ -1,3 +1,5 @@
+// New changes
+
 #include <string>
 #include <iostream>
 #include <iomanip>
@@ -13,7 +15,7 @@
 #endif
 
 namespace opt {
-    unsigned kmerLen = 64;
+    unsigned kmerLen = 30;
     unsigned ibits = 64;
     unsigned nhash = 5;
 }
