@@ -21,6 +21,7 @@
 #include <stdio.h>
 #include <cstring>
 #include "rolling.h"
+#include "city.h"
 
 using namespace std;
 
@@ -91,7 +92,7 @@ public:
 		vector<size_t> tempHashValues(m_hashNum);
 		uint64_t hVal = getChval(kmer, m_kmerSize);
 		for (size_t i = 0; i < m_hashNum; ++i) {
-			tempHashValues[i] = (i ^ (m_kmerSize * varSeed) ^ hVal);
+			tempHashValues[i] = (rol(varSeed, i) ^ hVal);
 		}
 		return tempHashValues;
 	}
@@ -106,7 +107,7 @@ public:
 		rhVal = getRhval(kmer, m_kmerSize);
 		uint64_t hVal = (rhVal < fhVal) ? rhVal : fhVal;
 		for (unsigned i = 0; i < m_hashNum; i++) {
-			tempHashValues[i] = (i ^ (m_kmerSize * varSeed) ^ hVal);
+			tempHashValues[i] = (rol(varSeed, i) ^ hVal);
 		}
 		return tempHashValues;
 	}
@@ -126,7 +127,7 @@ public:
 						m_kmerSize - 1);
 		uint64_t hVal = (rhVal < fhVal) ? rhVal : fhVal;
 		for (unsigned i = 0; i < m_hashNum; i++) {
-			tempHashValues[i] = (i ^ (m_kmerSize * varSeed) ^ hVal);
+			tempHashValues[i] = (rol(varSeed, i) ^ hVal);
 		}
 		return tempHashValues;
 	}
@@ -149,7 +150,7 @@ public:
 	void insert(const char* kmer) {
 		uint64_t hVal = getChval(kmer, m_kmerSize);
 		for (unsigned i = 0; i < m_hashNum; i++) {
-			size_t hLoc = (i ^ (m_kmerSize * varSeed) ^ hVal) % m_size;
+            size_t hLoc = (rol(varSeed, i) ^ hVal) % m_size;
 			__sync_or_and_fetch(&m_filter[hLoc / 8], (1 << (7 - hLoc % 8)));
 		}
 	}
@@ -159,7 +160,7 @@ public:
 		rhVal = getRhval(kmer, m_kmerSize);
 		uint64_t hVal = (rhVal < fhVal) ? rhVal : fhVal;
 		for (unsigned i = 0; i < m_hashNum; i++) {
-			size_t hLoc = (i ^ (m_kmerSize * varSeed) ^ hVal) % m_size;
+			size_t hLoc = (rol(varSeed, i) ^ hVal) % m_size;
 			__sync_or_and_fetch(&m_filter[hLoc / 8], (1 << (7 - hLoc % 8)));
 		}
 	}
@@ -175,7 +176,7 @@ public:
 						m_kmerSize - 1);
 		uint64_t hVal = (rhVal < fhVal) ? rhVal : fhVal;
 		for (unsigned i = 0; i < m_hashNum; i++) {
-			size_t hLoc = (i ^ (m_kmerSize * varSeed) ^ hVal) % m_size;
+			size_t hLoc = (rol(varSeed, i) ^ hVal) % m_size;
 			__sync_or_and_fetch(&m_filter[hLoc / 8], (1 << (7 - hLoc % 8)));
 		}
 	}
@@ -200,19 +201,19 @@ public:
 	bool contains(const char* kmer) const {
 		uint64_t hVal = getChval(kmer, m_kmerSize);
 		for (unsigned i = 0; i < m_hashNum; i++) {
-			size_t hLoc = (i ^ (m_kmerSize * varSeed) ^ hVal) % m_size;
+			size_t hLoc = (rol(varSeed, i) ^ hVal) % m_size;
 			if ((m_filter[hLoc / 8] & (1 << (7 - hLoc % 8))) == 0)
 				return false;
 		}
 		return true;
 	}
-
+    
 	bool contains(const char * kmer, uint64_t& fhVal, uint64_t& rhVal) {
 		fhVal = getFhval(kmer, m_kmerSize);
 		rhVal = getRhval(kmer, m_kmerSize);
 		uint64_t hVal = (rhVal < fhVal) ? rhVal : fhVal;
 		for (unsigned i = 0; i < m_hashNum; i++) {
-			size_t hLoc = (i ^ (m_kmerSize * varSeed) ^ hVal) % m_size;
+			size_t hLoc = (rol(varSeed, i) ^ hVal) % m_size;
 			if ((m_filter[hLoc / 8] & (1 << (7 - hLoc % 8))) == 0)
 				return false;
 		}
@@ -230,7 +231,7 @@ public:
 						m_kmerSize - 1);
 		uint64_t hVal = (rhVal < fhVal) ? rhVal : fhVal;
 		for (unsigned i = 0; i < m_hashNum; i++) {
-			size_t hLoc = (i ^ (m_kmerSize * varSeed) ^ hVal) % m_size;
+			size_t hLoc = (rol(varSeed, i) ^ hVal) % m_size;
 			if ((m_filter[hLoc / 8] & (1 << (7 - hLoc % 8))) == 0)
 				return false;
 		}

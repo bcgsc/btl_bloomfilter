@@ -15,8 +15,8 @@
 #endif
 
 namespace opt {
-    unsigned kmerLen = 30;
-    unsigned ibits = 64;
+    unsigned kmerLen = 32;
+    unsigned ibits = 8;
     unsigned nhash = 5;
 }
 
@@ -72,27 +72,32 @@ void getCanon(std::string &bMer) {
     }
 }
 
-void loadSeq(BloomFilter & BloomFilterFilter, const string & seq) {
+void loadSeq(BloomFilter & myFilter, const string & seq) {
     if (seq.size() < opt::kmerLen) return;
     for (size_t i = 0; i < seq.size() - opt::kmerLen + 1; i++) {
         string kmer = seq.substr(i, opt::kmerLen);
         getCanon(kmer);
-        BloomFilterFilter.insert(kmer.c_str());
+        myFilter.insert(kmer.c_str());
     }
 }
 
-void loadSeqr(BloomFilter & BloomFilterFilter, const string & seq) {
+void loadSeqr(BloomFilter & myFilter, const string & seq) {
     if (seq.size() < opt::kmerLen) return;
-    string kmer = seq.substr(0,opt::kmerLen);
-    uint64_t fhVal, rhVal;
-    BloomFilterFilter.insert(kmer.c_str(), fhVal, rhVal);
-    for (size_t i = 1; i < seq.size() - opt::kmerLen + 1; i++) {
-        BloomFilterFilter.insert(fhVal, rhVal, seq[i-1], seq[i+opt::kmerLen-1]);
+    for (size_t i = 0; i < seq.size() - opt::kmerLen + 1; i++) {
+        string kmer = seq.substr(i,opt::kmerLen);
+        myFilter.insert(kmer.c_str());
     }
+        
+    //string kmer = seq.substr(0,opt::kmerLen);
+    //uint64_t fhVal, rhVal;
+    //myFilter.insert(kmer.c_str(), fhVal, rhVal);
+    //for (size_t i = 1; i < seq.size() - opt::kmerLen + 1; i++) {
+    //    myFilter.insert(fhVal, rhVal, seq[i-1], seq[i+opt::kmerLen-1]);
+    //}
 }
 
 
-void loadBf(BloomFilter &BloomFilterFilter, const char* faqFile) {
+void loadBf(BloomFilter &myFilter, const char* faqFile) {
     ifstream uFile(faqFile);
     bool good = true;
     #pragma omp parallel
@@ -104,9 +109,36 @@ void loadBf(BloomFilter &BloomFilterFilter, const char* faqFile) {
             //good = getline(uFile, hline);
             //good = getline(uFile, hline);
         }
-        if(good) loadSeqr(BloomFilterFilter, line);
+        if(good) loadSeqr(myFilter, line);
     }
     uFile.close();
+}
+
+void queryBf(const BloomFilter &myFilter, const char* faqFile) {
+    size_t fHit=0;
+    ifstream uFile(faqFile);
+    bool good = true;
+#pragma omp parallel
+    for(string line, hline; good;) {
+#pragma omp critical(uFile)
+        {
+            good = getline(uFile, hline);
+            good = getline(uFile, line);
+            //good = getline(uFile, hline);
+            //good = getline(uFile, hline);
+        }
+        if(good) {
+            //getCanon(line);
+            if(myFilter.contains(line.c_str())) {
+                #pragma omp atomic
+                ++fHit;
+            }
+            
+                //__sync_add_and_fetch(&fHit, 1);
+        }
+    }
+    uFile.close();
+    cerr << "false hits = " << fHit << " %" << setprecision(4) << fixed << (double)fHit/100000000.00 << "\n";
 }
 
 int main(int argc, const char* argv[]) {
@@ -120,10 +152,13 @@ int main(int argc, const char* argv[]) {
     return 0;*/
 	if (argc <2) cerr << "error!\n";
     double sTime = omp_get_wtime();
-    BloomFilter myFilter(48857600000, opt::nhash, opt::kmerLen);
+    BloomFilter myFilter(800000000, opt::nhash, opt::kmerLen);
     loadBf(myFilter, argv[1]);
     cerr << "|popBF|=" << myFilter.getPop() << " ";
     cerr << setprecision(4) << fixed << omp_get_wtime() - sTime << "\n";
+    
+    
+    //queryBf(myFilter, argv[2]);
     //myFilter.store("filter3.bf");
     
     /*BloomFilter filter2(40857600000, 5, 30, "filter1.bf");
