@@ -1,3 +1,9 @@
-noinst_PROGRAMS = ParallelFilter
+noinst_PROGRAMS = BloomFilterTests \
+	BloomFilterInfoTests \
+	ParallelFilter
 
-ParallelFilter_SOURCES = ParallelFilter.cpp city.cc
+BloomFilterTests_SOURCES = BloomFilterTests.cpp
+
+BloomFilterInfoTests_SOURCES = BloomFilterInfoTests.cpp
+
+ParallelFilter_SOURCES = ParallelFilter.cpp

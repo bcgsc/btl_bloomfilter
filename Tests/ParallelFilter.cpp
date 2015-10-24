@@ -9,6 +9,7 @@
 #include <algorithm>
 #include <stdint.h>
 #include "BloomFilter.hpp"
+#include <vector>
 
 #ifdef _OPENMP
 #include <omp.h>
@@ -138,7 +139,8 @@ void queryBf(const BloomFilter &myFilter, const char* faqFile) {
         }
     }
     uFile.close();
-    cerr << "false hits = " << fHit << " %" << setprecision(4) << fixed << (double)fHit/100000000.00 << "\n";
+    cerr << "false hits = " << fHit << " " << setprecision(4) << fixed << (double)fHit/100000000.00 << "\n";
+    //return fHit;
 }
 
 int main(int argc, const char* argv[]) {
@@ -157,8 +159,12 @@ int main(int argc, const char* argv[]) {
     cerr << "|popBF|=" << myFilter.getPop() << " ";
     cerr << setprecision(4) << fixed << omp_get_wtime() - sTime << "\n";
     
+    sTime = omp_get_wtime();
+    queryBf(myFilter, argv[2]);
+    cerr << setprecision(4) << fixed << omp_get_wtime() - sTime << "\n";
     
-    //queryBf(myFilter, argv[2]);
+    
+    
     //myFilter.store("filter3.bf");
     
     /*BloomFilter filter2(40857600000, 5, 30, "filter1.bf");
