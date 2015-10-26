@@ -47,8 +47,30 @@ void makeGenome(const size_t seqLen) {
     gFile.close();
 }
 
+void makeGene(const size_t gNum, const size_t gLen) {
+    srand(time(NULL));
+    size_t bTc[alphNum] = {0, 0, 0, 0};
+    string mygSeq;
+    mygSeq.resize(gLen);
+    ofstream gFile("genes.fa");
+    for (size_t j=0; j < gNum; j++) {
+        for (int i=0; i< gLen; i++) {
+            int ranInd = rand() % alphNum;
+            mygSeq[i] = iTb[ranInd];
+            ++bTc[ranInd];
+        }
+        gFile << ">" << j << "\n" << mygSeq << "\n";
+    }
+    
+    for (int i=0; i< alphNum; i++)
+        cerr << bTc[i] << "\n";
+    gFile.close();
+}
+
 int main(int argc, const char* argv[]) {
     //makeGenome(3000000000+32-1);
     makeRead(1000000000, 32);
+    makeGene(50, 2000000+32-1);
+    //makeGene(6, 50+32-1);
     return 0;
 }
