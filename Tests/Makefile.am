@@ -6,4 +6,6 @@ BloomFilterTests_SOURCES = BloomFilterTests.cpp
 
 BloomFilterInfoTests_SOURCES = BloomFilterInfoTests.cpp
 
-ParallelFilter_SOURCES = ParallelFilter.cpp
+ParallelFilter_SOURCES = ParallelFilter.cpp \
+	xxhash.h xxhash.c \
+	city.h city.cc 

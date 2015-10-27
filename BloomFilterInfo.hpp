@@ -34,7 +34,19 @@ using namespace std;
 //	return uint8_t(-log(fpr) / log(2));
 //}
 class BloomFilterInfo {
+    
 public:
+    
+    /* Calculate FPR based on hash functions, size and number of entries
+     * see http://en.wikipedia.org/wiki/Bloom_filter
+     */
+    static inline double calcApproxFPR(size_t size, size_t numEntr,
+                                       unsigned hashFunctNum)
+    {
+        return pow(
+                   1.0 - pow(1.0 - 1.0 / double(size), double(numEntr) * hashFunctNum),
+                   double(hashFunctNum));
+    }
 
 	BloomFilterInfo(string const &filterID, unsigned kmerSize, unsigned hashNum,
 			double desiredFPR, size_t expectedNumEntries,
@@ -212,18 +224,6 @@ private:
 	// see http://en.wikipedia.org/wiki/Bloom_filter
 
 	//Private functions
-	/*
-	 * Calculate FPR based on hash functions, size and number of entries
-	 * see http://en.wikipedia.org/wiki/Bloom_filter
-	 */
-	double calcApproxFPR(size_t size, size_t numEntr,
-			unsigned hashFunctNum) const
-	{
-		return pow(
-				1.0 - pow(1.0 - 1.0 / double(size), double(numEntr) * hashFunctNum),
-				double(hashFunctNum));
-	}
-
 	/*
 	 * Calculates redundancy FPR
 	 */

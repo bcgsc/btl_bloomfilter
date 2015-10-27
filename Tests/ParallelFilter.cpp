@@ -8,9 +8,12 @@
 #include <sstream>
 #include <algorithm>
 #include <stdint.h>
-#include "BloomFilter.hpp"
+#include "BloomFilterTest.hpp"
+#include "BloomFilterInfo.hpp"
 #include "seqgen.hpp"
 #include <getopt.h>
+//#include "city.h"
+//#include "xxhash.h"
 
 #ifdef _OPENMP
 #include <omp.h>
@@ -25,33 +28,18 @@ PROGRAM " Version 1.0.0 \n"
 
 static const char USAGE_MESSAGE[] =
 "Usage: " PROGRAM " [OPTION]... QUERY\n"
-"Dispatch the sequences of the files QUERY based on the Bloom filter of the file TARGET.\n"
-"\n"
-" Options:\n"
-"\n"
-"  -p, --partition=N       divide reference to N partitions\n"
-"  -j, --threads=N         use N parallel threads [partitions]\n"
-"  -l, --alen=N            the minimum alignment length [20]\n"
-"  -b, --bmer=N            size of a bmer [3*alen/4]\n"
-"  -s, --step=N            step size used when breaking a query sequence into bmers [bmer]\n"
-"  -h, --hash=N            use N hash functions for Bloom filter [6]\n"
-"  -i, --bit=N             use N bits for each item in Bloom filter [8]\n"
-"      --se                single-end library\n"
-"      --fq                dispatch reads in fastq format\n"
-"      --help              display this help and exit\n"
-"      --version           output version information and exit\n"
-"\n"
 "Report bugs to hmohamadi@bcgsc.ca.\n";
 
 namespace opt {
     unsigned threads;
-    unsigned kmerLen=64;
+    unsigned kmerLen;
     unsigned ibits = 8;
-    unsigned nhash = 5;
-    size_t nquery=100000000;
-    size_t squery=200;
-    size_t ngene=100;
-    size_t sgene=5000000;
+    unsigned nhash;
+    size_t nquery;
+    size_t squery;
+    size_t ngene;
+    size_t sgene;
+    unsigned method;
 }
 
 using namespace std;
@@ -136,11 +124,6 @@ void loadSeq(BloomFilter & myFilter, const string & seq) {
 void loadSeqr(BloomFilter & myFilter, const string & seq) {
     if (seq.size() < opt::kmerLen) return;
     
-    /*for (size_t i = 0; i < seq.size() - opt::kmerLen + 1; i++) {
-        string kmer = seq.substr(i,opt::kmerLen);
-        myFilter.insert(kmer.c_str());
-    }*/
-        
     string kmer = seq.substr(0,opt::kmerLen);
     uint64_t fhVal, rhVal;
     myFilter.insert(kmer.c_str(), fhVal, rhVal);
@@ -149,6 +132,32 @@ void loadSeqr(BloomFilter & myFilter, const string & seq) {
     }
 }
 
+void loadSeqm(BloomFilter & myFilter, const string & seq) {
+    if (seq.size() < opt::kmerLen) return;
+    for (size_t i = 0; i < seq.size() - opt::kmerLen + 1; i++) {
+        string kmer = seq.substr(i, opt::kmerLen);
+        getCanon(kmer);
+        myFilter.insertMur(kmer.c_str());
+    }
+}
+
+void loadSeqc(BloomFilter & myFilter, const string & seq) {
+    if (seq.size() < opt::kmerLen) return;
+    for (size_t i = 0; i < seq.size() - opt::kmerLen + 1; i++) {
+        string kmer = seq.substr(i, opt::kmerLen);
+        getCanon(kmer);
+        myFilter.insertCit(kmer.c_str());
+    }
+}
+
+void loadSeqx(BloomFilter & myFilter, const string & seq) {
+    if (seq.size() < opt::kmerLen) return;
+    for (size_t i = 0; i < seq.size() - opt::kmerLen + 1; i++) {
+        string kmer = seq.substr(i, opt::kmerLen);
+        getCanon(kmer);
+        myFilter.insertXxh(kmer.c_str());
+    }
+}
 
 void loadBf(BloomFilter &myFilter, const char* faqFile) {
     ifstream uFile(faqFile);
@@ -162,19 +171,22 @@ void loadBf(BloomFilter &myFilter, const char* faqFile) {
             //good = getline(uFile, hline);
             //good = getline(uFile, hline);
         }
-        if(good) loadSeqr(myFilter, line);
+        if(good) {
+            if(opt::method==0)
+                loadSeqc(myFilter, line);
+            else if(opt::method==1)
+                loadSeqm(myFilter, line);
+            else if(opt::method==2)
+                loadSeqr(myFilter, line);
+            else if(opt::method==3)
+                loadSeqx(myFilter, line);
+        }
     }
     uFile.close();
 }
 
 void querySeqr(BloomFilter & myFilter, const string & seq, size_t & fHit) {
     if (seq.size() < opt::kmerLen) return;
-    
-    /*for (size_t i = 0; i < seq.size() - opt::kmerLen + 1; i++) {
-     string kmer = seq.substr(i,opt::kmerLen);
-     myFilter.insert(kmer.c_str());
-     }*/
-    
     string kmer = seq.substr(0,opt::kmerLen);
     uint64_t fhVal, rhVal;
     if(myFilter.contains(kmer.c_str(), fhVal, rhVal)) {
@@ -186,7 +198,42 @@ void querySeqr(BloomFilter & myFilter, const string & seq, size_t & fHit) {
             #pragma omp atomic
             ++fHit;
         }
-            
+     }
+}
+
+void querySeqm(BloomFilter & myFilter, const string & seq, size_t & fHit) {
+    if (seq.size() < opt::kmerLen) return;
+    for (size_t i = 0; i < seq.size() - opt::kmerLen + 1; i++) {
+        string kmer = seq.substr(i, opt::kmerLen);
+        getCanon(kmer);
+        if(myFilter.containsMur(kmer.c_str())) {
+            #pragma omp atomic
+            ++fHit;
+        }
+    }
+}
+
+void querySeqc(BloomFilter & myFilter, const string & seq, size_t & fHit) {
+    if (seq.size() < opt::kmerLen) return;
+    for (size_t i = 0; i < seq.size() - opt::kmerLen + 1; i++) {
+        string kmer = seq.substr(i, opt::kmerLen);
+        getCanon(kmer);
+        if(myFilter.containsCit(kmer.c_str())) {
+#pragma omp atomic
+            ++fHit;
+        }
+    }
+}
+
+void querySeqx(BloomFilter & myFilter, const string & seq, size_t & fHit) {
+    if (seq.size() < opt::kmerLen) return;
+    for (size_t i = 0; i < seq.size() - opt::kmerLen + 1; i++) {
+        string kmer = seq.substr(i, opt::kmerLen);
+        getCanon(kmer);
+        if(myFilter.containsXxh(kmer.c_str())) {
+#pragma omp atomic
+            ++fHit;
+        }
     }
 }
 
@@ -209,19 +256,24 @@ void queryBf(BloomFilter &myFilter, const char* faqFile) {
                 #pragma omp atomic
                 ++fHit;
             }*/
-            querySeqr(myFilter, line, fHit);
+            if(opt::method==0)
+                querySeqc(myFilter, line, fHit);
+            else if(opt::method==1)
+                querySeqm(myFilter, line, fHit);
+            else if(opt::method==2)
+                querySeqr(myFilter, line, fHit);
+            else if(opt::method==3)
+                querySeqx(myFilter, line, fHit);
+            
             #pragma omp atomic
             totKmer+=opt::squery-opt::kmerLen+1;
-            
-                //__sync_add_and_fetch(&fHit, 1);
         }
     }
     uFile.close();
-    cerr << "totKmer = " << totKmer << "\n";
-    cerr << "false hits = " << fHit << " " << setprecision(4) << fixed << (double)fHit/(double)totKmer << "\n";
+    cerr << "tkmer=" << totKmer << " ";
+    cerr << "fhits=" << fHit << " %" << setprecision(4) << fixed << (double)fHit/(double)totKmer << " ";
     //return fHit;
 }
-
 
 int main(int argc, char** argv) {
 
@@ -272,15 +324,20 @@ int main(int argc, char** argv) {
         exit(EXIT_FAILURE);
     }
     
+    
+#ifdef _OPENMP
+    omp_set_num_threads(opt::threads);
+#endif
 
-    std::cerr<<"kmerl="<<opt::kmerLen<<"\n";
-    std::cerr<<"nhash="<<opt::nhash<<"\n";
+    //std::cerr<<"kmerl="<<opt::kmerLen<<"\n";
+    //std::cerr<<"nhash="<<opt::nhash<<"\n";
+    std::cerr<<"thread="<<opt::threads<<"\n";
     std::cerr<<"bit/i="<<opt::ibits<<"\n";
 
     std::cerr<<"nquery="<<opt::nquery<<"\n";
     std::cerr<<"squery="<<opt::squery<<"\n";
     std::cerr<<"ngene="<<opt::ngene<<"\n";
-    std::cerr<<"sgene="<<opt::sgene<<"\n";
+    std::cerr<<"sgene="<<opt::sgene<<"\n\n";
 
     
     const char *geneName(argv[argc-2]);
@@ -295,20 +352,37 @@ int main(int argc, char** argv) {
     else
         cerr << mystr << " is not in Bloom filter.\n";
     return 0;*/
-    makeGene(opt::ngene, opt::sgene+opt::kmerLen-1);
+    string itm[4]={"city","murmur","rolling","xxhash"};
+    
+    for(int trial=1; trial <= 10; trial++) {
+    makeGene(opt::ngene, opt::sgene);
     makeRead(opt::nquery, opt::squery);
     
-    double sTime = omp_get_wtime();
-    BloomFilter myFilter(opt::ibits*opt::ngene*opt::sgene, opt::nhash, opt::kmerLen);
-    loadBf(myFilter, geneName);
-    cerr << "|popBF|=" << myFilter.getPop() << " ";
-    cerr << setprecision(4) << fixed << omp_get_wtime() - sTime << "\n";
-    
-    sTime = omp_get_wtime();
-    queryBf(myFilter, readName);
-    cerr << setprecision(4) << fixed << omp_get_wtime() - sTime << "\n";
-    
-    
+    for (unsigned k=32; k<=160; k+=32) {
+        opt::kmerLen = k;
+        std::cerr<<"kmerl="<<opt::kmerLen<<"\n";
+        for (unsigned i=1; i<6; i++) {
+            opt::nhash = i;
+            std::cerr<<"nhash="<<opt::nhash<<"\n";
+            
+            for(opt::method=0; opt::method<4; opt::method++) {
+                std::cerr<<"method="<<itm[opt::method]<<"\n";
+                double sTime = omp_get_wtime();
+                BloomFilter myFilter(opt::ibits*opt::ngene*opt::sgene , opt::nhash, opt::kmerLen);
+                loadBf(myFilter, geneName);
+                cerr << "|popBF|=" << myFilter.getPop() << " ";
+                cerr << "load_time=" <<setprecision(4) << fixed << omp_get_wtime() - sTime << "\n";
+                
+                sTime = omp_get_wtime();
+                queryBf(myFilter, readName);
+                cerr << "query_time=" << setprecision(4) << fixed << omp_get_wtime() - sTime << "\n";
+            }
+            
+            
+            cerr << "nominal_fdr%=" << BloomFilterInfo::calcApproxFPR(opt::ibits*opt::ngene*opt::sgene, opt::ngene*opt::sgene,opt::nhash ) << "\n\n";
+        }
+    }
+    }
     
     //myFilter.store("filter3.bf");
     
