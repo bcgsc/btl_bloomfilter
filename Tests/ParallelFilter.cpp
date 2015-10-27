@@ -40,11 +40,12 @@ namespace opt {
     size_t ngene;
     size_t sgene;
     unsigned method;
+    unsigned maxitr;
 }
 
 using namespace std;
 
-static const char shortopts[] = "k:b:h:j:q:l:t:g:";
+static const char shortopts[] = "k:b:h:j:q:l:t:g:m:";
 
 enum { OPT_HELP = 1, OPT_VERSION };
 
@@ -57,6 +58,7 @@ static const struct option longopts[] = {
     { "hash",	required_argument, NULL, 'h' },
     { "tnum",	required_argument, NULL, 't' },
     { "tlen",	required_argument, NULL, 'g' },
+    { "max",	required_argument, NULL, 'm' },
     { "help",	no_argument, NULL, OPT_HELP },
     { "version",	no_argument, NULL, OPT_VERSION },
     { NULL, 0, NULL, 0 }
@@ -299,6 +301,8 @@ int main(int argc, char** argv) {
                 arg >> opt::nhash; break;
             case 'k':
                 arg >> opt::kmerLen; break;
+            case 'm':
+                arg >> opt::maxitr; break;
             case OPT_HELP:
                 std::cerr << USAGE_MESSAGE;
                 exit(EXIT_SUCCESS);
@@ -354,7 +358,7 @@ int main(int argc, char** argv) {
     return 0;*/
     string itm[4]={"city","murmur","rolling","xxhash"};
     
-    for(int trial=1; trial <= 10; trial++) {
+    for(unsigned trial=1; trial <= opt::maxitr; trial++) {
     makeGene(opt::ngene, opt::sgene);
     makeRead(opt::nquery, opt::squery);
     
