@@ -21,7 +21,6 @@
 #include <stdio.h>
 #include <cstring>
 #include "rolling.h"
-#include "city.h"
 
 using namespace std;
 
