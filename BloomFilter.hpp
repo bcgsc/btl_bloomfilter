@@ -272,6 +272,8 @@ public:
         return m_kmerSize;
     }
     
+    size_t getFilterSize() const { return m_size; }
+
     ~BloomFilter() {
         delete[] m_filter;
     }
