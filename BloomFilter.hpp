@@ -37,6 +37,13 @@ inline unsigned popCnt(unsigned char x) {
 
 class BloomFilter {
 public:
+
+    /*
+     * Default constructor.
+    */
+    BloomFilter() : m_filter(NULL), m_size(0), m_sizeInBytes(0),
+        m_hashNum(0), m_kmerSize(0) {}
+
     /* De novo filter constructor.
      *
      * preconditions:
