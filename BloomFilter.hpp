@@ -156,8 +156,9 @@ public:
     void insert(const char* kmer) {
         uint64_t hVal = getChval(kmer, m_kmerSize);
         for (unsigned i = 0; i < m_hashNum; i++) {
-            size_t hLoc = (rol(varSeed, i) ^ hVal) % m_size;
-            __sync_or_and_fetch(&m_filter[hLoc / 8], (1 << (7 - hLoc % 8)));
+            size_t normalizedValue = (rol(varSeed, i) ^ hVal) % m_size;
+            __sync_or_and_fetch(&m_filter[normalizedValue / bitsPerChar],
+                                bitMask[normalizedValue % bitsPerChar]);
         }
     }
 
@@ -166,8 +167,10 @@ public:
         rhVal = getRhval(kmer, m_kmerSize);
         uint64_t hVal = (rhVal < fhVal) ? rhVal : fhVal;
         for (unsigned i = 0; i < m_hashNum; i++) {
-            size_t hLoc = (rol(varSeed, i) ^ hVal) % m_size;
-            __sync_or_and_fetch(&m_filter[hLoc / 8], (1 << (7 - hLoc % 8)));
+            size_t normalizedValue = (rol(varSeed, i) ^ hVal) % m_size;
+            __sync_or_and_fetch(&m_filter[normalizedValue / bitsPerChar],
+                                bitMask[normalizedValue % bitsPerChar]);
+        }
         }
     }
 
@@ -182,8 +185,10 @@ public:
               m_kmerSize - 1);
         uint64_t hVal = (rhVal < fhVal) ? rhVal : fhVal;
         for (unsigned i = 0; i < m_hashNum; i++) {
-            size_t hLoc = (rol(varSeed, i) ^ hVal) % m_size;
-            __sync_or_and_fetch(&m_filter[hLoc / 8], (1 << (7 - hLoc % 8)));
+            size_t normalizedValue = (rol(varSeed, i) ^ hVal) % m_size;
+            __sync_or_and_fetch(&m_filter[normalizedValue / bitsPerChar],
+                                bitMask[normalizedValue % bitsPerChar]);
+        }
         }
     }
 
@@ -207,8 +212,9 @@ public:
     bool contains(const char* kmer) const {
         uint64_t hVal = getChval(kmer, m_kmerSize);
         for (unsigned i = 0; i < m_hashNum; i++) {
-            size_t hLoc = (rol(varSeed, i) ^ hVal) % m_size;
-            if ((m_filter[hLoc / 8] & (1 << (7 - hLoc % 8))) == 0)
+            size_t normalizedValue = (rol(varSeed, i) ^ hVal) % m_size;
+            unsigned char bit = bitMask[normalizedValue % bitsPerChar];
+            if ((m_filter[normalizedValue / bitsPerChar] & bit) == 0)
                 return false;
         }
         return true;
@@ -219,8 +225,9 @@ public:
         rhVal = getRhval(kmer, m_kmerSize);
         uint64_t hVal = (rhVal < fhVal) ? rhVal : fhVal;
         for (unsigned i = 0; i < m_hashNum; i++) {
-            size_t hLoc = (rol(varSeed, i) ^ hVal) % m_size;
-            if ((m_filter[hLoc / 8] & (1 << (7 - hLoc % 8))) == 0)
+            size_t normalizedValue = (rol(varSeed, i) ^ hVal) % m_size;
+            unsigned char bit = bitMask[normalizedValue % bitsPerChar];
+            if ((m_filter[normalizedValue / bitsPerChar] & bit) == 0)
                 return false;
         }
         return true;
@@ -237,8 +244,9 @@ public:
               m_kmerSize - 1);
         uint64_t hVal = (rhVal < fhVal) ? rhVal : fhVal;
         for (unsigned i = 0; i < m_hashNum; i++) {
-            size_t hLoc = (rol(varSeed, i) ^ hVal) % m_size;
-            if ((m_filter[hLoc / 8] & (1 << (7 - hLoc % 8))) == 0)
+            size_t normalizedValue = (rol(varSeed, i) ^ hVal) % m_size;
+            unsigned char bit = bitMask[normalizedValue % bitsPerChar];
+            if ((m_filter[normalizedValue / bitsPerChar] & bit) == 0)
                 return false;
         }
         return true;
