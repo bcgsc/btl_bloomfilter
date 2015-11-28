@@ -171,7 +171,6 @@ public:
             __sync_or_and_fetch(&m_filter[normalizedValue / bitsPerChar],
                                 bitMask[normalizedValue % bitsPerChar]);
         }
-        }
     }
 
     void insert(uint64_t& fhVal, uint64_t& rhVal, const char charOut,
@@ -188,7 +187,6 @@ public:
             size_t normalizedValue = (rol(varSeed, i) ^ hVal) % m_size;
             __sync_or_and_fetch(&m_filter[normalizedValue / bitsPerChar],
                                 bitMask[normalizedValue % bitsPerChar]);
-        }
         }
     }
 
