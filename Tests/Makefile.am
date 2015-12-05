@@ -12,6 +12,7 @@ check_PROGRAMS = BloomFilterTests \
 
 BloomFilterTests_SOURCES = BloomFilterTests.cpp
 BloomFilterTests_CPPFLAGS = -I$(top_srcdir)
+BloomFilterTests_CXXFLAGS = $(AM_CXXFLAGS) $(OPENMP_CXXFLAGS)
 
 BloomFilterAdHocTests_SOURCES = BloomFilterAdHocTests.cpp
 BloomFilterAdHocTests_CPPFLAGS = -I$(top_srcdir)
