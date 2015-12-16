@@ -1,0 +1,20 @@
+# http://www.gnu.org/software/automake
+Makefile.in
+Makefile
+
+# http://www.gnu.org/software/autoconf
+/autom4te.cache
+/autoscan.log
+/autoscan-*.log
+/aclocal.m4
+/compile
+/config.h.in
+/configure
+/configure.scan
+/config.guess
+/config.sub
+/depcomp
+/install-sh
+/missing
+/stamp-h1
+/test-driver
