@@ -37,7 +37,8 @@ AC_SUBST(AM_CXXFLAGS, '-Wall -Wextra -Werror')
 
 AC_CONFIG_FILES([
 		Makefile
-		Tests/Makefile
+		Tests/Unit/Makefile
+		Tests/AdHoc/Makefile
 ])
 AC_OUTPUT
 
