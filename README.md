@@ -17,3 +17,9 @@ The unit tests may be compiled and run with:
 	$ make check
 
 To see more detailed output for the individual tests, run the binaries in `Tests/Unit` from the command line. (The ad-hoc tests in `Tests/AdHoc` may also be run in this way.)
+
+# acknowledgements
+
+This projects uses:
+* [CATCH](https://github.com/philsquared/Catch) unit test framework for C/C++
+* rolling hash implementation by Hamid Mohamadi
