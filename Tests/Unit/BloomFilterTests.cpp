@@ -16,8 +16,36 @@
 #include <assert.h>
 #include <fstream>
 #include <sstream>
+#include <cstring>
+#include <stdlib.h>
 
 using namespace std;
+
+/** create a uniquely-named temp file (tedious!) */
+string createTempFile()
+{
+	const unsigned MAX_FILENAME_SIZE = 1024;
+	const char* fileTemplate = "/XXXXXX";
+	char filename[MAX_FILENAME_SIZE + 1];
+
+	/* allow override of default tmp dir */
+	char* tmpdir = getenv("TMPDIR");
+	if (tmpdir)
+		strcpy(filename, tmpdir);
+	else
+		strcpy(filename, "/tmp");
+
+	assert(strlen(filename) + strlen(fileTemplate) <= MAX_FILENAME_SIZE);
+	strcat(filename, fileTemplate);
+
+	int fd = mkstemp(filename);
+	if (fd == -1) {
+		perror("failed to create temp file");
+		exit(EXIT_FAILURE);
+	}
+
+	return string(filename);
+}
 
 TEST_CASE("test fixture", "[BloomFilter]")
 {
@@ -34,34 +62,38 @@ TEST_CASE("test fixture", "[BloomFilter]")
 
 	/* START COMMON SETUP CODE */
 
-	//test Bloom filter with some elements
-	size_t filterSize = 1000000000;
-	BloomFilter filter(filterSize, 5, 20);
-	filter.insert("ATCGGGTCATCAACCAATAT");
-	filter.insert("ATCGGGTCATCAACCAATAC");
-	filter.insert("ATCGGGTCATCAACCAATAG");
-	filter.insert("ATCGGGTCATCAACCAATAA");
+	const size_t filterSize = 1000000000;
+	const unsigned numHashes = 5;
+	const unsigned k = 4;
+
+	BloomFilter filter(filterSize, numHashes, k);
+	filter.insert("AAAA");
+	filter.insert("CCCC");
+	filter.insert("GGGG");
+	filter.insert("TTTT");
 
 	/* END COMMON SETUP CODE */
 
 	SECTION("query elements")
 	{
-		//Check if filter is able to report expected results
-		REQUIRE(filter.contains("ATCGGGTCATCAACCAATAT"));
-		REQUIRE(filter.contains("ATCGGGTCATCAACCAATAC"));
-		REQUIRE(filter.contains("ATCGGGTCATCAACCAATAG"));
-		REQUIRE(filter.contains("ATCGGGTCATCAACCAATAA"));
+		REQUIRE(filter.contains("AAAA"));
+		REQUIRE(filter.contains("CCCC"));
+		REQUIRE(filter.contains("GGGG"));
+		REQUIRE(filter.contains("TTTT"));
 
-		REQUIRE(!filter.contains("ATCGGGTCATCAACCAATTA"));
-		REQUIRE(!filter.contains("ATCGGGTCATCAACCAATTC"));
+		REQUIRE(!filter.contains("AACC"));
 	}
 
 	SECTION("save/load Bloom file")
 	{
-		//Check storage can occur properly
-		string filename = "/tmp/bloomFilter.bf";
+		/* write filter */
+
+		string filename = createTempFile();
 		filter.storeFilter(filename);
 		ifstream ifile(filename.c_str());
+
+		/* check size of newly-created file */
+
 		assert(ifile.is_open());
 		ifile.seekg(0, ios::end); // move to end of file
 		size_t fileSize = ifile.tellg(); // file size in bytes
@@ -73,17 +105,20 @@ TEST_CASE("test fixture", "[BloomFilter]")
 		}
 		ifile.close();
 
-		//check loading of stored filter
-		BloomFilter filter2(filterSize, 5, 20, filename);
+		/* check loading of stored filter */
 
-		//Check if loaded filter is able to report expected results
-		REQUIRE(filter2.contains("ATCGGGTCATCAACCAATAT"));
-		REQUIRE(filter2.contains("ATCGGGTCATCAACCAATAC"));
-		REQUIRE(filter2.contains("ATCGGGTCATCAACCAATAG"));
-		REQUIRE(filter2.contains("ATCGGGTCATCAACCAATAA"));
+		BloomFilter filter2(filterSize, numHashes, k, filename);
 
-		REQUIRE(!filter2.contains("ATCGGGTCATCAACCAATTA"));
-		REQUIRE(!filter2.contains("ATCGGGTCATCAACCAATTC"));
+		/* check if loaded filter is able to report expected results */
+
+		REQUIRE(filter2.contains("AAAA"));
+		REQUIRE(filter2.contains("CCCC"));
+		REQUIRE(filter2.contains("GGGG"));
+		REQUIRE(filter2.contains("TTTT"));
+
+		REQUIRE(!filter.contains("AACC"));
+
+		/* cleanup */
 
 		remove(filename.c_str());
 	}
