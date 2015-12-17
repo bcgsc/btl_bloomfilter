@@ -43,6 +43,7 @@ string createTempFile()
 		perror("failed to create temp file");
 		exit(EXIT_FAILURE);
 	}
+	close(fd);
 
 	return string(filename);
 }
