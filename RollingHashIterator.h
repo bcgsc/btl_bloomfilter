@@ -6,7 +6,7 @@
 #include <cassert>
 #include <limits>
 #include <string>
-#include "BloomDBG/RollingHash.h"
+#include "RollingHash.h"
 
 /**
  * Permitted characters in k-mers. All k-mers containing
