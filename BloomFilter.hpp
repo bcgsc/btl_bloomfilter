@@ -92,7 +92,7 @@ public:
     }
 
     /*
-     * For precomputing hash values. kmerSize is the number of bytes of the original string used.
+     * For precomputing hash values.
      */
     vector<size_t> multiHash(const char* kmer) const {
         vector<size_t> tempHashValues(m_hashNum);
@@ -104,7 +104,7 @@ public:
     }
 
     /*
-     * For precomputing hash values. kmerSize is the number of bytes of the original string used.
+     * For precomputing hash values.
      */
     vector<size_t> multiHash(const char * kmer, uint64_t& fhVal,
                              uint64_t& rhVal) const {
@@ -119,7 +119,7 @@ public:
     }
 
     /*
-     * For precomputing hash values. kmerSize is the number of bytes of the original string used.
+     * For precomputing hash values.
      */
     vector<size_t> multiHash(uint64_t& fhVal, uint64_t& rhVal,
                              const char charOut, const char charIn) const {
@@ -148,8 +148,6 @@ public:
             size_t normalizedValue = precomputed.at(i) % m_size;
             __sync_or_and_fetch(&m_filter[normalizedValue / bitsPerChar],
                                 bitMask[normalizedValue % bitsPerChar]);
-            //		m_filter[normalizedValue / bitsPerChar] |= bitMask[normalizedValue
-            //				% bitsPerChar];
         }
     }
 
