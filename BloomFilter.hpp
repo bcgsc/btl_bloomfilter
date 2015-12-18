@@ -92,7 +92,8 @@ public:
     }
 
     /*
-     * For precomputing hash values.
+     * For precomputing hash values. Not rolling.
+     * Assumes cannonical sequence is desired
      */
     vector<size_t> multiHash(const char* kmer) const {
         vector<size_t> tempHashValues(m_hashNum);
@@ -104,7 +105,9 @@ public:
     }
 
     /*
-     * For precomputing hash values.
+     * For precomputing hash values. Not rolling, but for rolling intialization
+     * fhVal and rhVal store forward and reverse hash values values.
+     * Assumes cannonical sequence is desired
      */
     vector<size_t> multiHash(const char * kmer, uint64_t& fhVal,
                              uint64_t& rhVal) const {
@@ -119,7 +122,9 @@ public:
     }
 
     /*
-     * For precomputing hash values.
+     * For precomputing hash values. Rolling.
+     * fhVal and rhVal store forward and reverse hash values values.
+     * Assumes cannonical sequence is desired
      */
     vector<size_t> multiHash(uint64_t& fhVal, uint64_t& rhVal,
                              const char charOut, const char charIn) const {
