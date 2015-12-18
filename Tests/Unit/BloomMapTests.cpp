@@ -7,14 +7,10 @@
 using namespace std;
 
 /* remove #if/#endif when BloomMap is implemented */
-#if 0
 #include "BloomMap.hpp"
-#endif
 
 TEST_CASE("insert and query", "[BloomMap]")
 {
-/* remove #if/#else/#endif when BloomMap is implemented */
-#if 0
 	const size_t bloomSize = 1000;
 	const unsigned numHashes = 4;
 
@@ -35,14 +31,11 @@ TEST_CASE("insert and query", "[BloomMap]")
 
 	bloomMap.insert(hashes, values);
 
-	vector<int> retrieved = bloomMap.getValues(hashes);
+	vector<int> retrieved = bloomMap.query(hashes);
 
 	REQUIRE(retrieved.size() == 4);
 	REQUIRE(retrieved.at(0) == 0);
 	REQUIRE(retrieved.at(1) == 1);
 	REQUIRE(retrieved.at(2) == 2);
 	REQUIRE(retrieved.at(3) == 3);
-#else
-	REQUIRE(false);
-#endif
 }
