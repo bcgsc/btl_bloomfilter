@@ -1,9 +1,9 @@
 /*
-* CountingBloomFilter.hpp
-*
-*  Created on: Dec 17, 2015
-*      Author: gjahesh
-*/
+ * CountingBloomFilter.hpp
+ *
+ *  Created on: Dec 17, 2015
+ *      Author: gjahesh
+ */
 
 #ifndef COUNTINGBLOOMFilter_HPP_
 #define COUNTINGBLOOMFilter_HPP_
@@ -16,30 +16,28 @@
 
 template<typename T>
 
-class CountingBloomFilter{
+class CountingBloomFilter {
 public:
 
-/** Constructor */
-CountingBloomFilter(size_t filterSize, unsigned hashNum) :
-		m_size(filterSize), m_hashNum(hashNum)
-{
-	m_array.resize(filterSize);
-}
+	/** Constructor */
+	CountingBloomFilter(size_t filterSize, unsigned hashNum) :
+			m_size(filterSize), m_hashNum(hashNum) {
+		m_array.resize(filterSize);
+	}
 
-/** Destructor */
-virtual ~CountingBloomFilter() {}
+	/** Destructor */
+	virtual ~CountingBloomFilter() {
+	}
 
-/** Return the count of the single element*/
-T operator[](size_t i) const
-{
-	return m_array[i];
-}
+	/** Return the count of the single element*/
+	T operator[](size_t i) const {
+		return m_array[i];
+	}
 
-/** Add the object to this counting multiset.
+	/** Add the object to this counting multiset.
 	 *  If all values are the same update all
 	 *  If some values are larger only update smallest counts*/
-	void insert( std:: vector<size_t> const  &hashes )
-	{
+	void insert(std::vector<size_t> const &hashes) {
 		//check for which elements to update, basically holding the minimum
 		//hash value i.e counter value.
 
@@ -55,16 +53,14 @@ T operator[](size_t i) const
 		}
 	}
 
-/** Add the object with the specified index (debug). */
-	void insert(size_t index)
-	{
+	/** Add the object with the specified index (debug). */
+	void insert(size_t index) {
 		++m_array[index];
 	}
 
 	/** Return the count of an element based on a Minimum Selection */
 
-	T operator[](std:: vector<size_t> const  &hashes) const
-	{
+	T operator[](std::vector<size_t> const &hashes) const {
 
 		size_t currentMin = m_array[hashes.at(0) % m_size];
 		for (unsigned int i = 1; i < m_hashNum; ++i) {
@@ -73,7 +69,7 @@ T operator[](size_t i) const
 				currentMin = min;
 			}
 			if (0 == currentMin) {
-				return(0);
+				return (0);
 			}
 		}
 		return currentMin;
@@ -81,10 +77,9 @@ T operator[](size_t i) const
 
 	/** Return the count of the single element*/
 
-		T query(size_t i) const
-		{
-			return m_array[i];
-		}
+	T query(size_t i) const {
+		return m_array[i];
+	}
 
 private:
 
