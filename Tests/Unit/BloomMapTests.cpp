@@ -33,9 +33,10 @@ TEST_CASE("insert and query", "[BloomMap]")
 
 	vector<int> retrieved = bloomMap.query(hashes);
 
-	REQUIRE(retrieved.size() == 4);
-	REQUIRE(retrieved.at(0) == 0);
-	REQUIRE(retrieved.at(1) == 1);
-	REQUIRE(retrieved.at(2) == 2);
-	REQUIRE(retrieved.at(3) == 3);
+
+	REQUIRE((retrieved.size() == 4));
+	REQUIRE((retrieved.at(0) == 0));
+	REQUIRE((retrieved.at(1) == 1));
+	REQUIRE((retrieved.at(2) == 2));
+	REQUIRE((retrieved.at(3) == 3));
 }

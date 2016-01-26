@@ -62,7 +62,7 @@ public:
 
 	T operator[](std::vector<size_t> const &hashes) const {
 
-		size_t currentMin = m_array[hashes.at(0) % m_size];
+		T currentMin = m_array[hashes.at(0) % m_size];
 		for (unsigned int i = 1; i < m_hashNum; ++i) {
 			T min = m_array[hashes.at(i) % m_size];
 			if (min < currentMin) {

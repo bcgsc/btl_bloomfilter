@@ -24,12 +24,12 @@ TEST_CASE("insert and query", "[CountingBloomFilter]")
 	hashes.push_back(2);
 	hashes.push_back(3);
 
-	REQUIRE(countingBloom[hashes] == 0);
+	REQUIRE((countingBloom[hashes] == 0));
 	countingBloom.insert(hashes);
-	REQUIRE(countingBloom[hashes] == 1);
+	REQUIRE((countingBloom[hashes] == 1));
 	countingBloom.insert(hashes);
-	REQUIRE(countingBloom[hashes] == 2);
+	REQUIRE((countingBloom[hashes] == 2));
 	countingBloom.insert(hashes);
-	REQUIRE(countingBloom[hashes] == 3);
+	REQUIRE((countingBloom[hashes] == 3));
 
 }
