@@ -10,16 +10,9 @@ Fast Bloom filter loading using the rolling hash function.
 #include "BloomFilter.hpp"
 #include <vector>
 #include <string>
+#include "RollingHashIterator.h"
 
 using namespace std;
-
-/** stores state between calls to rolling hash */
-struct RollingHashState {
-	/* seed hash value for current k-mer */
-	uint64_t hash;
-	/* seed hash value for reverse complement of current k-mer */
-	uint64_t rcHash;
-};
 
 int main(int argc, char** argv)
 {
@@ -38,18 +31,10 @@ int main(int argc, char** argv)
 	BloomFilter bloom(size, numHashes, k);
 
 	/* init rolling hash state and compute hash values for first k-mer */
-	RollingHashState state;
-	string kmer0 = seq.substr(0,k);
-	hashes = bloom.multiHash(kmer0.c_str(), state.hash, state.rcHash);
-
-	/* load k-mers into Bloom filter using rolling hash */
-	for (unsigned i = 1; i < seq.length() - k + 1; ++i) {
-		/* "roll" hash values right to current k-mer */
-		char charOut = seq[i - 1];
-		char charIn = seq[i + k - 1];
-		hashes = bloom.multiHash(state.hash, state.rcHash, charOut, charIn);
-		/* insert current k-mer into Bloom filter */
-		bloom.insert(hashes);
+    	RollingHashIterator itr(seq, k, numHashes);
+	while (itr != itr.end()) {
+		BloomFilterFilter.insert(*itr);
+		itr++;
 	}
 
 	return 0;
@@ -59,7 +44,9 @@ int main(int argc, char** argv)
 # files
 
 * `BloomFilter.hpp`: main Bloom filter class
-* `rolling.h`: rolling hash function (required by `BloomFilter.hpp`)
+* `RollingHashIterator.h`: Enable rolling hashing on a string 
+* `RollingHash.h`: rolling hash interface (required by `RollingHashIterator.h`)
+* `rolling.h`: rolling hash function (required by `BloomFilter.hpp` and `RollingHash.h`)
 * `Tests/Unit`: unit tests
 * `Tests/AdHoc`: ad-hoc tests
 
