@@ -7,6 +7,7 @@
 #include <algorithm>
 #include <stdint.h>
 #include "BloomFilter.hpp"
+#include "RollingHashIterator.h"
 
 #ifdef _OPENMP
 #include <omp.h>
@@ -82,11 +83,11 @@ void loadSeq(BloomFilter & BloomFilterFilter, const string & seq) {
 void loadSeqr(BloomFilter & BloomFilterFilter, const string & seq) {
     if (seq.size() < opt::kmerLen) return;
     string kmer = seq.substr(0,opt::kmerLen);
-    uint64_t fhVal, rhVal;
-    BloomFilterFilter.insert(kmer.c_str(), fhVal, rhVal);
-    for (size_t i = 1; i < seq.size() - opt::kmerLen + 1; i++) {
-        BloomFilterFilter.insert(fhVal, rhVal, seq[i-1], seq[i+opt::kmerLen-1]);
-    }
+    RollingHashIterator itr(seq, opt::kmerLen, opt::nhash);
+	while (itr != itr.end()) {
+		BloomFilterFilter.insert(*itr);
+		itr++;
+	}
 }
 
 
