@@ -24,6 +24,16 @@ public:
 		delete[] m_array;
 	}
 
+	T& operator[](size_t i) {
+		assert (i < m_size);
+		return m_array[i];	
+	}
+	
+	const T& operator[](size_t i) const {
+		assert (i < m_size);
+		return m_array[i];	
+	}
+
 	void insert(std::vector<size_t> const &hashes, std::vector<T> &values) {
 		assert(hashes.size() == m_hashNum);
 		//iterates through hashed values adding it to the filter
