@@ -36,3 +36,22 @@ public:
         size_t getFilterSize();
 };
 
+class RollingHashIterator {
+public:
+    RollingHashIterator();
+    ~RollingHashIterator();
+    RollingHashIterator(std::string& seq, unsigned k, unsigned numHashes);
+ 
+    const std::vector<size_t>& operator*();
+    const std::vector<size_t>* operator->();
+
+    bool operator==(const RollingHashIterator& it);
+    bool operator!=(const RollingHashIterator& it);
+ 
+    RollingHashIterator& operator++();
+    RollingHashIterator operator++(int);
+
+    static const RollingHashIterator end();
+    unsigned pos();
+    std::string kmer();
+};
