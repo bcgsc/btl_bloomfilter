@@ -21,7 +21,7 @@ public:
         BloomFilter();
         ~BloomFilter();
         BloomFilter(size_t filterSize, unsigned hashNum, unsigned kmerSize);
-        BloomFilter(size_t filterSize, unsigned hashNum, unsigned kmerSize, string const &filterFilePath);
+        BloomFilter(size_t filterSize, unsigned hashNum, unsigned kmerSize, const string &filterFilePath);
 
         void insert(vector<size_t> const &precomputed);
         void insert(const char* kmer);
@@ -40,7 +40,7 @@ class RollingHashIterator {
 public:
     RollingHashIterator();
     ~RollingHashIterator();
-    RollingHashIterator(std::string& seq, unsigned k, unsigned numHashes);
+    RollingHashIterator(const std::string& seq, unsigned k, unsigned numHashes);
  
     const std::vector<size_t>& operator*();
     const std::vector<size_t>* operator->();
@@ -48,10 +48,12 @@ public:
     bool operator==(const RollingHashIterator& it);
     bool operator!=(const RollingHashIterator& it);
  
-    RollingHashIterator& operator++();
-    RollingHashIterator operator++(int);
+	std::vector<size_t> * getNext();
+	 
+//  RollingHashIterator& operator++();
+//  RollingHashIterator operator++(int);
 
-    static const RollingHashIterator end();
+//  static const RollingHashIterator end();
     unsigned pos();
     std::string kmer();
 };

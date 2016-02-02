@@ -133,6 +133,19 @@ public:
 		return it;
 	}
 
+	/** increments and get reference to hash values for current k-mer
+	 *	Returns empty hash when after last element
+	 **/
+	const std::vector<size_t> * getNext()
+	{
+		if(*this == end()) {
+			return NULL;
+		}
+		++m_pos;
+		next();
+		return &m_rollingHash.getHash();
+	}
+
     /** iterator pointing to one past last element */
 	static const RollingHashIterator end()
 	{
