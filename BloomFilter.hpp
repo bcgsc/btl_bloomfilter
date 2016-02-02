@@ -57,20 +57,20 @@ public:
         memset(m_filter, 0, m_sizeInBytes);
     }
 
-    /*
-     * Loads the filter (file is a .bf file) from path specified
-     */
-    BloomFilter(size_t filterSize, unsigned hashNum, unsigned kmerSize,
-                string const &filterFilePath) :
-    m_size(filterSize), m_hashNum(hashNum), m_kmerSize(kmerSize) {
-        initSize(m_size);
+	/*
+	 * Loads the filter (file is a .bf file) from path specified
+	 */
+	BloomFilter(size_t filterSize, unsigned hashNum, unsigned kmerSize,
+			const string &filterFilePath) :
+			m_size(filterSize), m_hashNum(hashNum), m_kmerSize(kmerSize) {
+		initSize(m_size);
 
-        FILE *file = fopen(filterFilePath.c_str(), "rb");
-        if (file == NULL) {
-            cerr << "file \"" << filterFilePath << "\" could not be read."
-            << endl;
-            exit(1);
-        }
+		FILE *file = fopen(filterFilePath.c_str(), "rb");
+		if (file == NULL) {
+			cerr << "file \"" << filterFilePath << "\" could not be read."
+					<< endl;
+			exit(1);
+		}
 
         long int lCurPos = ftell(file);
         fseek(file, 0, 2);
