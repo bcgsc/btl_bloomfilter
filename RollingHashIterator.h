@@ -81,7 +81,7 @@ public:
 	 * @param numHashes number of hash values to compute
 	 * for each k-mer
 	 */
-	RollingHashIterator(const std::string& seq, unsigned k, unsigned numHashes)
+	RollingHashIterator(const std::string& seq, unsigned numHashes, unsigned k)
 		: m_seq(seq), m_k(k), m_numHashes(numHashes),
 		m_rollingHash(m_numHashes, m_k), m_rollNextHash(false),
 		m_pos(0)
@@ -136,19 +136,16 @@ public:
 	/** increments and get reference to hash values for current k-mer
 	 *	Returns empty hash when after last element
 	 **/
-	const std::vector<size_t> * getNext()
-	{
-                if(*this == end()) {
-                    return NULL;
-                }
-		if(m_pos == 0) {
-                    ++m_pos;
-                    cerr << m_pos << endl;
-   		    return &m_rollingHash.getHash();
+	const std::vector<size_t> * getNext() {
+		if (*this == end()) {
+			return NULL;
 		}
-                ++m_pos;
-                next();
-
+		if (m_pos == 0) {
+			++m_pos;
+			return &m_rollingHash.getHash();
+		}
+		++m_pos;
+		next();
 		return &m_rollingHash.getHash();
 	}
 
