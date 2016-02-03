@@ -40,20 +40,17 @@ class RollingHashIterator {
 public:
     RollingHashIterator();
     ~RollingHashIterator();
-    RollingHashIterator(const std::string& seq, unsigned k, unsigned numHashes);
+    RollingHashIterator(const string& seq, unsigned k, unsigned numHashes);
  
     const std::vector<size_t>& operator*();
     const std::vector<size_t>* operator->();
 
     bool operator==(const RollingHashIterator& it);
     bool operator!=(const RollingHashIterator& it);
- 
-	std::vector<size_t> * getNext();
-	 
-//  RollingHashIterator& operator++();
-//  RollingHashIterator operator++(int);
-
-//  static const RollingHashIterator end();
+    vector<size_t> * getNext();
+/*  RollingHashIterator& operator++();
+    RollingHashIterator operator++(int);
+    static const RollingHashIterator end();*/
     unsigned pos();
-    std::string kmer();
+    string kmer();
 };

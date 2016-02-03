@@ -6,14 +6,14 @@ use BloomFilter;
 $filterSize = 1000000000;
 
 #Check if filter is able to report expected results
-$filter = new BloomFilter::BloomFilter($filterSize, 5, 20);
+$filter = BloomFilter::BloomFilter->new($filterSize, 5, 20);
 
-BloomFilter::BloomFilter::insert($filter, "ATCGGGTCATCAACCAATAT");
-BloomFilter::BloomFilter::insert($filter, "ATCGGGTCATCAACCAATAC");
-BloomFilter::BloomFilter::insert($filter, "ATCGGGTCATCAACCAATAG");
-BloomFilter::BloomFilter::insert($filter, "ATCGGGTCATCAACCAATAA");
+$filter->insert("ATCGGGTCATCAACCAATAT");
+$filter->insert("ATCGGGTCATCAACCAATAC");
+$filter->insert("ATCGGGTCATCAACCAATAG");
+$filter->insert("ATCGGGTCATCAACCAATAA");
 
-if (!BloomFilter::BloomFilter::contains($filter, "ATCGGGTCATCAACCAATAT")
+if (!$filter->contains("ATCGGGTCATCAACCAATAT")
 	&&!BloomFilter::BloomFilter::contains($filter, "ATCGGGTCATCAACCAATAC")
 	&& !BloomFilter::BloomFilter::contains($filter, "ATCGGGTCATCAACCAATAG")
 	&& !BloomFilter::BloomFilter::contains($filter, "ATCGGGTCATCAACCAATAA")) {
@@ -58,5 +58,27 @@ BloomFilter::SizetVector::push($a, 5);
 BloomFilter::BloomFilter::insert($filter, $a);
 BloomFilter::BloomFilter::contains($filter, $a);
 
+#RollingHashIterator tests
+$str = "TAGAATCACCCAAAGA";
+$bloom = new BloomFilter::BloomFilter(1000, 4, 5);
+$itr = new BloomFilter::RollingHashIterator($str, 5, 4);
+
+my $next = $itr->getNext();
+while ($next) {
+    BloomFilter::BloomFilter::insert($bloom, $next);
+    print "Loop";
+    $next = $itr->getNext();
+}
+
+if ($bloom->contains("TAGAA")) {
+    print "yay1";
+}
+
+if ($bloom->contains("AGAAT")) {
+    print "yay2";
+}
+if (BloomFilter::BloomFilter::contains($bloom, "GAATC")) {
+    print "yay3";
+}
 print "Done!\n";
 exit;

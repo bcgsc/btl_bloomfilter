@@ -138,11 +138,17 @@ public:
 	 **/
 	const std::vector<size_t> * getNext()
 	{
-		if(*this == end()) {
-			return NULL;
+                if(*this == end()) {
+                    return NULL;
+                }
+		if(m_pos == 0) {
+                    ++m_pos;
+                    cerr << m_pos << endl;
+   		    return &m_rollingHash.getHash();
 		}
-		++m_pos;
-		next();
+                ++m_pos;
+                next();
+
 		return &m_rollingHash.getHash();
 	}
 
