@@ -59,26 +59,29 @@ BloomFilter::BloomFilter::insert($filter, $a);
 BloomFilter::BloomFilter::contains($filter, $a);
 
 #RollingHashIterator tests
+my $k = 5;
 $str = "TAGAATCACCCAAAGA";
-$bloom = new BloomFilter::BloomFilter(1000, 4, 5);
-$itr = new BloomFilter::RollingHashIterator($str, 5, 4);
+$bloom = new BloomFilter::BloomFilter(10000, 4, $k);
+$itr = new BloomFilter::RollingHashIterator($str, 4, $k);
 
+my $count = 0;
 my $next = $itr->getNext();
 while ($next) {
-    BloomFilter::BloomFilter::insert($bloom, $next);
-    print "Loop";
-    $next = $itr->getNext();
+	$bloom->insert($next);
+    print substr($str, $count, $k) . " " .  $count++ . "\n";
+	$next =  $itr->getNext();
 }
 
-if ($bloom->contains("TAGAA")) {
-    print "yay1";
+for (my $i = 0; $i < length($str) - $k + 1; $i++) {
+	my $kmer = substr($str, $i, $k);
+	print $i . " ";
+	if($bloom->contains($kmer)){
+		print $kmer . " found\n";
+	}
+	else{
+		print $kmer . " not found\n";
+	}
 }
 
-if ($bloom->contains("AGAAT")) {
-    print "yay2";
-}
-if (BloomFilter::BloomFilter::contains($bloom, "GAATC")) {
-    print "yay3";
-}
 print "Done!\n";
 exit;

@@ -71,7 +71,7 @@ public:
 	 * the end of the iterator range.
 	 */
 	RollingHashIterator() : m_k(0), m_numHashes(0),
-		m_rollingHash(m_k, m_numHashes),
+		m_rollingHash(m_k, m_numHashes), m_start(true),
 		m_pos(std::numeric_limits<std::size_t>::max()) {}
 
 	/**
@@ -82,7 +82,7 @@ public:
 	 * for each k-mer
 	 */
 	RollingHashIterator(const std::string& seq, unsigned numHashes, unsigned k)
-		: m_seq(seq), m_k(k), m_numHashes(numHashes),
+		: m_seq(seq), m_k(k), m_numHashes(numHashes), m_start(true),
 		m_rollingHash(m_numHashes, m_k), m_rollNextHash(false),
 		m_pos(0)
 	{
@@ -136,12 +136,13 @@ public:
 	/** increments and get reference to hash values for current k-mer
 	 *	Returns empty hash when after last element
 	 **/
-	const std::vector<size_t> * getNext() {
-		if (*this == end()) {
+	const std::vector<size_t> * getNext()
+	{
+		if (m_pos >= m_seq.length() - m_k) {
 			return NULL;
 		}
-		if (m_pos == 0) {
-			++m_pos;
+		if (m_start) {
+			m_start = false;
 			return &m_rollingHash.getHash();
 		}
 		++m_pos;
@@ -181,6 +182,8 @@ private:
 	 * the current k-mer to compute the hash values for the
 	 * next k-mer */
 	bool m_rollNextHash;
+	/** completely new start of string used for getNext() **/
+	bool m_start;
 	/** position of current k-mer */
 	size_t m_pos;
 	/** position of next non-ACGT char */
