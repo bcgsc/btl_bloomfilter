@@ -116,9 +116,9 @@ public:
     /*
      * Accepts a list of precomputed hash values. Faster than rehashing each time.
      */
-    bool contains(vector<size_t> const &values) const {
+    bool contains(vector<size_t> const &precomputed) const {
         for (size_t i = 0; i < m_hashNum; ++i) {
-            size_t normalizedValue = values.at(i) % m_size;
+            size_t normalizedValue = precomputed.at(i) % m_size;
             unsigned char bit = bitMask[normalizedValue % bitsPerChar];
             if ((m_filter[normalizedValue / bitsPerChar] & bit) != bit) {
                 return false;
