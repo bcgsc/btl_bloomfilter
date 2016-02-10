@@ -47,30 +47,21 @@ if (BloomFilter::BloomFilter::contains($filter2, "ATCGGGTCATCAACCAATTA")
 }
 print "premade bf tests done\n";
 
-#Tests to see if precomputed inserts and contains can be called
-$a = new BloomFilter::SizetVector(5);
-BloomFilter::SizetVector::push($a, 1);
-BloomFilter::SizetVector::push($a, 2);
-BloomFilter::SizetVector::push($a, 3);
-BloomFilter::SizetVector::push($a, 4);
-BloomFilter::SizetVector::push($a, 5);
-
-BloomFilter::BloomFilter::insert($filter, $a);
-BloomFilter::BloomFilter::contains($filter, $a);
-
 #RollingHashIterator tests
 my $k = 5;
 $str = "TAGAATCACCCAAAGA";
 $bloom = new BloomFilter::BloomFilter(10000, 4, $k);
 $itr = new BloomFilter::RollingHashIterator($str, 4, $k);
 
-my $count = 0;
-my $next = $itr->getNext();
-while ($next) {
-	$bloom->insert($next);
-    print substr($str, $count, $k) . " " .  $count++ . "\n";
-	$next =  $itr->getNext();
-}
+BloomFilter::insertSeq($bloom, $str, 4, $k);
+
+#my $count = 0;
+#my $next = $itr->getNext();
+#while ($next) {
+#	$bloom->insert($next);
+#    print substr($str, $count, $k) . " " .  $count++ . "\n";
+#	$next =  $itr->getNext();
+#}
 
 for (my $i = 0; $i < length($str) - $k + 1; $i++) {
 	my $kmer = substr($str, $i, $k);
@@ -84,4 +75,5 @@ for (my $i = 0; $i < length($str) - $k + 1; $i++) {
 }
 
 print "Done!\n";
+
 exit;

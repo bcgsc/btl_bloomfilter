@@ -11,6 +11,7 @@ namespace std {
 %{
 #include "../BloomFilter.hpp"
 #include "../RollingHashIterator.h"
+#include "../BloomFilterUtil.h"
 %}
 
 
@@ -54,3 +55,5 @@ public:
     unsigned pos();
     string kmer();
 };
+
+void insertSeq(BloomFilter &bloom, const string& seq, unsigned numHashes, unsigned k);
