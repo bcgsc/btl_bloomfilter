@@ -33,7 +33,7 @@ int main(int argc, char** argv)
 	/* init rolling hash state and compute hash values for first k-mer */
 	RollingHashIterator itr(seq, numHashes, k);
 	while (itr != itr.end()) {
-		BloomFilterFilter.insert(*itr);
+		bloom.insert(*itr);
 		itr++;
 	}
 
