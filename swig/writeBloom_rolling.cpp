@@ -1,3 +1,4 @@
+#include <time.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <fstream>
@@ -8,12 +9,13 @@
 using namespace std;
 
 int getFileSize(string file) {
-	ifstream is (file, ifstream::ate | ifstream::binary);
+	ifstream is (file.c_str(), ifstream::ate | ifstream::binary);
 	return is.tellg();
 }
 
 void contigsToBloom(const string& file, BloomFilter &bloom, unsigned hashNum, unsigned kmerSize) {
-	ifstream infile(file);
+	ifstream infile(file.c_str());
+        clock_t t;
 
 	if (!infile) {
 		cerr << "Can't open file " << file << std::endl;
@@ -32,8 +34,11 @@ void contigsToBloom(const string& file, BloomFilter &bloom, unsigned hashNum, un
 			if (line.compare(prevHead) != 0 && seq.length() != 0 && prevHead.length() != 0) {
 				cttig++;
 				cout << cttig << endl;
-				insertSeq(bloom, seq, hashNum, kmerSize);
-			}
+                                t = clock();
+                                insertSeq(bloom, seq, hashNum, kmerSize);
+                                t = clock() - t;
+                                printf("Time: %f\n", ((float) t)/CLOCKS_PER_SEC);
+                        }
 			seq = "";
 			prevHead = line;
 		} else {
@@ -42,8 +47,10 @@ void contigsToBloom(const string& file, BloomFilter &bloom, unsigned hashNum, un
 	}
 	cttig++;
 	cout << cttig << endl;
-	insertSeq(bloom, seq, hashNum, kmerSize);
-
+        t = clock();
+        insertSeq(bloom, seq, hashNum, kmerSize);
+        t = clock() -t ;
+        printf ("Time: %f\n", ((float)t)/CLOCKS_PER_SEC);
 	infile.close();
 }
 
@@ -70,11 +77,11 @@ int main( int argc, const char* argv[] ) {
 				cerr << "Must have an argument after the -f option" << endl;
 		} else if (arg == "-k") {
 			if (i + 1 < argc) {
-				kmerSize = stoi(argv[++i]);
+				kmerSize = atoi(((string)argv[++i]).c_str());
 			}
 		} else if (arg == "-p") {
 			if (i + 1 < argc) {
-				fpr = stod(argv[++i]);
+				fpr = atof(((string)argv[++i]).c_str());
 			}
 		} 
 	}

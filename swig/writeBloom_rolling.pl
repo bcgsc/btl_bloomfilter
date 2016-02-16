@@ -34,6 +34,7 @@ use FindBin;
 use BloomFilter;
 use Getopt::Std;
 use Net::SMTP;
+use Time::HiRes;
 use vars qw($opt_f $opt_k $opt_p);
 getopts('f:k:p:');
 my ($k,$fpr)=(15,0.0001);
@@ -53,8 +54,7 @@ $fpr = $opt_p if($opt_p);
 
 print "\nRunning:$0 -f $assemblyfile -k $k -p $fpr\n\n";
 
-my $bfout = $assemblyfile . "_k" . $k . "_p" . $fpr . ".bloom";
-
+my $bfout = $assemblyfile . "_k" . $k . "_p" . $fpr . "_rolling.bf";
 
 if(! -e $assemblyfile){
    my $file_message = "\nInvalid file: $assemblyfile -- fatal\n";
@@ -100,7 +100,7 @@ chomp($date);
 my $writing_tigbloom_message = "\n$date:Writing Bloom filter to disk ($bfout)\n";
 print $writing_tigbloom_message;
 
-$bloom->storeFilter("BloomFilter.bf");
+$bloom->storeFilter($bfout);
 
 #$bloom->to_file($bfout);###write BF to disk
 
@@ -133,6 +133,7 @@ sub contigsToBloom{
    print "Contigs processed k=$k:\n";
    ###
    while(<IN>){
+       chomp;
       if(/^\>(\S+)/){
          my $head=$1;
 
@@ -140,7 +141,7 @@ sub contigsToBloom{
             $cttig++;
             print "\r$cttig";
             $|++;
-            $bloom = &kmerizeContigBloom_new(uc($seq),$bloom,$hashfct,$k);
+            $bloom = &kmerizeContigBloom_newloop(uc($seq),$bloom,$hashfct,$k);
             #$bloom = &kmerizeContigBloom(uc($seq),$bloom,$k,$cttig,0);
             #my $revcomp = &reverseComplement(uc($seq));
             #$bloom = &kmerizeContigBloom($revcomp,$bloom,$k,$cttig,1);
@@ -154,23 +155,23 @@ sub contigsToBloom{
    $cttig++;
    print "\r$cttig";
    $|++;
-   $bloom = &kmerizeContigBloom_new(uc($seq),$bloom,$hashfct,$k);
+   $bloom = &kmerizeContigBloom_newloop(uc($seq),$bloom,$hashfct,$k);
    #$bloom = &kmerizeContigBloom(uc($seq),$bloom,$k,$cttig,0);
    #my $revcomp = &reverseComplement(uc($seq));
    #$bloom = &kmerizeContigBloom($revcomp,$bloom,$k,$cttig,1);
    ###
    close IN;
-
+   
    return $bloom;
 }
 
 #----------------
 sub kmerizeContigBloom{
-   my ($seq,$bloom,$k,$head,$rc) = @_;
+   my ($seq,$bloom,$hashfuct, $k) = @_;
 
    for(my $pos=0;$pos<=(length($seq)-$k);$pos++){
       my $kmer = substr($seq,$pos,$k);
-      $bloom->add($kmer);
+      $bloom->insert($kmer);
    }
    return $bloom;
 }
@@ -187,11 +188,11 @@ sub kmerizeContigBloom_new{
     return $bloom;
 }
 
-sub kmerizeContigBloom_new{
+sub kmerizeContigBloom_newloop{
     my ($seq,$bloom,$hashfct,$k) = @_;
-
+    
     BloomFilter::insertSeq($bloom, $seq, $hashfct, $k);
-    return $bloom;
+    return $bloom
 }
 
 #-----------------------

@@ -14,14 +14,14 @@ $filter->insert("ATCGGGTCATCAACCAATAG");
 $filter->insert("ATCGGGTCATCAACCAATAA");
 
 if (!$filter->contains("ATCGGGTCATCAACCAATAT")
-	&&!BloomFilter::BloomFilter::contains($filter, "ATCGGGTCATCAACCAATAC")
-	&& !BloomFilter::BloomFilter::contains($filter, "ATCGGGTCATCAACCAATAG")
+	&&!$filter->contains("ATCGGGTCATCAACCAATAC")
+	&& !$filter->contains("ATCGGGTCATCAACCAATAG")
 	&& !BloomFilter::BloomFilter::contains($filter, "ATCGGGTCATCAACCAATAA")) {
 	print "Filter did not contain expected. \n";
 }
 
-if (BloomFilter::BloomFilter::contains($filter, "ATCGGGTCATCAACCAATTA")
-	&& BloomFilter::BloomFilter::contains($filter, "ATCGGGTCATCAACCAATTC")) {
+if ($filter->contains("ATCGGGTCATCAACCAATTA")
+	&& $filter->("ATCGGGTCATCAACCAATTC")) {
 	print "Filter contained unexpected. \n";
 }
 
@@ -29,19 +29,19 @@ print "de novo bf tests done \n";
 
 #Check storage can occur properly
 $fileName = "BloomFilter.bf";
-BloomFilter::BloomFilter::storeFilter($filter, $fileName);
+$filter->storeFilter($fileName);
 
 $filter2 = new BloomFilter::BloomFilter($filterSize, 5, 20, $fileName);
 
-if (!BloomFilter::BloomFilter::contains($filter2, "ATCGGGTCATCAACCAATAT")
-	&&!BloomFilter::BloomFilter::contains($filter2, "ATCGGGTCATCAACCAATAC")
-	&& !BloomFilter::BloomFilter::contains($filter2, "ATCGGGTCATCAACCAATAG")
-	&& !BloomFilter::BloomFilter::contains($filter2, "ATCGGGTCATCAACCAATAA")) {
+if (!$filter2->contains("ATCGGGTCATCAACCAATAT")
+	&&!$filter2->contains("ATCGGGTCATCAACCAATAC")
+	&& !$filter2->contains("ATCGGGTCATCAACCAATAG")
+	&& !$filter2->contains("ATCGGGTCATCAACCAATAA")) {
 	print "Filter2 did not contain expected. \n";
 }
 
-if (BloomFilter::BloomFilter::contains($filter2, "ATCGGGTCATCAACCAATTA")
-	&& BloomFilter::BloomFilter::contains($filter2, "ATCGGGTCATCAACCAATTC")) {
+if ($filter2->contains("ATCGGGTCATCAACCAATTA")
+	&& $filter2->contains("ATCGGGTCATCAACCAATTC")) {
 	print "Filter2 contained unexpected. \n";
 
 }
