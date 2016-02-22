@@ -31,7 +31,7 @@ print "de novo bf tests done \n";
 $fileName = "BloomFilter.bf";
 $filter->storeFilter($fileName);
 
-$filter2 = new BloomFilter::BloomFilter($filterSize, 5, 20, $fileName);
+$filter2 = new BloomFilter::BloomFilter($fileName);
 
 if (!$filter2->contains("ATCGGGTCATCAACCAATAT")
 	&&!$filter2->contains("ATCGGGTCATCAACCAATAC")
@@ -46,6 +46,12 @@ if ($filter2->contains("ATCGGGTCATCAACCAATTA")
 
 }
 print "premade bf tests done\n";
+
+$pop = $filter2->getPop();
+$hash = $filter2->getHashNum();
+$ksize = $filter2->getKmerSize();
+$size = $filter2->getFilterSize();
+print "Filter Info: Pop - $pop, numHash - $hash, kmerSize - $ksize, size - $size\n";
 
 #RollingHashIterator tests
 my $k = 5;

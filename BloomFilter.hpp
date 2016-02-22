@@ -24,6 +24,20 @@
 
 using namespace std;
 
+struct FileHeader {
+    char magic[8];
+    uint32_t hlen;
+    uint64_t size;
+    uint32_t nhash;
+    uint32_t kmer;
+    double dFPR;
+    double aFPR;
+    double rFPR;
+    uint64_t nEntry;
+    uint64_t tEntry;
+};
+
+
 static const uint8_t bitsPerChar = 0x08;
 static const unsigned char bitMask[0x08] = { 0x01, 0x02, 0x04, 0x08, 0x10, 0x20,
     0x40, 0x80 };
@@ -42,7 +56,7 @@ public:
      * Default constructor.
     */
     BloomFilter() : m_filter(NULL), m_size(0), m_sizeInBytes(0),
-        m_hashNum(0), m_kmerSize(0) {}
+        m_hashNum(0), m_kmerSize(0), m_dFPR(0), m_aFPR(0), m_rFPR(0), m_nEntry(0), m_tEntry(0){}
 
     /* De novo filter constructor.
      *
@@ -52,7 +66,7 @@ public:
      * k-mers supplied to this object should be binary (2 bits per base)
      */
     BloomFilter(size_t filterSize, unsigned hashNum, unsigned kmerSize) :
-    m_size(filterSize), m_hashNum(hashNum), m_kmerSize(kmerSize) {
+    m_size(filterSize), m_hashNum(hashNum), m_kmerSize(kmerSize), m_dFPR(0), m_aFPR(0), m_rFPR(0), m_nEntry(0), m_tEntry(0){
         initSize(m_size);
         memset(m_filter, 0, m_sizeInBytes);
     }
@@ -60,21 +74,22 @@ public:
 	/*
 	 * Loads the filter (file is a .bf file) from path specified
 	 */
-	BloomFilter(size_t filterSize, unsigned hashNum, unsigned kmerSize,
+	/*
+         BloomFilter(size_t filterSize, unsigned hashNum, unsigned kmerSize,
 			const string &filterFilePath) :
 			m_size(filterSize), m_hashNum(hashNum), m_kmerSize(kmerSize) {
 		initSize(m_size);
 
-		FILE *file = fopen(filterFilePath.c_str(), "rb");
-		if (file == NULL) {
-			cerr << "file \"" << filterFilePath << "\" could not be read."
+        FILE *file = fopen(filterFilePath.c_str(), "rb");
+	    if (file == NULL) {
+		    cerr << "file \"" << filterFilePath << "\" could not be read."
 					<< endl;
 			exit(1);
 		}
 
         long int lCurPos = ftell(file);
         fseek(file, 0, 2);
-        size_t fileSize = ftell(file);
+        size_t fileSize = ftell(file) - sizeof(struct FileHeader);
         fseek(file, lCurPos, 0);
         if (fileSize != m_sizeInBytes) {
             cerr << "Error: " << filterFilePath
@@ -89,6 +104,61 @@ public:
             << endl;
             exit(1);
         }
+    }*/
+
+    BloomFilter(const string &filterFilePath) {
+        FILE *file = fopen(filterFilePath.c_str(), "rb");
+	    if (file == NULL) {
+		    cerr << "file \"" << filterFilePath << "\" could not be read."
+					<< endl;
+			exit(1);
+		}
+
+        loadHeader(file);
+
+        long int lCurPos = ftell(file);
+        fseek(file, 0, 2);
+        size_t fileSize = ftell(file) - sizeof(struct FileHeader);
+        fseek(file, lCurPos, 0);
+        if (fileSize != m_sizeInBytes) {
+            cerr << "Error: " << filterFilePath
+            << " does not match size given by its information file. Size: "
+            << fileSize << " vs " << m_sizeInBytes << " bytes." << endl;
+            exit(1);
+        }
+
+        size_t countRead = fread(m_filter, fileSize, 1, file);
+        if (countRead != 1 && fclose(file) != 0) {
+            cerr << "file \"" << filterFilePath << "\" could not be read."
+            << endl;
+            exit(1);
+        }
+    }
+
+    void loadHeader(FILE *file) {
+
+        FileHeader header;
+        fread(&header, sizeof(struct FileHeader), 1, file);
+        char magic[9];
+        strncpy(magic, header.magic, 8);
+        magic[8] = '\0';
+
+        cerr << "Loading header... magic: " <<
+            magic << " hlen: " <<
+            header.hlen << " size: " <<
+            header.size << " nhash: " << 
+            header.nhash << " kmer: " << 
+            header.kmer << " dFPR: " << 
+            header.dFPR << " aFPR: " << 
+            header.aFPR << " rFPR: " << 
+            header.rFPR << " nEntry: " << 
+            header.nEntry << " tEntry: " << 
+            header.tEntry << endl;
+
+        m_size = header.size;
+        initSize(m_size);
+        m_hashNum = header.nhash;
+        m_kmerSize = header.kmer;
     }
 
     /*
@@ -141,6 +211,39 @@ public:
         return true;
     }
 
+    void writeHeader(ofstream &out) const {
+        FileHeader header;
+        strncpy(header.magic, "BlOOMFXX", 8);
+        char magic[9];
+        strncpy(magic, header.magic, 8);
+        magic[8] = '\0';
+
+        header.hlen = sizeof(struct FileHeader);
+        header.size = m_size;
+        header.nhash = m_hashNum;
+        header.kmer = m_kmerSize;
+        header.dFPR = m_dFPR;
+        header.aFPR = m_aFPR;;
+        header.rFPR = m_rFPR;
+        header.nEntry = m_nEntry;
+        header.tEntry = m_tEntry;
+
+        cerr << "Writting header... magic: " 
+            << magic << " hlen: "
+            << header.hlen << " size: " 
+            << header.size << " nhash: " 
+            << header.nhash << " kmer: " 
+            << header.kmer << " dFPR: " 
+            << header.dFPR << " aFPR: " 
+            << header.aFPR << " rFPR: " 
+            << header.rFPR << " nEntry: " 
+            << header.nEntry << " tEntry: " 
+            << header.tEntry << endl;
+
+        out.write(reinterpret_cast<char*>(&header), sizeof(struct FileHeader));
+    }
+
+
     /*
      * Stores the filter as a binary file to the path specified
      * Stores uncompressed because the random data tends to
@@ -153,6 +256,8 @@ public:
         << endl;
 
         assert(myFile);
+        writeHeader(myFile);
+
         //write out each block
         myFile.write(reinterpret_cast<char*>(m_filter), m_sizeInBytes);
 
@@ -174,6 +279,26 @@ public:
 
     unsigned getKmerSize() const {
         return m_kmerSize;
+    }
+
+    void setdFPR(double value) {
+        m_dFPR = value;
+    }
+
+    void setaFPR(double value) {
+        m_aFPR = value;
+    }
+
+    void setrFPR(double value) {
+        m_rFPR = value;
+    }
+
+    void setnEntry(uint64_t value) {
+        m_nEntry = value;
+    }
+    
+    void settEntry(uint64_t value) {
+        m_tEntry = value;
     }
 
     size_t getFilterSize() const { return m_size; }
@@ -202,6 +327,12 @@ private:
     size_t m_sizeInBytes;
     unsigned m_hashNum;
     unsigned m_kmerSize;
+    uint64_t m_nEntry;
+    uint64_t m_tEntry;
+    double m_aFPR;
+    double m_rFPR;
+    double m_dFPR;
+
 };
 
 #endif /* BLOOMFILTER_H_ */

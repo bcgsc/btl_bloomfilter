@@ -22,7 +22,7 @@ public:
         BloomFilter();
         ~BloomFilter();
         BloomFilter(size_t filterSize, unsigned hashNum, unsigned kmerSize);
-        BloomFilter(size_t filterSize, unsigned hashNum, unsigned kmerSize, const string &filterFilePath);
+        BloomFilter(const string &filterFilePath);
 
         void insert(vector<size_t> const &precomputed);
         void insert(const char* kmer);

@@ -34,9 +34,9 @@ use FindBin;
 use BloomFilter;
 use Getopt::Std;
 use Net::SMTP;
-use vars qw($opt_f $opt_k $opt_b $opt_s $opt_n);
-getopts('f:k:b:s:n:');
-my ($k,$bf_file, $size, $numHash)=(15,"", 0, 0);
+use vars qw($opt_f $opt_k $opt_b);
+getopts('f:k:b:');
+my ($k,$bf_file)=(15,"");
 
 #-------------------------------------------------
 
@@ -44,17 +44,12 @@ if(! $opt_f ){
    print "Usage: $0\n";
    print "-f  sequences to test (Multi-FASTA format, required)\n"; 
    print "-k  k-mer value (default -k $k, optional)\n";
-   print "-n number of hashes (requred)\n";
-   print "-s size of bloom filter in bits (reqired)\n";
    die "-b  Bloom filter\n";
 }
 
 my $assemblyfile = $opt_f;
 $k = $opt_k if($opt_k);
 $bf_file = $opt_b if($opt_b); 
-
-my $size = $opt_s if ($opt_s);
-my $numHash = $opt_n if ($opt_n);
 
 print "\nRunning:$0 -f $assemblyfile -k $k -b $bf_file\n\n";
 
@@ -79,9 +74,7 @@ chomp($date);
 
 eval{
 
-#my $bloom = new Bloom::Faster($bf_file);
-my $bloom = new BloomFilter::BloomFilter($size,$numHash, $k, $bf_file);
-print "Loading bloom filter of size $size from $bf_file\n";
+my $bloom = new BloomFilter::BloomFilter($bf_file);
 
 my $date = `date`;
 chomp($date);
@@ -151,19 +144,17 @@ sub contigsToBloom{
 sub kmerizeContigBloom{
    my ($seq,$bloom,$k,$ct_hit,$ct_total) = @_;
 
-   my $string = substr($seq, 0, 15);
    for(my $pos=0;$pos<=(length($seq)-$k);$pos++){
       $ct_total++;
       my $kmer = substr($seq,$pos,$k);
       if($bloom->contains($kmer)){
          $ct_hit++;
-      }else {
-          print "Missing: $ct_total - $kmer\n";
+      } else {
+          print "Missing: $kmer\n";
       }
    }
    return $ct_hit,$ct_total;
 }
-    
 
 #-----------------------
 sub reverseComplement{
@@ -172,3 +163,4 @@ sub reverseComplement{
    tr/ATGCYRKMBDHV/TACGRYMKVHDB/; 
    return (reverse());
 }
+            
