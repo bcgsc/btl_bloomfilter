@@ -223,7 +223,7 @@ public:
         header.nhash = m_hashNum;
         header.kmer = m_kmerSize;
         header.dFPR = m_dFPR;
-        header.aFPR = m_aFPR;;
+        header.aFPR = m_aFPR;
         header.rFPR = m_rFPR;
         header.nEntry = m_nEntry;
         header.tEntry = m_tEntry;
@@ -327,12 +327,11 @@ private:
     size_t m_sizeInBytes;
     unsigned m_hashNum;
     unsigned m_kmerSize;
-    uint64_t m_nEntry;
-    uint64_t m_tEntry;
+    double m_dFPR;
     double m_aFPR;
     double m_rFPR;
-    double m_dFPR;
-
+    uint64_t m_nEntry;
+    uint64_t m_tEntry;
 };
 
 #endif /* BLOOMFILTER_H_ */
