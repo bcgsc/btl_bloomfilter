@@ -135,31 +135,29 @@ public:
         }
     }
 
-    void loadHeader(FILE *file) {
+	void loadHeader(FILE *file) {
 
-        FileHeader header;
-        fread(&header, sizeof(struct FileHeader), 1, file);
-        char magic[9];
-        strncpy(magic, header.magic, 8);
-        magic[8] = '\0';
+		FileHeader header;
+		if (fread(&header, sizeof(struct FileHeader), 1, file) == 1) {
+			cerr << "Loading header..." << endl;
+		} else {
+			cerr << "Failed to header" << endl;
+		}
+		char magic[9];
+		strncpy(magic, header.magic, 8);
+		magic[8] = '\0';
 
-        cerr << "Loading header... magic: " <<
-            magic << " hlen: " <<
-            header.hlen << " size: " <<
-            header.size << " nhash: " << 
-            header.nhash << " kmer: " << 
-            header.kmer << " dFPR: " << 
-            header.dFPR << " aFPR: " << 
-            header.aFPR << " rFPR: " << 
-            header.rFPR << " nEntry: " << 
-            header.nEntry << " tEntry: " << 
-            header.tEntry << endl;
+		cerr << "magic: " << magic << " hlen: " << header.hlen << " size: "
+				<< header.size << " nhash: " << header.nhash << " kmer: "
+				<< header.kmer << " dFPR: " << header.dFPR << " aFPR: "
+				<< header.aFPR << " rFPR: " << header.rFPR << " nEntry: "
+				<< header.nEntry << " tEntry: " << header.tEntry << endl;
 
-        m_size = header.size;
-        initSize(m_size);
-        m_hashNum = header.nhash;
-        m_kmerSize = header.kmer;
-    }
+		m_size = header.size;
+		initSize(m_size);
+		m_hashNum = header.nhash;
+		m_kmerSize = header.kmer;
+	}
 
     /*
      * Accepts a list of precomputed hash values. Faster than rehashing each time.
