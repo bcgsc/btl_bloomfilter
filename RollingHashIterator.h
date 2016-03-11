@@ -71,8 +71,8 @@ public:
 	 * the end of the iterator range.
 	 */
 	RollingHashIterator() : m_k(0), m_numHashes(0),
-		m_rollingHash(m_k, m_numHashes), m_start(true),
-		m_pos(std::numeric_limits<std::size_t>::max()) {}
+		m_rollingHash(m_numHashes, m_k), m_rollNextHash(false),m_start(true),
+		m_pos(std::numeric_limits<std::size_t>::max()), m_nextInvalidChar(0) {}
 
 	/**
 	 * Constructor.
@@ -82,8 +82,8 @@ public:
 	 * for each k-mer
 	 */
 	RollingHashIterator(const std::string& seq, unsigned numHashes, unsigned k)
-		: m_seq(seq), m_k(k), m_numHashes(numHashes), m_start(true),
-		m_rollingHash(m_numHashes, m_k), m_rollNextHash(false),
+		: m_seq(seq), m_k(k), m_numHashes(numHashes),
+		m_rollingHash(m_numHashes, m_k), m_rollNextHash(false), m_start(true),
 		m_pos(0)
 	{
 		m_nextInvalidChar = strspn(m_seq.c_str(), ACGT_CHARS);

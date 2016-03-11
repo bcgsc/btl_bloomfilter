@@ -100,15 +100,15 @@ TEST_CASE("test fixture", "[BloomFilter]")
 		size_t fileSize = ifile.tellg(); // file size in bytes
 		//file size should be same as filter size (Round to block size)
 		if (filterSize % 64 > 0) {
-			assert((filterSize + (64 - (filterSize% 64))) == fileSize*8);
+			assert((filterSize + (64 - (filterSize% 64))) + sizeof(FileHeader)*8 == fileSize*8);
 		} else {
-			assert(filterSize == fileSize*8);
+			assert(filterSize + sizeof(FileHeader)*8 == fileSize*8);
 		}
 		ifile.close();
 
 		/* check loading of stored filter */
 
-		BloomFilter filter2(filterSize, numHashes, k, filename);
+		BloomFilter filter2(filename);
 
 		/* check if loaded filter is able to report expected results */
 

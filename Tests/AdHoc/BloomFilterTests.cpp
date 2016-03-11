@@ -80,7 +80,7 @@ int main() {
 	cout << memory_usage() - memUsage << "kb" << endl;
 
 	//check loading of stored filter
-	BloomFilter filter2(filterSize, 5, 20, filename);
+	BloomFilter filter2(filename);
 
 	//should be double size of bf (amortized)
 	cout << memory_usage() - memUsage << "kb" << endl;
