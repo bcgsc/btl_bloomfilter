@@ -178,7 +178,7 @@ public:
 		bool found = true;
 		for (unsigned i = 0; i < m_hashNum; i++) {
 			size_t normalizedValue = (rol(varSeed, i) ^ hVal) % m_size;
-			found = __sync_or_and_fetch(
+			found &= __sync_or_and_fetch(
 					&m_filter[normalizedValue / bitsPerChar],
 					bitMask[normalizedValue % bitsPerChar]);
 		}
@@ -194,7 +194,7 @@ public:
 		bool found = true;
 		for (size_t i = 0; i < m_hashNum; ++i) {
 			size_t normalizedValue = precomputed.at(i) % m_size;
-			found = __sync_or_and_fetch(
+			found &= __sync_or_and_fetch(
 					&m_filter[normalizedValue / bitsPerChar],
 					bitMask[normalizedValue % bitsPerChar]);
 		}
