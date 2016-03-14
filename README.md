@@ -108,6 +108,7 @@ The specification of the Bloom filter file format is as follows:
       * Value:
 
 Not yet implimented
+    
     * seed [optional]
       * Description: initial seeds for different hashes
       * Type: uint64_t[nhash]
