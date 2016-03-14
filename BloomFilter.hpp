@@ -24,19 +24,6 @@
 
 using namespace std;
 
-struct FileHeader {
-    char magic[8];
-    uint32_t hlen;
-    uint64_t size;
-    uint32_t nhash;
-    uint32_t kmer;
-    double dFPR;
-    double aFPR;
-    double rFPR;
-    uint64_t nEntry;
-    uint64_t tEntry;
-};
-
 
 static const uint8_t bitsPerChar = 0x08;
 static const unsigned char bitMask[0x08] = { 0x01, 0x02, 0x04, 0x08, 0x10, 0x20,
@@ -56,7 +43,7 @@ public:
      * Default constructor.
     */
     BloomFilter() : m_filter(0), m_size(0), m_sizeInBytes(0), m_hashNum(0),
-         m_kmerSize(0), m_dFPR(0), m_aFPR(0), m_rFPR(0), m_nEntry(0), m_tEntry(0) {}
+         m_kmerSize(0), m_dFPR(0), m_nEntry(0), m_tEntry(0) {}
 
     /* De novo filter constructor.
      *
@@ -66,7 +53,28 @@ public:
      */
     BloomFilter(size_t filterSize, unsigned hashNum, unsigned kmerSize) :
 			m_size(filterSize), m_hashNum(hashNum), m_kmerSize(kmerSize), m_dFPR(
-					0), m_aFPR(0), m_rFPR(0), m_nEntry(0), m_tEntry(0) {
+					0), m_nEntry(0), m_tEntry(0) {
+        initSize(m_size);
+        memset(m_filter, 0, m_sizeInBytes);
+    }
+
+    /* De novo filter constructor.
+     *
+     * preconditions:
+     * filterSize must be a multiple of 64
+     * kmerSize refers to the number of bases the kmer has
+     * if hashNum is not set or set to 0, an optimal value is computed
+     */
+	BloomFilter(size_t expectedElemNum, double fpr, unsigned kmerSize,
+			unsigned hashNum = 0) :
+			m_size(0), m_hashNum(hashNum), m_kmerSize(kmerSize), m_dFPR(fpr), m_nEntry(
+					0), m_tEntry(0) {
+		if (m_hashNum == 0) {
+			m_hashNum = calcOptiHashNum(m_dFPR);
+		}
+		if (m_size == 0) {
+			m_size = calcOptimalSize(expectedElemNum, m_dFPR);
+		}
         initSize(m_size);
         memset(m_filter, 0, m_sizeInBytes);
     }
@@ -188,8 +196,6 @@ public:
         header.nhash = m_hashNum;
         header.kmer = m_kmerSize;
         header.dFPR = m_dFPR;
-        header.aFPR = m_aFPR;
-        header.rFPR = m_rFPR;
         header.nEntry = m_nEntry;
         header.tEntry = m_tEntry;
 
@@ -246,17 +252,37 @@ public:
         return m_kmerSize;
     }
 
-    void setdFPR(double value) {
-        m_dFPR = value;
-    }
+//    void setdFPR(double value) {
+//        m_dFPR = value;
+//    }
 
-    void setaFPR(double value) {
-        m_aFPR = value;
-    }
+	/*
+	 * Calculates that False positive rate that a redundant entry is actually
+	 * a unique entry
+	 */
+	double getRedudancyFPR() {
+		assert(m_nEntry > 0);
+		double total = log(calcFPR_numInserted(1));
+		for (size_t i = 2; i < m_nEntry; ++i) {
+			total = log(exp(total) + calcFPR_numInserted(i));
+		}
+		return exp(total) / m_nEntry;
+	}
 
-    void setrFPR(double value) {
-        m_rFPR = value;
-    }
+	/*
+	 * Return FPR based on popcount
+	 */
+	double getFPR() const {
+		return pow(getPop(), m_hashNum);
+	}
+
+	/*
+	 * Return FPR based on number of inserted elements
+	 */
+	double getFPR_numEle() const {
+		assert(m_nEntry > 0);
+		return calcFPR_numInserted(m_nEntry);
+	}
 
     void setnEntry(uint64_t value) {
         m_nEntry = value;
@@ -273,6 +299,17 @@ public:
     }
 private:
     BloomFilter(const BloomFilter& that); //to prevent copy construction
+
+    struct FileHeader {
+        char magic[8];
+        uint32_t hlen;
+        uint64_t size;
+        uint32_t nhash;
+        uint32_t kmer;
+        double dFPR;
+        uint64_t nEntry;
+        uint64_t tEntry;
+    };
 
     /*
      * Checks filter size and initializes filter
@@ -291,14 +328,38 @@ private:
 	 * Only returns multiples of 64 for filter building purposes
 	 * Is an estimated size using approximations of FPR formula
 	 * given the number of hash functions
-	 * see http://en.wikipedia.org/wiki/Bloom_filter
 	 */
-	size_t calcOptimalSize(size_t entries, float fpr, unsigned hashNum) const {
+	size_t calcOptimalSize(size_t entries, double fpr) const {
 		size_t non64ApproxVal = size_t(
-				-double(entries) * double(hashNum)
-						/ log(1.0 - pow(fpr, float(1 / (float(hashNum))))));
+				-double(entries) * double(m_hashNum)
+						/ log(1.0 - pow(fpr, double(1 / double(m_hashNum)))));
 
 		return non64ApproxVal + (64 - non64ApproxVal % 64);
+	}
+
+	/*
+	 * Calculates the optimal number of hash function to use
+	 * Calculation assumes optimal ratio of bytes per entry given a fpr
+	 */
+	static unsigned calcOptiHashNum(double fpr) {
+		return unsigned(-log(fpr) / log(2));
+	}
+
+	/*
+	 * Calculate FPR based on hash functions, size and number of entries
+	 * see http://en.wikipedia.org/wiki/Bloom_filter
+	 */
+	double calcFPR_numInserted(size_t numEntr) const {
+		return pow(1.0 - pow(1.0 - 1.0 / double(m_size),
+								double(numEntr) * m_hashNum),
+				double(m_hashNum));
+	}
+
+	/*
+	 * Calculates the optimal FPR to use based on hash functions
+	 */
+	double calcFPR_hashNum(unsigned hashFunctNum) const {
+		return pow(2, -hashFunctNum);
 	}
 
     uint8_t* m_filter;
@@ -307,8 +368,6 @@ private:
     unsigned m_hashNum;
     unsigned m_kmerSize;
     double m_dFPR;
-    double m_aFPR;
-    double m_rFPR;
     uint64_t m_nEntry;
     uint64_t m_tEntry;
 };
