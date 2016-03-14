@@ -63,48 +63,12 @@ public:
      * preconditions:
      * filterSize must be a multiple of 64
      * kmerSize refers to the number of bases the kmer has
-     * k-mers supplied to this object should be binary (2 bits per base)
      */
     BloomFilter(size_t filterSize, unsigned hashNum, unsigned kmerSize) :
     m_size(filterSize), m_hashNum(hashNum), m_kmerSize(kmerSize), m_dFPR(0), m_aFPR(0), m_rFPR(0), m_nEntry(0), m_tEntry(0){
         initSize(m_size);
         memset(m_filter, 0, m_sizeInBytes);
     }
-
-	/*
-	 * Loads the filter (file is a .bf file) from path specified
-	 */
-	/*
-         BloomFilter(size_t filterSize, unsigned hashNum, unsigned kmerSize,
-			const string &filterFilePath) :
-			m_size(filterSize), m_hashNum(hashNum), m_kmerSize(kmerSize) {
-		initSize(m_size);
-
-        FILE *file = fopen(filterFilePath.c_str(), "rb");
-	    if (file == NULL) {
-		    cerr << "file \"" << filterFilePath << "\" could not be read."
-					<< endl;
-			exit(1);
-		}
-
-        long int lCurPos = ftell(file);
-        fseek(file, 0, 2);
-        size_t fileSize = ftell(file) - sizeof(struct FileHeader);
-        fseek(file, lCurPos, 0);
-        if (fileSize != m_sizeInBytes) {
-            cerr << "Error: " << filterFilePath
-            << " does not match size given by its information file. Size: "
-            << fileSize << " vs " << m_sizeInBytes << " bytes." << endl;
-            exit(1);
-        }
-
-        size_t countRead = fread(m_filter, fileSize, 1, file);
-        if (countRead != 1 && fclose(file) != 0) {
-            cerr << "file \"" << filterFilePath << "\" could not be read."
-            << endl;
-            exit(1);
-        }
-    }*/
 
     BloomFilter(const string &filterFilePath) {
         FILE *file = fopen(filterFilePath.c_str(), "rb");
@@ -228,17 +192,17 @@ public:
         header.nEntry = m_nEntry;
         header.tEntry = m_tEntry;
 
-        cerr << "Writting header... magic: " 
-            << magic << " hlen: "
-            << header.hlen << " size: " 
-            << header.size << " nhash: " 
-            << header.nhash << " kmer: " 
-            << header.kmer << " dFPR: " 
-            << header.dFPR << " aFPR: " 
-            << header.aFPR << " rFPR: " 
-            << header.rFPR << " nEntry: " 
-            << header.nEntry << " tEntry: " 
-            << header.tEntry << endl;
+//        cerr << "Writing header... magic: "
+//            << magic << " hlen: "
+//            << header.hlen << " size: "
+//            << header.size << " nhash: "
+//            << header.nhash << " kmer: "
+//            << header.kmer << " dFPR: "
+//            << header.dFPR << " aFPR: "
+//            << header.aFPR << " rFPR: "
+//            << header.rFPR << " nEntry: "
+//            << header.nEntry << " tEntry: "
+//            << header.tEntry << endl;
 
         out.write(reinterpret_cast<char*>(&header), sizeof(struct FileHeader));
     }
@@ -321,6 +285,16 @@ private:
         m_sizeInBytes = size / bitsPerChar;
         m_filter = new unsigned char[m_sizeInBytes];
     }
+
+	size_t calcOptimalSize(size_t entries, float fpr,
+			unsigned hashNum) const
+	{
+		size_t non64ApproxVal = size_t(
+				-double(entries) * double(hashNum)
+						/ log(1.0 - pow(fpr, float(1 / (float(hashNum))))));
+
+		return non64ApproxVal + (64 - non64ApproxVal % 64);
+	}
 
     uint8_t* m_filter;
     size_t m_size;
