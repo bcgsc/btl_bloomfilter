@@ -94,20 +94,8 @@ The specification of the Bloom filter file format is as follows:
       * Description: k-mer size
       * Type: uint32_t
       * Value:
-    * seed [optional]
-      * Description: initial seeds for different hashes
-      * Type: uint64_t[nhash]
-      * Value: [0,1, ..., nhash-1]
     * dFPR [optional]
       * Description: desired false positve rate
-      * Type: double
-      * Value:
-    * aFPR [optional]
-      * Description: approximate false positive rate
-      * Type: double
-      * Value:
-    * rFPR [optional]
-      * Description: redundant false positive rate
       * Type: double
       * Value:
     * nEntry [optional]
@@ -118,6 +106,13 @@ The specification of the Bloom filter file format is as follows:
       * Description: total number of entries
       * Type: uint64_t
       * Value:
+
+Not yet implimented
+    * seed [optional]
+      * Description: initial seeds for different hashes
+      * Type: uint64_t[nhash]
+      * Value: [0,1, ..., nhash-1]
+
 4. filter
   * Description: Bloom filter content
   * Type: uchar[size]
