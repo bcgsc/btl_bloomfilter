@@ -170,9 +170,9 @@ public:
 		}
 	}
 
-    /*
-     * Returns if already inserted
-     */
+	/*
+	 * Returns if already inserted
+	 */
 	bool insertAndCheck(const char* kmer) {
 		uint64_t hVal = getChval(kmer, m_kmerSize);
 		bool found = true;
@@ -185,10 +185,10 @@ public:
 		return found;
 	}
 
-    /*
-     * Accepts a list of precomputed hash values. Faster than rehashing each time.
-     * Returns if already inserted
-     */
+	/*
+	 * Accepts a list of precomputed hash values. Faster than rehashing each time.
+	 * Returns if already inserted
+	 */
 	bool insertAndCheck(vector<size_t> const &precomputed) {
 		//iterates through hashed values adding it to the filter
 		bool found = true;
