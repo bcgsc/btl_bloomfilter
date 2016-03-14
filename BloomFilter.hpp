@@ -39,6 +39,17 @@ inline unsigned popCnt(unsigned char x) {
 class BloomFilter {
 public:
 
+    struct FileHeader {
+        char magic[8];
+        uint32_t hlen;
+        uint64_t size;
+        uint32_t nhash;
+        uint32_t kmer;
+        double dFPR;
+        uint64_t nEntry;
+        uint64_t tEntry;
+    };
+
     /*
      * Default constructor.
     */
@@ -49,6 +60,7 @@ public:
      *
      * preconditions:
      * filterSize must be a multiple of 64
+     *
      * kmerSize refers to the number of bases the kmer has
      */
     BloomFilter(size_t filterSize, unsigned hashNum, unsigned kmerSize) :
@@ -59,14 +71,12 @@ public:
     }
 
     /* De novo filter constructor.
+     * Allocates a filter size based on the number of expected elements and FPR
      *
-     * preconditions:
-     * filterSize must be a multiple of 64
-     * kmerSize refers to the number of bases the kmer has
-     * if hashNum is not set or set to 0, an optimal value is computed
-     */
-	BloomFilter(size_t expectedElemNum, double fpr, unsigned kmerSize,
-			unsigned hashNum = 0) :
+     * If hashNum is set to 0, an optimal value is computed based on the FPR
+	 */
+	BloomFilter(size_t expectedElemNum, double fpr, unsigned hashNum,
+			unsigned kmerSize) :
 			m_size(0), m_hashNum(hashNum), m_kmerSize(kmerSize), m_dFPR(fpr), m_nEntry(
 					0), m_tEntry(0) {
 		if (m_hashNum == 0) {
@@ -151,14 +161,45 @@ public:
         }
     }
 
-    void insert(const char* kmer) {
-        uint64_t hVal = getChval(kmer, m_kmerSize);
-        for (unsigned i = 0; i < m_hashNum; i++) {
-            size_t normalizedValue = (rol(varSeed, i) ^ hVal) % m_size;
-            __sync_or_and_fetch(&m_filter[normalizedValue / bitsPerChar],
-                                bitMask[normalizedValue % bitsPerChar]);
-        }
-    }
+	void insert(const char* kmer) {
+		uint64_t hVal = getChval(kmer, m_kmerSize);
+		for (unsigned i = 0; i < m_hashNum; i++) {
+			size_t normalizedValue = (rol(varSeed, i) ^ hVal) % m_size;
+			__sync_or_and_fetch(&m_filter[normalizedValue / bitsPerChar],
+					bitMask[normalizedValue % bitsPerChar]);
+		}
+	}
+
+    /*
+     * Returns if already inserted
+     */
+	bool insertAndCheck(const char* kmer) {
+		uint64_t hVal = getChval(kmer, m_kmerSize);
+		bool found = true;
+		for (unsigned i = 0; i < m_hashNum; i++) {
+			size_t normalizedValue = (rol(varSeed, i) ^ hVal) % m_size;
+			found = __sync_or_and_fetch(
+					&m_filter[normalizedValue / bitsPerChar],
+					bitMask[normalizedValue % bitsPerChar]);
+		}
+		return found;
+	}
+
+    /*
+     * Accepts a list of precomputed hash values. Faster than rehashing each time.
+     * Returns if already inserted
+     */
+	bool insertAndCheck(vector<size_t> const &precomputed) {
+		//iterates through hashed values adding it to the filter
+		bool found = true;
+		for (size_t i = 0; i < m_hashNum; ++i) {
+			size_t normalizedValue = precomputed.at(i) % m_size;
+			found = __sync_or_and_fetch(
+					&m_filter[normalizedValue / bitsPerChar],
+					bitMask[normalizedValue % bitsPerChar]);
+		}
+		return found;
+	}
 
     /*
      * Accepts a list of precomputed hash values. Faster than rehashing each time.
@@ -288,6 +329,14 @@ public:
 		return calcFPR_numInserted(m_nEntry);
 	}
 
+	uint64_t getnEntry() {
+        return m_nEntry;
+    }
+
+    uint64_t gettEntry() {
+    	return m_tEntry;
+    }
+
     void setnEntry(uint64_t value) {
         m_nEntry = value;
     }
@@ -303,17 +352,6 @@ public:
     }
 private:
     BloomFilter(const BloomFilter& that); //to prevent copy construction
-
-    struct FileHeader {
-        char magic[8];
-        uint32_t hlen;
-        uint64_t size;
-        uint32_t nhash;
-        uint32_t kmer;
-        double dFPR;
-        uint64_t nEntry;
-        uint64_t tEntry;
-    };
 
     /*
      * Checks filter size and initializes filter

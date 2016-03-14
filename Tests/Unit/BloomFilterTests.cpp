@@ -100,9 +100,9 @@ TEST_CASE("test fixture", "[BloomFilter]")
 		size_t fileSize = ifile.tellg(); // file size in bytes
 		//file size should be same as filter size (Round to block size)
 		if (filterSize % 64 > 0) {
-			assert((filterSize + (64 - (filterSize% 64))) + sizeof(FileHeader)*8 == fileSize*8);
+			assert((filterSize + (64 - (filterSize% 64))) + sizeof(BloomFilter::FileHeader)*8 == fileSize*8);
 		} else {
-			assert(filterSize + sizeof(FileHeader)*8 == fileSize*8);
+			assert(filterSize + sizeof(BloomFilter::FileHeader)*8 == fileSize*8);
 		}
 		ifile.close();
 
