@@ -55,8 +55,8 @@ public:
     /*
      * Default constructor.
     */
-    BloomFilter() : m_filter(NULL), m_size(0), m_sizeInBytes(0),
-        m_hashNum(0), m_kmerSize(0), m_dFPR(0), m_aFPR(0), m_rFPR(0), m_nEntry(0), m_tEntry(0){}
+    BloomFilter() : m_filter(0), m_size(0), m_sizeInBytes(0), m_hashNum(0),
+         m_kmerSize(0), m_dFPR(0), m_aFPR(0), m_rFPR(0), m_nEntry(0), m_tEntry(0) {}
 
     /* De novo filter constructor.
      *
@@ -65,7 +65,8 @@ public:
      * kmerSize refers to the number of bases the kmer has
      */
     BloomFilter(size_t filterSize, unsigned hashNum, unsigned kmerSize) :
-    m_size(filterSize), m_hashNum(hashNum), m_kmerSize(kmerSize), m_dFPR(0), m_aFPR(0), m_rFPR(0), m_nEntry(0), m_tEntry(0){
+			m_size(filterSize), m_hashNum(hashNum), m_kmerSize(kmerSize), m_dFPR(
+					0), m_aFPR(0), m_rFPR(0), m_nEntry(0), m_tEntry(0) {
         initSize(m_size);
         memset(m_filter, 0, m_sizeInBytes);
     }
@@ -107,17 +108,17 @@ public:
         strncpy(magic, header.magic, 8);
         magic[8] = '\0';
 
-        cerr << "Loading header... magic: " <<
-            magic << " hlen: " <<
-            header.hlen << " size: " <<
-            header.size << " nhash: " << 
-            header.nhash << " kmer: " << 
-            header.kmer << " dFPR: " << 
-            header.dFPR << " aFPR: " << 
-            header.aFPR << " rFPR: " << 
-            header.rFPR << " nEntry: " << 
-            header.nEntry << " tEntry: " << 
-            header.tEntry << endl;
+//        cerr << "Loading header... magic: " <<
+//            magic << " hlen: " <<
+//            header.hlen << " size: " <<
+//            header.size << " nhash: " <<
+//            header.nhash << " kmer: " <<
+//            header.kmer << " dFPR: " <<
+//            header.dFPR << " aFPR: " <<
+//            header.aFPR << " rFPR: " <<
+//            header.rFPR << " nEntry: " <<
+//            header.nEntry << " tEntry: " <<
+//            header.tEntry << endl;
 
         m_size = header.size;
         initSize(m_size);
@@ -286,9 +287,13 @@ private:
         m_filter = new unsigned char[m_sizeInBytes];
     }
 
-	size_t calcOptimalSize(size_t entries, float fpr,
-			unsigned hashNum) const
-	{
+    /*
+	 * Only returns multiples of 64 for filter building purposes
+	 * Is an estimated size using approximations of FPR formula
+	 * given the number of hash functions
+	 * see http://en.wikipedia.org/wiki/Bloom_filter
+	 */
+	size_t calcOptimalSize(size_t entries, float fpr, unsigned hashNum) const {
 		size_t non64ApproxVal = size_t(
 				-double(entries) * double(hashNum)
 						/ log(1.0 - pow(fpr, float(1 / (float(hashNum))))));
