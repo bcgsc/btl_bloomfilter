@@ -317,7 +317,7 @@ public:
 	 * Return FPR based on popcount
 	 */
 	double getFPR() const {
-		return pow(getPop(), m_hashNum);
+		return pow(double(getPop())/double(m_size), m_hashNum);
 	}
 
 	/*
