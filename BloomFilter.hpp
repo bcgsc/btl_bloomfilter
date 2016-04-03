@@ -216,6 +216,20 @@ public:
 	}
 
 	/*
+	 * Accepts a list of precomputed hash values. Faster than rehashing each time.
+	 */
+	bool contains(const size_t precomputed[]) const {
+		for (size_t i = 0; i < m_hashNum; ++i) {
+			size_t normalizedValue = precomputed[i] % m_size;
+			unsigned char bit = bitMask[normalizedValue % bitsPerChar];
+			if ((m_filter[normalizedValue / bitsPerChar] & bit) != bit) {
+				return false;
+			}
+		}
+		return true;
+	}
+
+	/*
 	 * Single pass filtering, computes hash values on the fly
 	 */
 	bool contains(const char* kmer) const {
