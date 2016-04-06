@@ -36,11 +36,17 @@ struct FileHeader {
 BloomMap<T>(size_t filterSize, unsigned hashNum, unsigned kmerSize) :
 		m_size(filterSize), m_hashNum(hashNum),m_dFPR(0), m_nEntry(0), m_tEntry(0),
 		m_kmerSize(kmerSize) {
+	  cerr << "bloom constructor" << endl;
 		m_array = new T[m_size]();
+		cerr << "m_size:" << m_size << endl;
 }
 
-BloomMap<T>(const string &FilePath) {
-		FILE *file = fopen(FilePath.c_str(), "rb+");
+BloomMap<T>(const string &FilePath){
+
+
+		m_array = new T[m_size]();
+		FILE *file = fopen(FilePath.c_str(), "rb");
+		cerr << "2" << endl;
 		if (file == NULL) {
 			cerr << "file \"" << FilePath << "\" could not be read."
 					<< endl;
@@ -55,9 +61,11 @@ BloomMap<T>(const string &FilePath) {
 					<< endl;
 			exit(1);
 		}
+		cerr << "6" << endl;
 	}
 
 ~BloomMap() {
+
 	delete[] m_array;
 }
 
@@ -84,12 +92,12 @@ void insert(std::vector<size_t> const &hashes, std::vector<T> &values) {
 
 std::vector<T> query(std::vector<size_t> const &hashes) {
 	assert(hashes.size() == m_hashNum);
-	std::vector<T> values;
+	std::vector<T> values(hashes.size());
 
 	for (size_t i = 0; i < m_hashNum; ++i) {
 		size_t pos = hashes.at(i) % m_size;
 		assert(pos < m_size);
-		values.push_back(m_array[pos]);
+		values[i] = m_array[pos];
 
 	}
 	return values;
@@ -129,8 +137,11 @@ size_t PopCnt() const {
 	void loadHeader(FILE *file) {
 
 			FileHeader header;
+
 			if (fread(&header, sizeof(struct FileHeader), 1, file) == 1) {
+
 				cerr << "Loading header..." << endl;
+
 			} else {
 				cerr << "Failed to header" << endl;
 			}
@@ -165,6 +176,7 @@ size_t PopCnt() const {
 			ofstream myFile(filterFilePath.c_str(), ios::out | ios::binary);
 
 			assert(myFile);
+
 			writeHeader(myFile);
 
 			//write out each block
