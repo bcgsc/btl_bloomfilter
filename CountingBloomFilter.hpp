@@ -9,6 +9,7 @@
 #define COUNTINGBLOOMFilter_HPP_
 
 #include <vector>
+#include <omp.h>
 #include <valarray>
 #include <math.h>
 #include <cassert>
@@ -55,6 +56,7 @@ public:
 
 	/** Add the object with the specified index (debug). */
 	void insert(size_t index) {
+#pragma omp atomic update
 		++m_bloomMap[index];
 	}
 
