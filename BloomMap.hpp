@@ -33,9 +33,14 @@ public:
 	};
 
 	BloomMap<T>(size_t filterSize, unsigned hashNum, unsigned kmerSize) :
-			m_size(filterSize), m_hashNum(hashNum), m_dFPR(0), m_nEntry(0), m_tEntry(
-					0), m_kmerSize(kmerSize) {
+		m_size(filterSize), m_hashNum(hashNum), m_dFPR(0), m_nEntry(0),
+		m_tEntry(0), m_kmerSize(kmerSize), m_locks(1000)
+	{
 		m_array = new T[m_size]();
+
+		/* locks for ensuring thread-safety */
+		for (size_t i = 0; i < m_locks.size(); i++)
+			omp_init_lock(&(m_locks.at(i)));
 	}
 
 	BloomMap<T>(const string &FilePath) {
@@ -59,6 +64,8 @@ public:
 	~BloomMap() {
 
 		delete[] m_array;
+		for (size_t i = 0; i < m_locks.size(); i++)
+			omp_destroy_lock(&(m_locks.at(i)));
 	}
 
 	T& operator[](size_t i) {
@@ -77,8 +84,9 @@ public:
 		for (size_t i = 0; i < m_hashNum; ++i) {
 			size_t pos = hashes.at(i) % m_size;
 			assert(pos < m_size);
-#pragma omp atomic write
+			getLock(pos);
 			m_array[pos] = values[i];
+			releaseLock(pos);
 		}
 	}
 
@@ -89,8 +97,9 @@ public:
 		for (size_t i = 0; i < m_hashNum; ++i) {
 			size_t pos = hashes.at(i) % m_size;
 			assert(pos < m_size);
+			getLock(pos);
 			values[i] = m_array[pos];
-
+			releaseLock(pos);
 		}
 		return values;
 	}
@@ -181,6 +190,20 @@ public:
 	}
 private:
 
+	void getLock(size_t pos)
+	{
+		assert(pos < m_size);
+		size_t lockIndex = pos % m_locks.size();
+		omp_set_lock(&(m_locks.at(lockIndex)));
+	}
+
+	void releaseLock(size_t pos)
+	{
+		assert(pos < m_size);
+		size_t lockIndex = pos % m_locks.size();
+		omp_unset_lock(&(m_locks.at(lockIndex)));
+	}
+
 	size_t m_size;
 	unsigned m_hashNum;
 	T* m_array;
@@ -188,6 +211,7 @@ private:
 	uint64_t m_nEntry;
 	uint64_t m_tEntry;
 	unsigned m_kmerSize;
+	std::vector<omp_lock_t> m_locks;
 };
 
 #endif /* BLOOMMAP_HPP_ */

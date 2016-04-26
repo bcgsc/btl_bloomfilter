@@ -57,7 +57,7 @@ public:
 
 	/** Add the object with the specified index (debug). */
 	void insert(size_t index) {
-#pragma omp atomic update
+#pragma omp atomic
 		++m_bloomMap[index];
 	}
 
