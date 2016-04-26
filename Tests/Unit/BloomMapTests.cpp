@@ -13,8 +13,10 @@ TEST_CASE("insert and query", "[BloomMap]")
 {
 	const size_t bloomSize = 1000;
 	const unsigned numHashes = 4;
+	/* unused in this test */
+	const unsigned k = 0;
 
-	BloomMap<int> bloomMap(bloomSize, numHashes);
+	BloomMap<int> bloomMap(bloomSize, numHashes, k);
 
 	vector<size_t> hashes;
 	vector<int> values;

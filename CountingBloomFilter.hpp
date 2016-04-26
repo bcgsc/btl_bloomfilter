@@ -22,7 +22,8 @@ public:
 
 	/** Constructor */
 	CountingBloomFilter(size_t filterSize, unsigned hashNum) :
-			m_size(filterSize), m_hashNum(hashNum),m_bloomMap(filterSize,hashNum){
+		m_size(filterSize), m_hashNum(hashNum),
+		m_bloomMap(filterSize, hashNum, 0) {
 		//m_array.resize(filterSize);
 		
 }

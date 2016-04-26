@@ -7,9 +7,11 @@ BloomFilterTests_CXXFLAGS = $(AM_CXXFLAGS) $(OPENMP_CXXFLAGS)
 
 BloomMapTests_SOURCES = BloomMapTests.cpp
 BloomMapTests_CPPFLAGS = -I$(top_srcdir)
+BloomMapTests_CXXFLAGS = $(AM_CXXFLAGS) $(OPENMP_CXXFLAGS)
 
 CountingBloomFilterTests_SOURCES = CountingBloomFilterTests.cpp
 CountingBloomFilterTests_CPPFLAGS = -I$(top_srcdir)
+CountingBloomFilterTests_CXXFLAGS = $(AM_CXXFLAGS) $(OPENMP_CXXFLAGS)
 
 # programs that will be run by 'make check' (after compiling)
 TESTS = $(check_PROGRAMS)
