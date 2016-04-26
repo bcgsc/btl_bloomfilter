@@ -37,6 +37,7 @@ inline unsigned popCnt(unsigned char x) {
 class BloomFilter {
 public:
 
+#pragma pack(1) //to maintain consistent values across platforms
 	struct FileHeader {
 		char magic[8];
 		uint32_t hlen;
