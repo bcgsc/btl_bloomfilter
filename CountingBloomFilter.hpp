@@ -13,6 +13,7 @@
 #include <math.h>
 #include <cassert>
 #include <string>
+#include <limits>
 #include "BloomMap.hpp"
 
 #ifdef _OPENMP
@@ -47,6 +48,10 @@ public:
 		//check for which elements to update, basically holding the minimum
 		//hash value i.e counter value.
 		T minEle = (*this)[hashes];
+
+		//saturate at max counter value (don't roll over to 0)
+		if (minEle == std::numeric_limits<T>::max())
+			return;
 
 		//update only those elements that have a minimum counter value.
 		for (unsigned int i = 0; i < m_hashNum; ++i) {
