@@ -14,6 +14,8 @@
 #endif
 
 namespace opt {
+	/** default size of the Bloom filter in bits (1MB) */
+	size_t bloomBits = 1024*1024*8;
     unsigned kmerLen = 64;
     unsigned ibits = 64;
     unsigned nhash = 5;
@@ -119,7 +121,13 @@ int main(int argc, const char* argv[]) {
     return 0;*/
 	if (argc <2) cerr << "error!\n";
     double sTime = omp_get_wtime();
-    BloomFilter myFilter(48857600000, opt::nhash, opt::kmerLen);
+	/*
+	 * Note: The previous Bloom filter size here was
+	 * 48,857,600,000 bits (~6GB).  I reduced it to 1024*1024*8
+	 * (1MB) by default, so that it would run safely on any machine.
+	 * -BV
+	 */
+    BloomFilter myFilter(opt::bloomBits, opt::nhash, opt::kmerLen);
     loadBf(myFilter, argv[1]);
     cerr << "|popBF|=" << myFilter.getPop() << " ";
     cerr << setprecision(4) << fixed << omp_get_wtime() - sTime << "\n";
