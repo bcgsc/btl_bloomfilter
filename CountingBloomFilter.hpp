@@ -9,12 +9,15 @@
 #define COUNTINGBLOOMFilter_HPP_
 
 #include <vector>
-#include <omp.h>
 #include <valarray>
 #include <math.h>
 #include <cassert>
 #include <string>
 #include "BloomMap.hpp"
+
+#ifdef _OPENMP
+#include <omp.h>
+#endif
 
 template<typename T>
 class CountingBloomFilter {

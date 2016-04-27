@@ -1,6 +1,7 @@
 #include <string>
 #include <iostream>
 #include <iomanip>
+
 #include <cstdlib>
 #include <fstream>
 #include <sstream>
@@ -120,7 +121,9 @@ int main(int argc, const char* argv[]) {
         cerr << mystr << " is not in Bloom filter.\n";
     return 0;*/
 	if (argc <2) cerr << "error!\n";
+#ifdef _OPENMP
     double sTime = omp_get_wtime();
+#endif
 	/*
 	 * Note: The previous Bloom filter size here was
 	 * 48,857,600,000 bits (~6GB).  I reduced it to 1024*1024*8
@@ -130,7 +133,11 @@ int main(int argc, const char* argv[]) {
     BloomFilter myFilter(opt::bloomBits, opt::nhash, opt::kmerLen);
     loadBf(myFilter, argv[1]);
     cerr << "|popBF|=" << myFilter.getPop() << " ";
+#ifdef _OPENMP
     cerr << setprecision(4) << fixed << omp_get_wtime() - sTime << "\n";
+#else
+	cerr << "\n";
+#endif
     //myFilter.store("filter3.bf");
     
     /*BloomFilter filter2(40857600000, 5, 30, "filter1.bf");
