@@ -27,10 +27,7 @@ public:
 	/** Constructor */
 	CountingBloomFilter(size_t filterSize, unsigned hashNum) :
 		m_size(filterSize), m_hashNum(hashNum),
-		m_bloomMap(filterSize, hashNum, 0) {
-		//m_array.resize(filterSize);
-		
-}
+		m_bloomMap(filterSize, hashNum, 0) {}
 
 	/** Destructor */
 	virtual ~CountingBloomFilter() {
@@ -96,7 +93,6 @@ private:
 
 	size_t m_size;
 	unsigned m_hashNum;
-	//std::vector<T> m_array;
 	BloomMap<T> m_bloomMap;
 };
 
