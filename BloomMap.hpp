@@ -34,6 +34,10 @@ public:
 		uint64_t tEntry;
 	};
 
+	/** Default constructor */
+	BloomMap<T>() : m_size(0), m_hashNum(0), m_dFPR(0), m_nEntry(0),
+		m_tEntry(0), m_kmerSize(0) {}
+
 	BloomMap<T>(size_t filterSize, unsigned hashNum, unsigned kmerSize) :
 		m_size(filterSize), m_hashNum(hashNum), m_dFPR(0), m_nEntry(0),
 		m_tEntry(0), m_kmerSize(kmerSize)

@@ -25,6 +25,9 @@ template<typename T>
 class CountingBloomFilter {
 public:
 
+	/** Default constructor */
+	CountingBloomFilter() : m_size(0), m_hashNum(0), m_bloomMap() {}
+
 	/** Constructor */
 	CountingBloomFilter(size_t filterSize, unsigned hashNum) :
 		m_size(filterSize), m_hashNum(hashNum),
