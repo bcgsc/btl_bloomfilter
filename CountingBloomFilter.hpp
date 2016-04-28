@@ -14,6 +14,7 @@
 #include <cassert>
 #include <string>
 #include <limits>
+#include <utility>
 #include "BloomMap.hpp"
 
 #ifdef _OPENMP
@@ -38,17 +39,26 @@ public:
 		return m_bloomMap[i];
 	}
 
-	/** Add the object to this counting multiset.
-	 *  If all values are the same update all
-	 *  If some values are larger only update smallest counts*/
-	void insert(std::vector<size_t> const &hashes) {
+	/**
+	 * Add the object to this counting multiset.
+	 * If all values are the same update all
+	 * If some values are larger only update smallest counts
+	 *
+	 * @param hashes hash values for element whose count should to be
+	 * incremented
+	 * @return std::pair<T,bool> where T is the count value
+	 * before incrementing, and bool is true if the count was
+	 * successfully incremented. The bool component will be false when
+	 * the counter has already reached its max value (saturation).
+	 */
+	std::pair<T,bool> insert(std::vector<size_t> const &hashes) {
 		//check for which elements to update, basically holding the minimum
 		//hash value i.e counter value.
 		T minEle = (*this)[hashes];
 
 		//saturate at max counter value (don't roll over to 0)
 		if (minEle == std::numeric_limits<T>::max())
-			return;
+			return std::make_pair(minEle, false);
 
 		//update only those elements that have a minimum counter value.
 		for (unsigned int i = 0; i < m_hashNum; ++i) {
@@ -58,6 +68,7 @@ public:
 				insert(hashVal);
 			}
 		}
+		return std::make_pair(minEle, true);
 	}
 
 	/** Add the object with the specified index (debug). */
