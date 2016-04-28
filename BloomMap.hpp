@@ -17,7 +17,6 @@
 #include <omp.h>
 #endif
 
-static const uint8_t bitsPerChar = 0x08;
 template<typename T>
 
 class BloomMap {
