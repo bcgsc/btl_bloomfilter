@@ -100,6 +100,18 @@ public:
 		return m_bloomMap[i];
 	}
 
+	/** Get size of Bloom filter (number of elements of type T) */
+	size_t getFilterSize() const
+	{
+		return m_size;
+	}
+
+	/** Get Bloom filter false positive rate */
+	double getFPR() const
+	{
+		return m_bloomMap.getFPR();
+	}
+
 private:
 
 	size_t m_size;
