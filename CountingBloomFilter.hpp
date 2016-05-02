@@ -47,14 +47,16 @@ public:
 	 * If all values are the same update all
 	 * If some values are larger only update smallest counts
 	 *
-	 * @param hashes hash values for element whose count should to be
-	 * incremented
+	 * @param hashes array of hash values for the element.  The
+	 * templated type ArrayT is used so that the caller may use either
+	 * a std::vector or a plain old C array.
 	 * @return std::pair<T,bool> where T is the count value
 	 * before incrementing, and bool is true if the count was
 	 * successfully incremented. The bool component will be false when
 	 * the counter has already reached its max value (saturation).
 	 */
-	std::pair<T,bool> insert(std::vector<size_t> const &hashes) {
+	template <typename ArrayT>
+	std::pair<T,bool> insert(const ArrayT& hashes) {
 		//check for which elements to update, basically holding the minimum
 		//hash value i.e counter value.
 		T minEle = (*this)[hashes];
@@ -65,7 +67,7 @@ public:
 
 		//update only those elements that have a minimum counter value.
 		for (unsigned int i = 0; i < m_hashNum; ++i) {
-			size_t hashVal = hashes.at(i) % m_size;
+			size_t hashVal = hashes[i] % m_size;
 			T val = m_bloomMap[hashVal];
 			if (minEle == val) {
 				insert(hashVal);
@@ -80,13 +82,19 @@ public:
 		++m_bloomMap[index];
 	}
 
-	/** Return the count of an element based on a Minimum Selection */
+	/**
+	 * Return the count of an element based on a Minimum Selection
+	 *
+	 * @param hashes array of hash values for the element.  The
+	 * templated type ArrayT is used so that the caller may use either
+	 * a std::vector or a plain old C array.
+	 */
+	template <typename ArrayT>
+	T operator[](const ArrayT& hashes) const {
 
-	T operator[](std::vector<size_t> const &hashes) const {
-
-		T currentMin = m_bloomMap[hashes.at(0) % m_size];
+		T currentMin = m_bloomMap[hashes[0] % m_size];
 		for (unsigned int i = 1; i < m_hashNum; ++i) {
-			T min = m_bloomMap[hashes.at(i) % m_size];
+			T min = m_bloomMap[hashes[i] % m_size];
 			if (min < currentMin) {
 				currentMin = min;
 			}
