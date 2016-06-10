@@ -35,8 +35,8 @@ public:
 	};
 
 	/** Default constructor */
-	BloomMap<T>() : m_size(0), m_hashNum(0), m_dFPR(0), m_nEntry(0),
-		m_tEntry(0), m_kmerSize(0) {}
+	BloomMap<T>() : m_size(0), m_hashNum(0), m_array(NULL), m_dFPR(0),
+		m_nEntry(0), m_tEntry(0), m_kmerSize(0) {}
 
 	BloomMap<T>(size_t filterSize, unsigned hashNum, unsigned kmerSize) :
 		m_size(filterSize), m_hashNum(hashNum), m_dFPR(0), m_nEntry(0),
@@ -72,7 +72,8 @@ public:
 
 	~BloomMap() {
 
-		delete[] m_array;
+		if (m_array != NULL)
+			delete[] m_array;
 #ifdef _OPENMP
 		for (size_t i = 0; i < m_locks.size(); i++)
 			omp_destroy_lock(&(m_locks.at(i)));
@@ -81,16 +82,19 @@ public:
 
 	T& operator[](size_t i) {
 		assert(i < m_size);
+		assert(m_array != NULL);
 		return m_array[i];
 	}
 
 	const T& operator[](size_t i) const {
 		assert(i < m_size);
+		assert(m_array != NULL);
 		return m_array[i];
 	}
 
 	void insert(std::vector<size_t> const &hashes, std::vector<T> &values) {
 		assert(hashes.size() == m_hashNum);
+		assert(m_array != NULL);
 		//iterates through hashed values adding it to the filter
 		for (size_t i = 0; i < m_hashNum; ++i) {
 			size_t pos = hashes.at(i) % m_size;
@@ -107,6 +111,7 @@ public:
 
 	std::vector<T> query(std::vector<size_t> const &hashes) {
 		assert(hashes.size() == m_hashNum);
+		assert(m_array != NULL);
 		std::vector<T> values(hashes.size());
 
 		for (size_t i = 0; i < m_hashNum; ++i) {
@@ -125,6 +130,7 @@ public:
 
 // Calculating Pop Count
 	size_t PopCnt() const {
+		assert(m_array != NULL);
 		size_t i, popBF = 0;
 		for (i = 0; i < m_size; ++i) {
 			if (m_array[i] != 0) {
@@ -195,6 +201,7 @@ public:
 	}
 
 	void storeFilter(string const &filterFilePath) const {
+		assert(m_array != NULL);
 		ofstream myFile(filterFilePath.c_str(), ios::out | ios::binary);
 
 		assert(myFile);
