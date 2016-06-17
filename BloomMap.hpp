@@ -46,9 +46,9 @@ public:
 
 #ifdef _OPENMP
 		/* locks for ensuring thread-safety */
-		m_locks.resize(1000);
+		m_locks.resize(10000);
 		for (size_t i = 0; i < m_locks.size(); i++)
-			omp_init_lock(&(m_locks.at(i)));
+			omp_init_nest_lock(&(m_locks.at(i)));
 #endif
 	}
 
@@ -76,7 +76,7 @@ public:
 			delete[] m_array;
 #ifdef _OPENMP
 		for (size_t i = 0; i < m_locks.size(); i++)
-			omp_destroy_lock(&(m_locks.at(i)));
+			omp_destroy_nest_lock(&(m_locks.at(i)));
 #endif
 	}
 
@@ -214,21 +214,83 @@ public:
 		myFile.close();
 		assert(myFile);
 	}
+
+#ifdef _OPENMP
+	/**
+	 * Acquire all locks for the Bloom filter positions associated
+	 * with an element. In order to avoid deadlocks, the locks must
+	 * either be acquired in a well-defined order or a thread must try
+	 * to acquire all of its locks at the same time and "back off" when
+	 * this is not possible. I have opted for the latter approach, as sorting
+	 * the hash values to produce a predictable lock ordering would
+	 * be too expensive.
+	 *
+	 * @param hashes array of hash values for the element.  The
+	 * templated type ArrayT is used so that the caller may use either
+	 * a std::vector or a plain old C array.
+	 */
+	template <typename ArrayT>
+	void getLocks(const ArrayT& hashes)
+	{
+		bool acquiredAllLocks = false;
+		while (!acquiredAllLocks) {
+			acquiredAllLocks = true;
+			for (unsigned i = 0; i < m_hashNum; ++i) {
+				size_t iLockIndex = hashes[i] % m_size % m_locks.size();
+				assert(iLockIndex < m_locks.size());
+				/**
+				 * tricky: a nested lock must be used here because two
+				 * distinct hash values for the same element may map to
+				 * the same lock index
+				 */
+				if (!omp_test_nest_lock(&(m_locks.at(iLockIndex)))) {
+					acquiredAllLocks = false;
+					for (unsigned j = 0; j < i; ++j) {
+						size_t jLockIndex = hashes[j] % m_size % m_locks.size();
+						assert(jLockIndex < m_locks.size());
+						omp_unset_nest_lock(&(m_locks.at(jLockIndex)));
+					}
+					break;
+				}
+			}
+		}
+	}
+
+	/**
+	 * Release all locks for the Bloom filter positions associated
+	 * with an element.
+	 *
+	 * @param hashes array of hash values for the element.  The
+	 * templated type ArrayT is used so that the caller may use either
+	 * a std::vector or a plain old C array.
+	 */
+	template <typename ArrayT>
+	void releaseLocks(const ArrayT& hashes)
+	{
+		for (unsigned i = 0; i < m_hashNum; ++i) {
+			size_t lockIndex = hashes[i] % m_size % m_locks.size();
+			assert(lockIndex < m_locks.size());
+			omp_unset_nest_lock(&(m_locks.at(lockIndex)));
+		}
+	}
+#endif
+
 private:
 
 #ifdef _OPENMP
+
 	void getLock(size_t pos)
 	{
 		assert(pos < m_size);
 		size_t lockIndex = pos % m_locks.size();
-		omp_set_lock(&(m_locks.at(lockIndex)));
+		omp_set_nest_lock(&(m_locks.at(lockIndex)));
 	}
 
 	void releaseLock(size_t pos)
 	{
 		assert(pos < m_size);
 		size_t lockIndex = pos % m_locks.size();
-		omp_unset_lock(&(m_locks.at(lockIndex)));
+		omp_unset_nest_lock(&(m_locks.at(lockIndex)));
 	}
 #endif
 
@@ -241,7 +303,7 @@ private:
 	unsigned m_kmerSize;
 
 #ifdef _OPENMP
-	std::vector<omp_lock_t> m_locks;
+	std::vector<omp_nest_lock_t> m_locks;
 #endif
 };
 

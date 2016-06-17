@@ -26,11 +26,22 @@ class CountingBloomFilter {
 public:
 
 	/** Default constructor */
-	CountingBloomFilter() : m_size(0), m_hashNum(0), m_bloomMap() {}
+	CountingBloomFilter() : m_size(0), m_hashNum(0), m_bMinInc(true),
+		m_bloomMap() {}
 
-	/** Constructor */
-	CountingBloomFilter(size_t filterSize, unsigned hashNum) :
-		m_size(filterSize), m_hashNum(hashNum),
+	/**
+	 * Constructor
+	 *
+	 * @param filterSize number of element slots
+	 * @param hashNum number of hash functions
+	 * @param minInc If true, use "minimum increment" style incrementing,
+	 * where only the minimum count(s) for an element are increased
+	 * during an increment operation. If false, increment all counters
+	 * for the element.
+	 */
+	CountingBloomFilter(size_t filterSize, unsigned hashNum,
+		bool minInc = true) :
+		m_size(filterSize), m_hashNum(hashNum), m_bMinInc(minInc),
 		m_bloomMap(filterSize, hashNum, 0) {}
 
 	/** Destructor */
@@ -57,22 +68,30 @@ public:
 	 */
 	template <typename ArrayT>
 	std::pair<T,bool> insert(const ArrayT& hashes) {
+
+		m_bloomMap.getLocks(hashes);
+
 		//check for which elements to update, basically holding the minimum
 		//hash value i.e counter value.
 		T minEle = (*this)[hashes];
 
 		//saturate at max counter value (don't roll over to 0)
-		if (minEle == std::numeric_limits<T>::max())
+		if (minEle == std::numeric_limits<T>::max()) {
+			m_bloomMap.releaseLocks(hashes);
 			return std::make_pair(minEle, false);
+		}
 
-		//update only those elements that have a minimum counter value.
 		for (unsigned int i = 0; i < m_hashNum; ++i) {
 			size_t hashVal = hashes[i] % m_size;
 			T val = m_bloomMap[hashVal];
-			if (minEle == val) {
+			// if m_bMinInc is true, update only those elements that
+			// have a minimum counter value
+			if (!m_bMinInc || minEle == val) {
 				insert(hashVal);
 			}
 		}
+
+		m_bloomMap.releaseLocks(hashes);
 		return std::make_pair(minEle, true);
 	}
 
@@ -127,6 +146,7 @@ private:
 
 	size_t m_size;
 	unsigned m_hashNum;
+	bool m_bMinInc;
 	BloomMap<T> m_bloomMap;
 };
 
