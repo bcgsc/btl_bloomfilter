@@ -95,10 +95,48 @@ public:
 		return std::make_pair(minEle, true);
 	}
 
+	/**
+	 * Decrement the count of an element in this counting multiset.
+	 * All counter positions associated with the element are decremented,
+	 * not just the minimum counts.
+	 *
+	 * @param hashes array of hash values for the element.  The
+	 * templated type ArrayT is used so that the caller may use either
+	 * a std::vector or a plain old C array.
+	 * @return std::pair<T,bool> where T is the count value
+	 * before decrementing, and bool is true if the count was
+	 * successfully decremented. The bool component will be false when
+	 * one or more of the counts has already reached zero.
+	 */
+	template <typename ArrayT>
+	std::pair<T,bool> remove(const ArrayT& hashes)
+	{
+		m_bloomMap.acquireLocks(hashes);
+
+		T minEle = (*this)[hashes];
+		if (minEle == 0) {
+			m_bloomMap.releaseLocks(hashes);
+			return std::make_pair(minEle, false);
+		}
+
+		for (unsigned int i = 0; i < m_hashNum; ++i) {
+			size_t pos = hashes[i] % m_size;
+			remove(pos);
+		}
+
+		m_bloomMap.releaseLocks(hashes);
+		return std::make_pair(minEle, true);
+	}
+
 	/** Add the object with the specified index (debug). */
 	void insert(size_t index) {
 #pragma omp atomic
 		++m_bloomMap[index];
+	}
+
+	void remove(size_t index) {
+#pragma omp atomic
+		--m_bloomMap[index];
 	}
 
 	/**
