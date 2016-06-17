@@ -97,12 +97,12 @@ public:
 		assert(m_array != NULL);
 		//iterates through hashed values adding it to the filter
 		for (size_t i = 0; i < m_hashNum; ++i) {
-			size_t pos = hashes.at(i) % m_size;
+			size_t pos = hashToPos(hashes[i]);
 			assert(pos < m_size);
 #ifdef _OPENMP
-			getLock(pos);
+			acquireLock(hashes[i]);
 			m_array[pos] = values[i];
-			releaseLock(pos);
+			releaseLock(hashes[i]);
 #else
 			m_array[pos] = values[i];
 #endif
@@ -115,12 +115,12 @@ public:
 		std::vector<T> values(hashes.size());
 
 		for (size_t i = 0; i < m_hashNum; ++i) {
-			size_t pos = hashes.at(i) % m_size;
+			size_t pos = hashToPos(hashes[i]);
 			assert(pos < m_size);
 #ifdef _OPENMP
-			getLock(pos);
+			acquireLock(hashes[i]);
 			values[i] = m_array[pos];
-			releaseLock(pos);
+			releaseLock(hashes[i]);
 #else
 			values[i] = m_array[pos];
 #endif
@@ -230,26 +230,16 @@ public:
 	 * a std::vector or a plain old C array.
 	 */
 	template <typename ArrayT>
-	void getLocks(const ArrayT& hashes)
+	void acquireLocks(const ArrayT& hashes)
 	{
 		bool acquiredAllLocks = false;
 		while (!acquiredAllLocks) {
 			acquiredAllLocks = true;
 			for (unsigned i = 0; i < m_hashNum; ++i) {
-				size_t iLockIndex = hashes[i] % m_size % m_locks.size();
-				assert(iLockIndex < m_locks.size());
-				/**
-				 * tricky: a nested lock must be used here because two
-				 * distinct hash values for the same element may map to
-				 * the same lock index
-				 */
-				if (!omp_test_nest_lock(&(m_locks.at(iLockIndex)))) {
+				if (!acquireLockNonBlocking(hashes[i])) {
 					acquiredAllLocks = false;
-					for (unsigned j = 0; j < i; ++j) {
-						size_t jLockIndex = hashes[j] % m_size % m_locks.size();
-						assert(jLockIndex < m_locks.size());
-						omp_unset_nest_lock(&(m_locks.at(jLockIndex)));
-					}
+					for (unsigned j = 0; j < i; ++j)
+						releaseLock(hashes[j]);
 					break;
 				}
 			}
@@ -267,30 +257,36 @@ public:
 	template <typename ArrayT>
 	void releaseLocks(const ArrayT& hashes)
 	{
-		for (unsigned i = 0; i < m_hashNum; ++i) {
-			size_t lockIndex = hashes[i] % m_size % m_locks.size();
-			assert(lockIndex < m_locks.size());
-			omp_unset_nest_lock(&(m_locks.at(lockIndex)));
-		}
+		for (unsigned i = 0; i < m_hashNum; ++i)
+			releaseLock(hashes[i]);
 	}
 #endif
 
 private:
 
-#ifdef _OPENMP
+	size_t hashToPos(size_t hashVal) { return hashVal % m_size; }
 
-	void getLock(size_t pos)
+	omp_nest_lock_t& getLock(size_t hashVal)
 	{
-		assert(pos < m_size);
-		size_t lockIndex = pos % m_locks.size();
-		omp_set_nest_lock(&(m_locks.at(lockIndex)));
+		size_t lockIndex = hashToPos(hashVal) % m_locks.size();
+		return m_locks.at(lockIndex);
 	}
 
-	void releaseLock(size_t pos)
+#ifdef _OPENMP
+
+	bool acquireLockNonBlocking(size_t hashVal)
 	{
-		assert(pos < m_size);
-		size_t lockIndex = pos % m_locks.size();
-		omp_unset_nest_lock(&(m_locks.at(lockIndex)));
+		return omp_test_nest_lock(&getLock(hashVal));
+	}
+
+	void acquireLock(size_t hashVal)
+	{
+		omp_set_nest_lock(&getLock(hashVal));
+	}
+
+	void releaseLock(size_t hashVal)
+	{
+		omp_unset_nest_lock(&getLock(hashVal));
 	}
 #endif
 

@@ -69,7 +69,7 @@ public:
 	template <typename ArrayT>
 	std::pair<T,bool> insert(const ArrayT& hashes) {
 
-		m_bloomMap.getLocks(hashes);
+		m_bloomMap.acquireLocks(hashes);
 
 		//check for which elements to update, basically holding the minimum
 		//hash value i.e counter value.
