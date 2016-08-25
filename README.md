@@ -26,9 +26,7 @@ int main(int argc, char** argv)
 		const unsigned numHashes = 4;
 		/* size of Bloom filter (in bits) */
 		const unsigned size = 1000;
-		/* hash values for current k-mer */
-		vector<size_t> hashes;
-	
+		
 		/* init Bloom filter */
 		BloomFilter bloom(size, numHashes, k);
 	
