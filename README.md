@@ -16,27 +16,50 @@ using namespace std;
 
 int main(int argc, char** argv)
 {
-	/* test sequence */
-	const string seq = "TAGAATCACCCAAAGA";
-	/* k-mer size */
-	const unsigned k = 5;
-	/* number of Bloom filter hash functions */
-	const unsigned numHashes = 4;
-	/* size of Bloom filter (in bits) */
-	const unsigned size = 1000;
-	/* hash values for current k-mer */
-	vector<size_t> hashes;
-
-	/* init Bloom filter */
-	BloomFilter bloom(size, numHashes, k);
-
-	/* init rolling hash state and compute hash values for first k-mer */
-	RollingHashIterator itr(seq, numHashes, k);
-	while (itr != itr.end()) {
-		bloom.insert(*itr);
-		itr++;
+	//Builting
+	{
+		/* test sequence */
+		const string seq = "TAGAATCACCCAAAGA";
+		/* k-mer size */
+		const unsigned k = 5;
+		/* number of Bloom filter hash functions */
+		const unsigned numHashes = 4;
+		/* size of Bloom filter (in bits) */
+		const unsigned size = 1000;
+		/* hash values for current k-mer */
+		vector<size_t> hashes;
+	
+		/* init Bloom filter */
+		BloomFilter bloom(size, numHashes, k);
+	
+		/* init rolling hash state and compute hash values for first k-mer */
+		RollingHashIterator itr(seq, numHashes, k);
+		while (itr != itr.end()) {
+			bloom.insert(*itr);
+			itr++;
+		}
+		/* store the bloom filter */
+		bloom.storeFilter("filterPathname.bf");
 	}
-
+	
+	//After bulding
+	{
+		/* load the bloom filter */
+		BloomFilter bloom("filterPathname.bf");
+		
+		/* query the bloom filter */
+		bloom.storeFilter("filterPathname.bf");
+		
+		/* init rolling hash state and compute hash values for first k-mer */
+		RollingHashIterator itr(seq, numHashes, k);
+		while (itr != itr.end()) {
+			bloom.contains(*itr);
+			itr++;
+		}
+		
+		/* single query (slow must use base hash)*/
+		bloom.contains("TAGAA"); //char* input must be the same length of k-mer
+	}
 	return 0;
 }
 ```
