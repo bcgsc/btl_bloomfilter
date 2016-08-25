@@ -48,7 +48,6 @@ int main(int argc, char** argv)
 		BloomFilter bloom("filterPathname.bf");
 		
 		/* query the bloom filter */
-		bloom.storeFilter("filterPathname.bf");
 		
 		/* init rolling hash state and compute hash values for first k-mer */
 		RollingHashIterator itr(seq, numHashes, k);
