@@ -180,7 +180,7 @@ public:
 	void insert(const char* kmer) {
 		uint64_t hVal = NT64(kmer, m_kmerSize);
 		for (unsigned i = 0; i < m_hashNum; i++) {
-			size_t normalizedValue = NTE64(hVal, m_kmerSize, i);
+			size_t normalizedValue = NTE64(hVal, m_kmerSize, i) % m_size;
 			__sync_or_and_fetch(&m_filter[normalizedValue / bitsPerChar],
 					bitMask[normalizedValue % bitsPerChar]);
 		}
@@ -193,7 +193,7 @@ public:
 		uint64_t hVal = NT64(kmer, m_kmerSize);
 		bool found = true;
 		for (unsigned i = 0; i < m_hashNum; i++) {
-			size_t normalizedValue = NTE64(hVal, m_kmerSize, i);
+			size_t normalizedValue = NTE64(hVal, m_kmerSize, i) % m_size;
 			found &= __sync_fetch_and_or(
 					&m_filter[normalizedValue / bitsPerChar],
 					bitMask[normalizedValue % bitsPerChar]);
@@ -252,7 +252,7 @@ public:
 	bool contains(const char* kmer) const {
 		uint64_t hVal = NT64(kmer, m_kmerSize);
 		for (unsigned i = 0; i < m_hashNum; i++) {
-			size_t normalizedValue = NTE64(hVal, m_kmerSize, i);
+			size_t normalizedValue = NTE64(hVal, m_kmerSize, i) % m_size;
 			unsigned char bit = bitMask[normalizedValue % bitsPerChar];
 			if ((m_filter[normalizedValue / bitsPerChar] & bit) == 0)
 				return false;
