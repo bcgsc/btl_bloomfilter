@@ -10,7 +10,7 @@ Fast Bloom filter loading using the rolling hash function.
 #include "BloomFilter.hpp"
 #include <vector>
 #include <string>
-#include "RollingHashIterator.h"
+#include "ntHashIterator.hpp"
 
 using namespace std;
 
@@ -31,7 +31,7 @@ int main(int argc, char** argv)
 		BloomFilter bloom(size, numHashes, k);
 	
 		/* init rolling hash state and compute hash values for first k-mer */
-		RollingHashIterator itr(seq, numHashes, k);
+		ntHashIterator itr(seq, numHashes, k);
 		while (itr != itr.end()) {
 			bloom.insert(*itr);
 			itr++;
@@ -48,7 +48,7 @@ int main(int argc, char** argv)
 		/* query the bloom filter */
 		
 		/* init rolling hash state and compute hash values for first k-mer */
-		RollingHashIterator itr(seq, numHashes, k);
+		ntHashIterator itr(seq, numHashes, k);
 		while (itr != itr.end()) {
 			bloom.contains(*itr);
 			itr++;
