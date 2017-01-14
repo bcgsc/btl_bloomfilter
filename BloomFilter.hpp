@@ -20,7 +20,7 @@
 #include <cstdlib>
 #include <stdio.h>
 #include <cstring>
-#include "rolling.h"
+#include "nthash.hpp"
 
 using namespace std;
 
@@ -178,9 +178,9 @@ public:
 	}
 
 	void insert(const char* kmer) {
-		uint64_t hVal = getChval(kmer, m_kmerSize);
+		uint64_t hVal = NT64(kmer, m_kmerSize);
 		for (unsigned i = 0; i < m_hashNum; i++) {
-			size_t normalizedValue = (rol(varSeed, i) ^ hVal) % m_size;
+			size_t normalizedValue = NTE64(hVal, m_kmerSize, i);
 			__sync_or_and_fetch(&m_filter[normalizedValue / bitsPerChar],
 					bitMask[normalizedValue % bitsPerChar]);
 		}
@@ -190,10 +190,10 @@ public:
 	 * Returns if already inserted
 	 */
 	bool insertAndCheck(const char* kmer) {
-		uint64_t hVal = getChval(kmer, m_kmerSize);
+		uint64_t hVal = NT64(kmer, m_kmerSize);
 		bool found = true;
 		for (unsigned i = 0; i < m_hashNum; i++) {
-			size_t normalizedValue = (rol(varSeed, i) ^ hVal) % m_size;
+			size_t normalizedValue = NTE64(hVal, m_kmerSize, i);
 			found &= __sync_fetch_and_or(
 					&m_filter[normalizedValue / bitsPerChar],
 					bitMask[normalizedValue % bitsPerChar]);
@@ -250,9 +250,9 @@ public:
 	 * Single pass filtering, computes hash values on the fly
 	 */
 	bool contains(const char* kmer) const {
-		uint64_t hVal = getChval(kmer, m_kmerSize);
+		uint64_t hVal = NT64(kmer, m_kmerSize);
 		for (unsigned i = 0; i < m_hashNum; i++) {
-			size_t normalizedValue = (rol(varSeed, i) ^ hVal) % m_size;
+			size_t normalizedValue = NTE64(hVal, m_kmerSize, i);
 			unsigned char bit = bitMask[normalizedValue % bitsPerChar];
 			if ((m_filter[normalizedValue / bitsPerChar] & bit) == 0)
 				return false;
@@ -348,7 +348,7 @@ public:
 	 * Return FPR based on popcount
 	 */
 	double getFPR() const {
-		return pow(double(getPop())/double(m_size), m_hashNum);
+		return pow(double(getPop())/double(m_size), double(m_hashNum));
 	}
 
 	/*
@@ -434,7 +434,7 @@ private:
 	 * Calculates the optimal FPR to use based on hash functions
 	 */
 	double calcFPR_hashNum(unsigned hashFunctNum) const {
-		return pow(2, -hashFunctNum);
+		return pow(2, -double(hashFunctNum));
 	}
 
 	uint8_t* m_filter;
