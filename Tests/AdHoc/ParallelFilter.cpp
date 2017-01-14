@@ -8,7 +8,7 @@
 #include <algorithm>
 #include <stdint.h>
 #include "BloomFilter.hpp"
-#include "RollingHashIterator.h"
+#include "ntHashIterator.hpp"
 
 #ifdef _OPENMP
 #include <omp.h>
@@ -86,10 +86,10 @@ void loadSeq(BloomFilter & BloomFilterFilter, const string & seq) {
 void loadSeqr(BloomFilter & BloomFilterFilter, const string & seq) {
     if (seq.size() < opt::kmerLen) return;
     string kmer = seq.substr(0,opt::kmerLen);
-    RollingHashIterator itr(seq, opt::kmerLen, opt::nhash);
+    ntHashIterator itr(seq, opt::kmerLen, opt::nhash);
 	while (itr != itr.end()) {
 		BloomFilterFilter.insert(*itr);
-		itr++;
+		++itr;
 	}
 }
 
