@@ -10,7 +10,7 @@ void insertSeq(BloomFilter &bloom, const string &seq, unsigned hashNum, unsigned
 	ntHashIterator itr(seq, hashNum, kmerSize);
     while (itr != itr.end()) {
         bloom.insert(*itr);
-        itr++;
+        ++itr;
     }
 }
 
