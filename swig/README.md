@@ -23,9 +23,7 @@ Usage: ./writeBloom_rolling.pl
 Usage: ./testBloom_rolling.pl
 -f  sequences to test (Multi-FASTA format, required)
 -k  k-mer value (default -k 15, optional)
--n number of hashes (requred)
--s size of bloom filter in bits (reqired)
--b  Bloom filter
+-b  Bloom filter (required)
 ```
 
 In order to compile, swig needs the following Perl5 headers:

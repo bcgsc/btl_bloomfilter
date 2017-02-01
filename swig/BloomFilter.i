@@ -10,7 +10,7 @@ namespace std {
 
 %{
 #include "../BloomFilter.hpp"
-#include "../RollingHashIterator.h"
+#include "../ntHashIterator.hpp"
 #include "../BloomFilterUtil.h"
 %}
 
@@ -37,23 +37,20 @@ public:
         size_t getFilterSize();
 };
 
-class RollingHashIterator {
+class ntHashIterator {
 public:
-    RollingHashIterator();
-    ~RollingHashIterator();
-    RollingHashIterator(const string& seq, unsigned numHashes, unsigned k);
+    ntHashIterator();
+    ~ntHashIterator();
+    ntHashIterator(const string& seq, unsigned numHashes, unsigned k);
  
-    const std::vector<size_t>& operator*();
-    const std::vector<size_t>* operator->();
+    const uint64_t* operator*();
+    const uint64_t* operator->();
 
-    bool operator==(const RollingHashIterator& it);
-    bool operator!=(const RollingHashIterator& it);
-    vector<size_t> * getNext();
-/*  RollingHashIterator& operator++();
-    RollingHashIterator operator++(int);
-    static const RollingHashIterator end();*/
-    unsigned pos();
-    string kmer();
+    bool operator==(const ntHashIterator& it);
+    bool operator!=(const ntHashIterator& it);
+    //uint64_t* next();
+    ntHashIterator& operator++();
+    static const ntHashIterator end();
 };
 
 void insertSeq(BloomFilter &bloom, const string& seq, unsigned numHashes, unsigned k);

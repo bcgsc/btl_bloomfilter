@@ -44,7 +44,7 @@ if(! $opt_f ){
    print "Usage: $0\n";
    print "-f  sequences to test (Multi-FASTA format, required)\n"; 
    print "-k  k-mer value (default -k $k, optional)\n";
-   die "-b  Bloom filter\n";
+   die "-b  Bloom filter (required)\n";
 }
 
 my $assemblyfile = $opt_f;
