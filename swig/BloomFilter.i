@@ -14,9 +14,9 @@ namespace std {
 #include "../BloomFilterUtil.h"
 %}
 
-%rename(deref) ntHashIterator::operator*;
-%rename(incr) ntHashIterator::operator++;
-%rename(neq) operator!=;
+//%rename(deref) ntHashIterator::operator*;
+//%rename(incr) ntHashIterator::operator++;
+//%rename(neq) operator!=;
 
 using namespace std;
 
@@ -47,7 +47,7 @@ public:
     ntHashIterator(const string& seq, unsigned numHashes, unsigned k);
  
     const uint64_t* operator*();
-    //const uint64_t* operator->();
+    const uint64_t* operator->();
 
     bool operator==(const ntHashIterator& it);
     bool operator!=(const ntHashIterator& it);
