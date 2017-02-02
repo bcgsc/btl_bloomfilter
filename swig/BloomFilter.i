@@ -14,10 +14,6 @@ namespace std {
 #include "../BloomFilterUtil.h"
 %}
 
-//%rename(deref) ntHashIterator::operator*;
-//%rename(incr) ntHashIterator::operator++;
-//%rename(neq) operator!=;
-
 using namespace std;
 
 class BloomFilter {
@@ -40,6 +36,7 @@ public:
         size_t getFilterSize();
 };
 
+/*
 class ntHashIterator {
 public:
     ntHashIterator();
@@ -55,5 +52,6 @@ public:
     ntHashIterator& operator++();
     static const ntHashIterator end();
 };
+*/
 
 void insertSeq(BloomFilter &bloom, const string& seq, unsigned numHashes, unsigned k);
