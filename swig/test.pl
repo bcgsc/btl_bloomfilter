@@ -57,7 +57,7 @@ print "Filter Info: Pop - $pop, numHash - $hash, kmerSize - $ksize, size - $size
 my $k = 5;
 $str = "TAGAATCACCCAAAGA";
 $bloom = new BloomFilter::BloomFilter(10000, 4, $k);
-$itr = new BloomFilter::RollingHashIterator($str, 4, $k);
+#$itr = new BloomFilter::RollingHashIterator($str, 4, $k);
 
 BloomFilter::insertSeq($bloom, $str, 4, $k);
 
