@@ -67,16 +67,11 @@ TEST_CASE("test fixture", "[BloomFilter]")
 	const unsigned numHashes = 5;
 	const unsigned k = 4;
 
-	cerr << "1" << endl;
-
 	BloomFilter filter(filterSize, numHashes, k);
-	cerr << "2" << endl;
 	filter.insert("AAAA");
 	filter.insert("CCCC");
 	filter.insert("GGGG");
 	filter.insert("TTTT");
-
-	cerr << "3" << endl;
 
 	/* END COMMON SETUP CODE */
 

@@ -179,11 +179,10 @@ sub kmerizeContigBloom{
 sub kmerizeContigBloom_new{
     my ($seq,$bloom,$hashfct,$k) = @_;
 
-    my $itr = new BloomFilter::RollingHashIterator($seq, $hashfct, $k);
-    my $next = $itr->getNext();
-    while($next) {
-        $bloom->insert($next);
-        $next = $itr->getNext();
+    my $itr = new BloomFilter::ntHashIterator($seq, $hashfct, $k);
+    while($itr.neq(BloomFilter::ntHashIterator::end())) {
+        $bloom->insert($itr->deref());
+        $itr->incr();
     }
     return $bloom;
 }
