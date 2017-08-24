@@ -5,7 +5,6 @@
 #include <limits>
 #include "nthash.hpp"
 
-
 /**
  * Iterate over hash values for k-mers in a
  * given DNA sequence.
@@ -13,6 +12,8 @@
  * This implementation uses ntHash
  * function to efficiently calculate
  * hash values for successive k-mers.
+ *
+ * Modified for BBT on June 05 2017 by cjustin
  */
 
 class ntHashIterator
@@ -36,7 +37,7 @@ public:
      * @param h number of hashes
     */
     ntHashIterator(const std::string& seq, unsigned h, unsigned k):
-        m_seq(seq), m_h(h), m_k(k), m_hVec(new uint64_t[h]), m_pos(0)
+			m_seq(seq), m_h(h), m_k(k), m_hVec(new uint64_t[h]), m_pos(0)
     {
         init();
     }
@@ -58,6 +59,7 @@ public:
     /** Advance iterator right to the next valid k-mer */
     void next()
     {
+    	++m_pos;
         if (m_pos >= m_seq.length()-m_k+1) {
             m_pos = std::numeric_limits<std::size_t>::max();
             return;
@@ -66,8 +68,14 @@ public:
             m_pos+=m_k;
             init();
         }
-        else
-            NTMC64(m_seq.at(m_pos-1), m_seq.at(m_pos-1+m_k), m_k, m_h, m_fhVal, m_rhVal, m_hVec);
+        else {
+			NTMC64(m_seq.at(m_pos - 1), m_seq.at(m_pos - 1 + m_k), m_k, m_h,
+					m_fhVal, m_rhVal, m_hVec);
+		}
+    }
+
+    size_t pos() const{
+    	return m_pos;
     }
 
     /** get pointer to hash values for current k-mer */
@@ -91,7 +99,6 @@ public:
     /** pre-increment operator */
     ntHashIterator& operator++()
     {
-        ++m_pos;
         next();
         return *this;
     }

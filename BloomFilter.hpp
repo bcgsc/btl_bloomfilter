@@ -20,7 +20,6 @@
 #include <cstdlib>
 #include <stdio.h>
 #include <cstring>
-#include "nthash.hpp"
 
 using namespace std;
 
@@ -124,26 +123,12 @@ public:
 	void loadHeader(FILE *file) {
 
 		FileHeader header;
-		if (fread(&header, sizeof(struct FileHeader), 1, file) == 1) {
-			cerr << "Loading header..." << endl;
-		} else {
+		if (fread(&header, sizeof(struct FileHeader), 1, file) != 1) {
 			cerr << "Failed to header" << endl;
 		}
 		char magic[9];
 		strncpy(magic, header.magic, 8);
 		magic[8] = '\0';
-
-//        cerr << "Loading header... magic: " <<
-//            magic << " hlen: " <<
-//            header.hlen << " size: " <<
-//            header.size << " nhash: " <<
-//            header.nhash << " kmer: " <<
-//            header.kmer << " dFPR: " <<
-//            header.dFPR << " aFPR: " <<
-//            header.aFPR << " rFPR: " <<
-//            header.rFPR << " nEntry: " <<
-//            header.nEntry << " tEntry: " <<
-//            header.tEntry << endl;
 
 		m_size = header.size;
 		initSize(m_size);
@@ -177,33 +162,19 @@ public:
 		}
 	}
 
-	void insert(const char* kmer) {
-		uint64_t hVal = NTPC64(kmer, m_kmerSize);
-		size_t normalizedValue = hVal % m_size;
-		__sync_fetch_and_or(&m_filter[normalizedValue / bitsPerChar],
-				bitMask[normalizedValue % bitsPerChar]);
-		for (unsigned i = 1; i < m_hashNum; i++) {
-			size_t normalizedValue = NTE64(hVal, m_kmerSize, i) % m_size;
-			__sync_fetch_and_or(&m_filter[normalizedValue / bitsPerChar],
-					bitMask[normalizedValue % bitsPerChar]);
-		}
-	}
-
 	/*
+	 * Accepts a list of precomputed hash values. Faster than rehashing each time.
 	 * Returns if already inserted
 	 */
-	bool insertAndCheck(const char* kmer) {
-		uint64_t hVal = NTPC64(kmer, m_kmerSize);
+	bool insertAndCheck(const size_t precomputed[]) {
+		//iterates through hashed values adding it to the filter
 		bool found = true;
-		size_t normalizedValue = hVal % m_size;
-		found &= __sync_fetch_and_or(
-				&m_filter[normalizedValue / bitsPerChar],
-				bitMask[normalizedValue % bitsPerChar]);
-		for (unsigned i = 1; i < m_hashNum; i++) {
-			size_t normalizedValue = NTE64(hVal, m_kmerSize, i) % m_size;
+		for (size_t i = 0; i < m_hashNum; ++i) {
+			size_t normalizedValue = precomputed[i] % m_size;
 			found &= __sync_fetch_and_or(
 					&m_filter[normalizedValue / bitsPerChar],
-					bitMask[normalizedValue % bitsPerChar]);
+					bitMask[normalizedValue % bitsPerChar])
+					>> (normalizedValue % bitsPerChar) & 1;
 		}
 		return found;
 	}
@@ -253,24 +224,6 @@ public:
 		return true;
 	}
 
-	/*
-	 * Single pass filtering, computes hash values on the fly
-	 */
-	bool contains(const char* kmer) const {
-		uint64_t hVal = NTPC64(kmer, m_kmerSize);
-		size_t normalizedValue = hVal % m_size;
-		unsigned char bit = bitMask[normalizedValue % bitsPerChar];
-		if ((m_filter[normalizedValue / bitsPerChar] & bit) == 0)
-			return false;
-		for (unsigned i = 1; i < m_hashNum; i++) {
-			normalizedValue = NTE64(hVal, m_kmerSize, i) % m_size;
-			unsigned char bit = bitMask[normalizedValue % bitsPerChar];
-			if ((m_filter[normalizedValue / bitsPerChar] & bit) == 0)
-				return false;
-		}
-		return true;
-	}
-
 	void writeHeader(ofstream &out) const {
 		FileHeader header;
 		strncpy(header.magic, "BlOOMFXX", 8);
@@ -286,18 +239,6 @@ public:
 		header.nEntry = m_nEntry;
 		header.tEntry = m_tEntry;
 
-//        cerr << "Writing header... magic: "
-//            << magic << " hlen: "
-//            << header.hlen << " size: "
-//            << header.size << " nhash: "
-//            << header.nhash << " kmer: "
-//            << header.kmer << " dFPR: "
-//            << header.dFPR << " aFPR: "
-//            << header.aFPR << " rFPR: "
-//            << header.rFPR << " nEntry: "
-//            << header.nEntry << " tEntry: "
-//            << header.tEntry << endl;
-
 		out.write(reinterpret_cast<char*>(&header), sizeof(struct FileHeader));
 	}
 
@@ -309,7 +250,7 @@ public:
 	void storeFilter(string const &filterFilePath) const {
 		ofstream myFile(filterFilePath.c_str(), ios::out | ios::binary);
 
-		cerr << "Storing filter. Filter is " << m_sizeInBytes << "bytes."
+		cerr << "Storing filter. Filter is " << m_sizeInBytes << " bytes."
 				<< endl;
 
 		assert(myFile);
@@ -324,7 +265,7 @@ public:
 
 	size_t getPop() const {
 		size_t i, popBF = 0;
-#pragma omp parallel for reduction(+:popBF)
+//#pragma omp parallel for reduction(+:popBF)
 		for (i = 0; i < (m_size + 7) / 8; i++)
 			popBF = popBF + popCnt(m_filter[i]);
 		return popBF;
@@ -337,10 +278,6 @@ public:
 	unsigned getKmerSize() const {
 		return m_kmerSize;
 	}
-
-//    void setdFPR(double value) {
-//        m_dFPR = value;
-//    }
 
 	/*
 	 * Calculates that False positive rate that a redundant entry is actually
