@@ -107,7 +107,7 @@ public:
 		fseek(file, lCurPos, 0);
 		if (fileSize != m_sizeInBytes) {
 			cerr << "Error: " << filterFilePath
-					<< " does not match size given by its information file. Size: "
+					<< " does not match size given by its header. Size: "
 					<< fileSize << " vs " << m_sizeInBytes << " bytes." << endl;
 			exit(1);
 		}
