@@ -330,7 +330,7 @@ public:
 	~BloomFilter() {
 		delete[] m_filter;
 	}
-private:
+protected:
 	BloomFilter(const BloomFilter& that); //to prevent copy construction
 
 	/*

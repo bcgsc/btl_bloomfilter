@@ -2,7 +2,7 @@
 #define BLOOM_FILTER_UTIL 1
 
 #include "ntHashIterator.hpp"
-#include "BloomFilter.hpp"
+#include "KmerBloomFilter.hpp"
 
 using namespace std;
 

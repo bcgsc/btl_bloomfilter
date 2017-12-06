@@ -9,19 +9,21 @@ namespace std {
 }
 
 %{
-#include "../BloomFilter.hpp"
+#include "../KmerBloomFilter.hpp"
 #include "../ntHashIterator.hpp"
 #include "../BloomFilterUtil.h"
 %}
 
+%rename(BloomFilter) KmerBloomFilter;
+
 using namespace std;
 
-class BloomFilter {
+class KmerBloomFilter {
 public:
-        BloomFilter();
-        ~BloomFilter();
-        BloomFilter(size_t filterSize, unsigned hashNum, unsigned kmerSize);
-        BloomFilter(const string &filterFilePath);
+        KmerBloomFilter();
+        ~KmerBloomFilter();
+        KmerBloomFilter(size_t filterSize, unsigned hashNum, unsigned kmerSize);
+        KmerBloomFilter(const string &filterFilePath);
 
         void insert(vector<size_t> const &precomputed);
         void insert(const char* kmer);
@@ -54,4 +56,4 @@ public:
 };
 */
 
-void insertSeq(BloomFilter &bloom, const string& seq, unsigned numHashes, unsigned k);
+void insertSeq(KmerBloomFilter &bloom, const string& seq, unsigned numHashes, unsigned k);
