@@ -13,4 +13,5 @@ TEST_CASE("TEST EXAMPLE", "[MIBloomFilter]")
 {
 	sdsl::bit_vector bv(1000);
 	cout << bv.size() << endl;
+	REQUIRE((bv.size() > 0));
 }
