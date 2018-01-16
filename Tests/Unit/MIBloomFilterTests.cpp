@@ -3,6 +3,7 @@
 /* lightweight unit test framework */
 #include "catch.hpp"
 #include <sdsl/int_vector.hpp>
+#include <stdio.h>
 
 using namespace std;
 
@@ -11,5 +12,5 @@ using namespace std;
 TEST_CASE("TEST EXAMPLE", "[MIBloomFilter]")
 {
 	sdsl::bit_vector bv(1000);
-	cout << bv.size() << end;
+	cout << bv.size() << endl;
 }
