@@ -2,13 +2,15 @@
 #define CATCH_CONFIG_MAIN
 /* lightweight unit test framework */
 #include "catch.hpp"
-#include <vector>
+#include <sdsl/int_vector.hpp>
+#include <stdio.h>
 
 using namespace std;
 
 #include "MIBloomFilter.hpp"
 
-TEST_CASE("TEST DESCRIPTION", "[MIBloomFilter]")
+TEST_CASE("TEST EXAMPLE", "[MIBloomFilter]")
 {
-
+	sdsl::bit_vector bv(1000);
+	cout << bv.size() << endl;
 }
