@@ -2,7 +2,7 @@
 # Process this file with autoconf to produce a configure script.
 
 AC_PREREQ(2.59)
-AC_INIT(BLOOMFILTER, 1.0.0b, cjustin@bcgsc.ca)
+AC_INIT(BLOOMFILTER, 1.0.1, cjustin@bcgsc.ca)
 AC_CANONICAL_SYSTEM
 
 AM_INIT_AUTOMAKE()
@@ -11,6 +11,11 @@ AC_CONFIG_HEADER([config.h])
 
 AC_PROG_RANLIB
 
+AC_ARG_WITH(sdsl, AS_HELP_STRING([--with-sdsl=PATH],
+			[specify directory for the sdsl header files]))
+if test "$with_sdsl" -a -d "$with_sdsl"; then
+	sdsl_cppflags="-isystem$with_sdsl"
+fi
 
 # Checks for programs.
 AC_PROG_CXX
@@ -33,7 +38,10 @@ fi
 # Set compiler flags.
 AC_SUBST(AM_CXXFLAGS, '-Wall -Wextra -Werror')
 
-# Checks for typedefs, structures, and compiler characteristics.
+AC_CHECK_HEADERS([sdsl/bit_vector_il.hpp])
+if test $ac_cv_header_sdsl_bit_vector_il_hpp != yes; then
+	AC_MSG_ERROR([Requires sdsl])
+fi
 
 AC_CONFIG_FILES([
 		Makefile
