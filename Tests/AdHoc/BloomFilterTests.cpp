@@ -5,7 +5,7 @@
  *      Author: cjustin
  */
 
-#include "BloomFilter.hpp"
+#include "KmerBloomFilter.hpp"
 #include <string>
 #include <assert.h>
 #include <vector>
@@ -41,7 +41,7 @@ int main() {
 	int memUsage = memory_usage();
 
 	size_t filterSize = 1000000000;
-	BloomFilter filter(filterSize, 5, 20);
+	KmerBloomFilter filter(filterSize, 5, 20);
 	filter.insert("ATCGGGTCATCAACCAATAT");
 	filter.insert("ATCGGGTCATCAACCAATAC");
 	filter.insert("ATCGGGTCATCAACCAATAG");
@@ -80,7 +80,7 @@ int main() {
 	cout << memory_usage() - memUsage << "kb" << endl;
 
 	//check loading of stored filter
-	BloomFilter filter2(filename);
+	KmerBloomFilter filter2(filename);
 
 	//should be double size of bf (amortized)
 	cout << memory_usage() - memUsage << "kb" << endl;
@@ -96,7 +96,7 @@ int main() {
 	cout << "premade bf tests done" << endl;
 
 	//memory leak tests
-	BloomFilter* filter3 = new BloomFilter(filterSize, 5, 20);
+	KmerBloomFilter* filter3 = new KmerBloomFilter(filterSize, 5, 20);
 
 	size_t tempMem = memory_usage() - memUsage;
 

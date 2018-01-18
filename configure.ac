@@ -40,10 +40,15 @@ AC_SUBST(CPPFLAGS,"-I$srcdir $sdsl_cppflags $CPPFLAGS")
 # Checks for header files.
 AC_LANG([C++])	#sets the auto conf to look for c++ headers
 
-
 AC_CHECK_HEADERS([sdsl/bit_vector_il.hpp])
 if test $ac_cv_header_sdsl_bit_vector_il_hpp != yes; then
 	AC_MSG_ERROR([Requires sdsl])
+fi
+
+# Check for OpenMP.
+AC_OPENMP
+if test -z $OPENMP_CXXFLAGS; then
+	OPENMP_CXXFLAGS=-Wno-unknown-pragmas
 fi
 
 AC_CONFIG_FILES([

@@ -7,12 +7,9 @@
 #include <sstream>
 #include <algorithm>
 #include <stdint.h>
-#include "BloomFilter.hpp"
+#include "KmerBloomFilter.hpp"
 #include "ntHashIterator.hpp"
-
-#ifdef _OPENMP
 #include <omp.h>
-#endif
 
 namespace opt {
 	/** default size of the Bloom filter in bits (1MB) */
@@ -74,7 +71,7 @@ void getCanon(std::string &bMer) {
     }
 }
 
-void loadSeq(BloomFilter & BloomFilterFilter, const string & seq) {
+void loadSeq(KmerBloomFilter & BloomFilterFilter, const string & seq) {
     if (seq.size() < opt::kmerLen) return;
     for (size_t i = 0; i < seq.size() - opt::kmerLen + 1; i++) {
         string kmer = seq.substr(i, opt::kmerLen);
@@ -83,7 +80,7 @@ void loadSeq(BloomFilter & BloomFilterFilter, const string & seq) {
     }
 }
 
-void loadSeqr(BloomFilter & BloomFilterFilter, const string & seq) {
+void loadSeqr(KmerBloomFilter & BloomFilterFilter, const string & seq) {
     if (seq.size() < opt::kmerLen) return;
     string kmer = seq.substr(0,opt::kmerLen);
     ntHashIterator itr(seq, opt::kmerLen, opt::nhash);
@@ -94,15 +91,15 @@ void loadSeqr(BloomFilter & BloomFilterFilter, const string & seq) {
 }
 
 
-void loadBf(BloomFilter &BloomFilterFilter, const char* faqFile) {
+void loadBf(KmerBloomFilter &BloomFilterFilter, const char* faqFile) {
     ifstream uFile(faqFile);
     bool good = true;
     #pragma omp parallel
     for(string line, hline; good;) {
         #pragma omp critical(uFile)
         {
-            good = getline(uFile, hline);
-            good = getline(uFile, line);
+            good = (bool) getline(uFile, hline);
+            good = (bool) getline(uFile, line);
             //good = getline(uFile, hline);
             //good = getline(uFile, hline);
         }
@@ -130,7 +127,7 @@ int main(int argc, const char* argv[]) {
 	 * (1MB) by default, so that it would run safely on any machine.
 	 * -BV
 	 */
-    BloomFilter myFilter(opt::bloomBits, opt::nhash, opt::kmerLen);
+    KmerBloomFilter myFilter(opt::bloomBits, opt::nhash, opt::kmerLen);
     loadBf(myFilter, argv[1]);
     cerr << "|popBF|=" << myFilter.getPop() << " ";
 #ifdef _OPENMP

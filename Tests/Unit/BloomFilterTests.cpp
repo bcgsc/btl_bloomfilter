@@ -10,7 +10,7 @@
 
 /* lightweight unit test framework */
 #include "catch.hpp"
-#include "BloomFilter.hpp"
+#include "KmerBloomFilter.hpp"
 
 #include <string>
 #include <assert.h>
@@ -67,7 +67,7 @@ TEST_CASE("test fixture", "[BloomFilter]")
 	const unsigned numHashes = 5;
 	const unsigned k = 4;
 
-	BloomFilter filter(filterSize, numHashes, k);
+	KmerBloomFilter filter(filterSize, numHashes, k);
 	filter.insert("AAAA");
 	filter.insert("CCCC");
 	filter.insert("GGGG");
@@ -100,15 +100,15 @@ TEST_CASE("test fixture", "[BloomFilter]")
 		size_t fileSize = ifile.tellg(); // file size in bytes
 		//file size should be same as filter size (Round to block size)
 		if (filterSize % 64 > 0) {
-			assert((filterSize + (64 - (filterSize% 64))) + sizeof(BloomFilter::FileHeader)*8 == fileSize*8);
+			assert((filterSize + (64 - (filterSize% 64))) + sizeof(KmerBloomFilter::FileHeader)*8 == fileSize*8);
 		} else {
-			assert(filterSize + sizeof(BloomFilter::FileHeader)*8 == fileSize*8);
+			assert(filterSize + sizeof(KmerBloomFilter::FileHeader)*8 == fileSize*8);
 		}
 		ifile.close();
 
 		/* check loading of stored filter */
 
-		BloomFilter filter2(filename);
+		KmerBloomFilter filter2(filename);
 
 		/* check if loaded filter is able to report expected results */
 
