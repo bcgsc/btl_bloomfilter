@@ -9,7 +9,7 @@ CountingBloomFilterTests_SOURCES = CountingBloomFilterTests.cpp
 CountingBloomFilterTests_CPPFLAGS = -I$(top_srcdir)
 CountingBloomFilterTests_CXXFLAGS = $(AM_CXXFLAGS) $(OPENMP_CXXFLAGS)
 
-MIBloomFilterTests_SOURCES = CountingBloomFilterTests.cpp
+MIBloomFilterTests_SOURCES = MIBloomFilterTests.cpp
 MIBloomFilterTests_CPPFLAGS = -I$(top_srcdir)
 MIBloomFilterTests_CXXFLAGS = $(AM_CXXFLAGS) $(OPENMP_CXXFLAGS)
 MIBloomFilterTests_LDADD = -lsdsl
