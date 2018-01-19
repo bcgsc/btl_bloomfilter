@@ -63,10 +63,10 @@ public:
 	 * Inserts a set of hash values into an sdsl bitvector and returns the number of collisions
 	 * Thread safe on the bv, though return values will not be the same run to run
 	 */
-	static unsigned insert(sdsl::bit_vector &bv, const vector<size_t> &hashValues) {
+	static unsigned insert(sdsl::bit_vector &bv, uint64_t * hashValues) {
 		unsigned colliCount = 0;
 		for (size_t i = 0; i < hashValues.size(); ++i) {
-			size_t pos = hashValues.at(i) % bv.size();
+			size_t pos = hashValues[i] % bv.size();
 			uint64_t *dataIndex = bv.data() + (pos >> 6);
 			uint64_t bitMaskValue = (uint64_t) 1 << (pos & 0x3F);
 			colliCount += __sync_fetch_and_or(dataIndex, bitMaskValue)
