@@ -82,9 +82,6 @@ public:
 		char magic[8];
 		uint32_t hlen;	//header length (including spaced seeds)
 		uint64_t size;
-		uint64_t nEntry;
-		uint64_t tEntry;
-		double dFPR;
 		uint32_t nhash;
 		uint32_t kmer;
 //		uint8_t allowedMiss;
@@ -93,11 +90,9 @@ public:
 	/*
 	 * Constructor using a prebuilt bitvector
 	 */
-	MIBloomFilter<T>(size_t expectedElemNum, double fpr, unsigned hashNum,
-			unsigned kmerSize, sdsl::bit_vector &bv, size_t unique,
-			const vector<string> seeds = vector<string>(0)) :
-			m_dSize(0), m_dFPR(fpr), m_nEntry(unique), m_tEntry(
-					expectedElemNum), m_hashNum(hashNum), m_kmerSize(kmerSize), m_sseeds(
+	MIBloomFilter<T>(unsigned hashNum,
+			unsigned kmerSize, sdsl::bit_vector &bv, const vector<string> seeds = vector<string>(0)) :
+			m_dSize(0), m_hashNum(hashNum), m_kmerSize(kmerSize), m_sseeds(
 					seeds) {
 		cerr << "Converting bit vector to rank interleaved form" << endl;
 		double start_time = omp_get_wtime();
@@ -147,14 +142,9 @@ public:
 #pragma omp critical(stderr)
 				cerr << "Loaded header... magic: " << magic << " hlen: "
 						<< header.hlen << " size: " << header.size << " nhash: "
-						<< header.nhash << " kmer: " << header.kmer << " dFPR: "
-						<< header.dFPR << " nEntry: " << header.nEntry
-						<< " tEntry: " << header.tEntry << endl;
+						<< header.nhash << " kmer: " << header.kmer << endl;
 
-				m_dFPR = header.dFPR;
-				m_nEntry = header.nEntry;
 				m_hashNum = header.nhash;
-				m_tEntry = header.tEntry;
 				m_kmerSize = header.kmer;
 				m_dSize = header.size;
 				m_data = new T[m_dSize]();
@@ -437,14 +427,9 @@ private:
 		header.kmer = m_kmerSize;
 		header.size = m_dSize;
 		header.nhash = m_hashNum;
-		header.dFPR = m_dFPR;
-		header.nEntry = m_nEntry;
-		header.tEntry = m_tEntry;
 
 		cerr << "Writing header... magic: " << magic << " hlen: " << header.hlen
-				<< " nhash: " << header.nhash << " size: " << header.size
-				<< " dFPR: " << header.dFPR << " nEntry: " << header.nEntry
-				<< " tEntry: " << header.tEntry << endl;
+				<< " nhash: " << header.nhash << " size: " << header.size << endl;
 
 		out.write(reinterpret_cast<char*>(&header), sizeof(struct FileHeader));
 
