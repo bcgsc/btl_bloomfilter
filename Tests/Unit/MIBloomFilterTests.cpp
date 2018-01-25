@@ -92,10 +92,7 @@ TEST_CASE("Test loading", "[MIBloomFilter]")
             ntHashIterator itr(seqArr[i], numHashes, k);
             while(itr != itr.end()){
                 saturated = true;
-                if(!filter.insert(*itr, ID, max, saturated))
-                    ++collisionCount;
-                else
-                    ++bitCount;
+                filter.insert(*itr, ID, max, saturated);
                 ++itr;
             }
             vector<uint8_t> vec = filter.at(*itr, saturated);
