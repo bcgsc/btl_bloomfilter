@@ -95,7 +95,7 @@ TEST_CASE("Test loading", "[MIBloomFilter]")
                 filter.insert(*itr, ID, max, saturated);
                 ++itr;
             }
-            vector<uint8_t> vec = filter.at(*itr, saturated);
+            vector<uint8_t> results = filter.at(*itr, saturated);
         }
 
         //Determines if ID is present in the filter if filter is not saturated
@@ -104,15 +104,62 @@ TEST_CASE("Test loading", "[MIBloomFilter]")
             while(itr != itr.end()){
                 saturated = true;
                 contains = false;
-                vector<uint8_t> vec = filter.at(*itr, saturated);
+                vector<uint8_t> results = filter.at(*itr, saturated);
                 if(!saturated){
                     for(int ID = 1; ID <= 3; ++ID){
-                        if(vec[0] == ID){
+                        if(results[0] == ID){
                             contains = true;
                             break;
                         }
                     }
                     REQUIRE(contains);
+                }
+                ++itr;
+            }
+        }
+        REQUIRE(filter.getPopNonZero()!=0);
+    }
+    SECTION("Bloom Filter for 5 Hashes")
+    {
+        const unsigned numHashes = 5;
+        bool saturated = true;
+        size_t bvSize = MIBloomFilter<size_t>::calcOptimalSize(estEntries, numHashes, 0.5);
+        sdsl::bit_vector bv(bvSize);
+        REQUIRE(bv.size() > 0);
+        for (unsigned i = 0; i < 3; ++i){
+            ntHashIterator itr(seqArr[i], numHashes, k);
+            while(itr != itr.end()){
+                MIBloomFilter<size_t>::insert(bv,(uint64_t*) *itr, numHashes);
+                ++itr;
+            }
+        }
+        //Constructs a filter and loads all values into filter
+        MIBloomFilter<uint8_t> filter(numHashes, k, bv);
+        for(unsigned max = 1; max <= numHashes; ++max){
+            for (unsigned i = 0; i < 3; ++i){
+                unsigned ID = i + 1;
+                ntHashIterator itr(seqArr[i], numHashes, k);
+                while(itr != itr.end()){
+                    saturated = true;
+                    filter.insert(*itr, ID, max, saturated);
+                    ++itr;
+                }
+                vector<uint8_t> results = filter.at(*itr, saturated);
+            }
+        }
+        //Determines if ID is present in the filter if filter is not saturated
+        for (unsigned i = 0; i < 3; ++i){
+            ntHashIterator itr(seqArr[i], numHashes, k);
+            while(itr != itr.end()){
+                saturated = true;
+                vector<uint8_t> results = filter.at(*itr, saturated);
+                if(!saturated){
+                    int presenceCount = 0; //Number of times the ID appears in the vector
+                    for(unsigned resI = 0; resI < results.size(); ++resI)
+                        for(int ID = 1; ID <= 3; ++ID)
+                            if(results[resI] == ID)
+                                ++presenceCount;
+                    REQUIRE(presenceCount == results.size());
                 }
                 ++itr;
             }
