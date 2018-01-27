@@ -93,7 +93,7 @@ static vector<T> query(MIBloomFilter<T> &miBF, H itr,
 
 	google::dense_hash_map<T, unsigned> counts;
 	counts.set_empty_key(s_emptyID);
-	while (itr != itr.end() && itr.pos() < end) {
+	while (itr != itr.end() && itr.pos() < maxPos) {
 		bool saturated = true;
 		vector<T> results = miBF.at(*itr, saturated);
 		//to determine if already added for this frame
