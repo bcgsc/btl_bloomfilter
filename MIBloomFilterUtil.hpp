@@ -86,7 +86,7 @@ static vector<double> calcPerFrameProb(MIBloomFilter<T> &miBF, T maxValue) {
 //TODO return pVals?
 template<typename T, typename H>
 static vector<T> query(MIBloomFilter<T> &miBF, H itr,
-		const vector<double> &perFrameProb, double alpha = 0.0001, size_t end =
+		const vector<double> &perFrameProb, double alpha = 0.0001, size_t maxPos =
 				0xFFFFFFFFFFFF) {
 	vector<T> signifResults;
 	unsigned evaluatedSeeds;
