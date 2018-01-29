@@ -86,11 +86,11 @@ static vector<double> calcPerFrameProb(MIBloomFilter<T> &miBF, T maxValue) {
 //TODO return saturated frame counts?
 //TODO return pVals?
 template<typename T, typename H>
-static vector<T> query(MIBloomFilter<T> &miBF, H itr,
+static vector<T> query(MIBloomFilter<T> &miBF, H &itr,
 		const vector<double> &perFrameProb, double alpha = 0.0001, size_t maxPos =
 				numeric_limits<size_t>::max()) {
 	vector<T> signifResults;
-	unsigned evaluatedSeeds;
+	unsigned evaluatedSeeds = 0;
 
 	google::dense_hash_map<T, unsigned> counts;
 	counts.set_empty_key(s_emptyID);
@@ -102,8 +102,8 @@ static vector<T> query(MIBloomFilter<T> &miBF, H itr,
 		tempIDs.set_empty_key(s_emptyID);
 
 		if (!saturated) {
-			for (typename vector<T>::const_iterator j = results->begin();
-					j != results->end(); j++) {
+			for (typename vector<T>::const_iterator j = results.begin();
+					j != results.end(); j++) {
 				if (*j != s_emptyID) {
 					if (tempIDs.find(*j) == tempIDs.end()) {
 						typename google::dense_hash_map<T, unsigned>::iterator tempItr =
