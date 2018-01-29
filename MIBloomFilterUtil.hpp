@@ -34,6 +34,7 @@ static unsigned nChoosek(unsigned n, unsigned k) {
 }
 
 //helper methods
+//calculates the per frame probability of match for single value
 static double calcProbSingleFrame(double occupancy, unsigned hashNum,
 		double freq, unsigned allowedMisses = 0) {
 	double probTotal = 0.0;
@@ -47,7 +48,6 @@ static double calcProbSingleFrame(double occupancy, unsigned hashNum,
 	return probTotal;
 }
 
-//calculates the per frame probability of match for each value
 /*
  * Max value is the largest value seen in your set of possible values
  */
@@ -71,9 +71,9 @@ static vector<double> calcPerFrameProb(MIBloomFilter<T> &miBF, T maxValue) {
 }
 
 /*
- * Utility function for querying MiBF for hash itr object
- * Computes probability of a match for each possible value queried
- * In this scheme, saturated regions are ignored
+ * Utility function for querying MiBF for a sequence in a hash itr object
+ * Computes probability of a match for each possible value queried.
+ * In this scheme saturated regions are ignored.
  *
  * Parameters:
  * perFrameProb - per frame probability of each possible value
@@ -133,6 +133,7 @@ static vector<T> query(MIBloomFilter<T> &miBF, H itr,
 			signifResults.push_back(itr->first);
 		}
 	}
+	return signifResults;
 }
 
 }
