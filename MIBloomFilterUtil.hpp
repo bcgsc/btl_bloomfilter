@@ -7,6 +7,7 @@
 #include <google/dense_hash_set>
 #include <boost/math/distributions/binomial.hpp>
 #include <vector>
+#include <limits>
 
 using namespace std;
 using boost::math::binomial;
@@ -87,7 +88,7 @@ static vector<double> calcPerFrameProb(MIBloomFilter<T> &miBF, T maxValue) {
 template<typename T, typename H>
 static vector<T> query(MIBloomFilter<T> &miBF, H itr,
 		const vector<double> &perFrameProb, double alpha = 0.0001, size_t maxPos =
-				0xFFFFFFFFFFFF) {
+				numeric_limits<size_t>::max()) {
 	vector<T> signifResults;
 	unsigned evaluatedSeeds;
 
