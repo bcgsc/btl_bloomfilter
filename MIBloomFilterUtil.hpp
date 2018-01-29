@@ -54,14 +54,14 @@ template<typename T>
 static vector<double> calcPerFrameProb(MIBloomFilter<T> &miBF, T maxValue) {
 	double occupancy = double(miBF.getPop()) / double(miBF.size());
 	unsigned hashNum = miBF.getHashNum();
-	vector<size_t> countTable = vector<size_t>(maxValue, 0);
+	vector<size_t> countTable = vector<size_t>(maxValue + 1, 0);
 	size_t sum = 0;
 	for (vector<size_t>::const_iterator itr = countTable.begin();
 			itr != countTable.end(); ++itr) {
 		sum += *itr;
 	}
 	miBF.getIDCounts(countTable);
-	vector<double> perFrameProb = vector<double>(maxValue, 0.0);
+	vector<double> perFrameProb = vector<double>(maxValue + 1, 0.0);
 	for (size_t i = 0; i < countTable.size(); ++i) {
 		perFrameProb[i] = MIBloomFilterUtil::calcProbSingleFrame(occupancy, hashNum,
 				double(countTable[i]) / double(sum));
