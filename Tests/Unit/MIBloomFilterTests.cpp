@@ -22,7 +22,7 @@ TEST_CASE("Test loading", "[MIBloomFilter]")
     unsigned bitCount = 0;
     unsigned collisionCount = 0;
     unsigned bitSum = 0;
-    const unsigned k = 4;
+    const unsigned k = 15;
     size_t estEntries = seq1.length() + seq2.length() + seq3.length() - 3*k + 3;
 
     SECTION("Bit vector for 1 hash")
@@ -181,10 +181,10 @@ TEST_CASE("Testing Query Function", "[MIBloomFilter]")
     unsigned bitCount = 0;
     unsigned collisionCount = 0;
     unsigned bitSum = 0;
-    const unsigned k = 4;
+    const unsigned k = 25;
     size_t estEntries = seq1.length() + seq2.length() + seq3.length() - 3*k + 3;
 
-    const unsigned numHashes = 1;
+    const unsigned numHashes = 5;
     bool saturated = true;
     bool contains = false;
     size_t bvSize = MIBloomFilter<size_t>::calcOptimalSize(estEntries, numHashes, 0.5);
@@ -198,17 +198,18 @@ TEST_CASE("Testing Query Function", "[MIBloomFilter]")
         }
     }
     //Constructs a filter and loads all values into filter
-    MIBloomFilter<uint8_t> filter(numHashes, k, bv);
-    unsigned max = 1;
-    for (unsigned i = 0; i < 3; ++i){
-        unsigned ID = i + 1;
-        ntHashIterator itr(seqArr[i], numHashes, k);
-        while(itr != itr.end()){
-            saturated = true;
-            filter.insert(*itr, ID, max, saturated);
-            ++itr;
-        }
-    }
+	MIBloomFilter<uint8_t> filter(numHashes, k, bv);
+	for (unsigned max = 1; max <= numHashes; ++max) {
+		for (unsigned i = 0; i < 3; ++i) {
+			unsigned ID = i + 1;
+			ntHashIterator itr(seqArr[i], numHashes, k);
+			while (itr != itr.end()) {
+				saturated = true;
+				filter.insert(*itr, ID, max, saturated);
+				++itr;
+			}
+		}
+	}
     
     const vector<double> frameProb = MIBloomFilterUtil::calcPerFrameProb(filter, (unsigned char) 3);
     
@@ -216,21 +217,15 @@ TEST_CASE("Testing Query Function", "[MIBloomFilter]")
     {           
         for(unsigned i = 0; i < 3; ++i){
             ntHashIterator itr(seqArr[i], numHashes, k);
+            unsigned ID = i + 1;
             vector<uint8_t> results = MIBloomFilterUtil::query(filter, itr, frameProb);
-            REQUIRE(results.size() != 0);
-            bool contains = false;
-            for(int ID = 1; ID <= 3; ++ID){
-                if(results[0] == ID){
-                    contains = true;
-                    break;
-                }
-            }
-            REQUIRE(contains); 
+            REQUIRE(results.size() == 1);
+            REQUIRE(results[0] == ID);
         }
     }
 
     SECTION("Testing Subsequences")
-    {   //Subsequences of seq1 
+    {   //Subsequences of seq1
         const string sub1no1 = "TAAGATGTCTCAACGGCATGCGCAACTTGTGAAGTGCCTACTATCCTTAAACGCATATCT";
         const string sub1no2 = "TAACGGGCGATTCTATAAGATTGCACATTGCGTCTACTTATAAGATGTC";
         const string sub1no3 = "TAAGATGTCTCAACGGCATGCGCAACTTGTGAAGTGCCTACTATCC";
@@ -247,7 +242,7 @@ TEST_CASE("Testing Query Function", "[MIBloomFilter]")
         for(unsigned i = 0; i < 3; ++i){
             ntHashIterator itr(subArr[i], numHashes, k);
             vector<uint8_t> results = MIBloomFilterUtil::query(filter, itr, frameProb);
-            REQUIRE(results.size() > 0);
+            REQUIRE(results.size() == 1);
             REQUIRE(results[0] == 1);
         }
 
@@ -255,7 +250,7 @@ TEST_CASE("Testing Query Function", "[MIBloomFilter]")
         for(unsigned i = 3; i < 6; ++i){
             ntHashIterator itr(subArr[i], numHashes, k);
             vector<uint8_t> results = MIBloomFilterUtil::query(filter, itr, frameProb);
-            REQUIRE(results.size() > 0);
+            REQUIRE(results.size() == 1);
             REQUIRE(results[0] == 2);
         }
 
@@ -263,13 +258,13 @@ TEST_CASE("Testing Query Function", "[MIBloomFilter]")
         for(unsigned i = 6; i < 9; ++i){
             ntHashIterator itr(subArr[i], numHashes, k);
             vector<uint8_t> results = MIBloomFilterUtil::query(filter, itr, frameProb);
-            REQUIRE(results.size() > 0);
+            REQUIRE(results.size() == 1);
             REQUIRE(results[0] == 3);
         }
     }
 
     SECTION("Testing Sequences not in Filter")
-    {   
+    {
         const string badSeq1 = "ATGTTCACCTATCTACTACCCATCCCCGGAGGTTAAGTAGGTTGTGAGATGCGGGAGAGGTTCTCGATCTTCCCG";
         const string badSeq2 = "TAGAGCGGGGCTGTTGACGTTTGGAGTTGAAAAAATCTAATATTCCAATC";
         const string badSeq3 = "GGCTTCAACGTGCACCACCGCAGGCGGCTGACGAGGGGCTCACACCGAGAAAGTAGACTGTTGCGCGTTGGGGGT";
