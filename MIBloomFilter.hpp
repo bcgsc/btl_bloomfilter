@@ -94,13 +94,13 @@ public:
 			unsigned kmerSize, sdsl::bit_vector &bv, const vector<string> seeds = vector<string>(0)) :
 			m_dSize(0), m_hashNum(hashNum), m_kmerSize(kmerSize), m_sseeds(
 					seeds) {
-		cerr << "Converting bit vector to rank interleaved form" << endl;
+//		cerr << "Converting bit vector to rank interleaved form" << endl;
 		double start_time = omp_get_wtime();
 		m_bv = sdsl::bit_vector_il < BLOCKSIZE > (bv);
 		bv = sdsl::bit_vector();
 		double time = omp_get_wtime() - start_time;
-		cerr << "Converted bit vector to rank interleaved form " << time << "s"
-				<< endl;
+//		cerr << "Converted bit vector to rank interleaved form " << time << "s"
+//				<< endl;
 		if (!seeds.empty()) {
 			m_ssVal = parseSeedString(m_sseeds);
 			assert(m_sseeds[0].size() == kmerSize);
