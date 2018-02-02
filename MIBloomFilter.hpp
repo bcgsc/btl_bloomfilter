@@ -359,9 +359,6 @@ public:
 			if (m_data[i] >= mask) {
 				++count;
 			}
-			if (m_data[i] > 3) {
-				cerr << unsigned(m_data[i]) << endl;
-			}
 		}
 		return count;
 	}
