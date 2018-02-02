@@ -94,13 +94,10 @@ public:
 			unsigned kmerSize, sdsl::bit_vector &bv, const vector<string> seeds = vector<string>(0)) :
 			m_dSize(0), m_hashNum(hashNum), m_kmerSize(kmerSize), m_sseeds(
 					seeds) {
-//		cerr << "Converting bit vector to rank interleaved form" << endl;
 		double start_time = omp_get_wtime();
 		m_bv = sdsl::bit_vector_il < BLOCKSIZE > (bv);
 		bv = sdsl::bit_vector();
 		double time = omp_get_wtime() - start_time;
-//		cerr << "Converted bit vector to rank interleaved form " << time << "s"
-//				<< endl;
 		if (!seeds.empty()) {
 			m_ssVal = parseSeedString(m_sseeds);
 			assert(m_sseeds[0].size() == kmerSize);
@@ -241,7 +238,6 @@ public:
 				}
 			} else {
 				string bvFilename = filterFilePath + ".sdsl";
-
 				cerr << "Storing sdsl interleaved bit vector to: " << bvFilename
 						<< endl;
 				store_to_file(m_bv, bvFilename);
@@ -339,42 +335,12 @@ public:
 		}
 	}
 
-	/*
-	 * Return FPR based on popcount
-	 */
-	inline double getFPR() const {
-		return pow(double(getPop()) / double(m_bv.size()), double(m_hashNum));
-	}
-
-	/*
-	 * Return FPR based on popcount and minimum number of matches for a hit
-	 */
-	inline double getFPR(unsigned allowedMiss) const {
-		assert(allowedMiss < m_hashNum);
-		double cumulativeProb = 0;
-		double popCount = getPop();
-		double p = popCount / double(m_bv.size());
-		for (unsigned i = m_hashNum - allowedMiss; i <= m_hashNum; ++i) {
-			cumulativeProb += double(nChoosek(m_hashNum, i)) * pow(p, i)
-					* pow(1.0 - p, (m_hashNum - i));
-		}
-		return (cumulativeProb);
-	}
-
-	/*
-	 * Return FPR based on number of inserted elements
-	 */
-	inline double getFPR_numEle() const {
-		assert(m_nEntry > 0);
-		return calcFPR_numInserted(m_nEntry);
-	}
-
 	inline size_t getPop() const {
 		size_t index = m_bv.size() - 1;
 		while (m_bv[index] == 0) {
 			--index;
 		}
-		return m_rankSupport(index - 1) + 1;
+		return m_rankSupport(index) + 1;
 	}
 
 	inline size_t getPopNonZero() const {
@@ -393,12 +359,11 @@ public:
 			if (m_data[i] >= mask) {
 				++count;
 			}
+			if (m_data[i] > 3) {
+				cerr << unsigned(m_data[i]) << endl;
+			}
 		}
 		return count;
-	}
-
-	inline size_t getUniqueEntries() const {
-		return m_nEntry;
 	}
 
 	inline size_t size() {
@@ -502,9 +467,6 @@ private:
 	T* m_data;
 	sdsl::rank_support_il<1> m_rankSupport;
 
-	double m_dFPR;
-	uint64_t m_nEntry;
-	uint64_t m_tEntry;
 	unsigned m_hashNum;
 	unsigned m_kmerSize;
 
