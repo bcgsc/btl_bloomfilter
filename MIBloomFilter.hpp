@@ -25,6 +25,8 @@
 #include <sdsl/bit_vector_il.hpp>
 #include <sdsl/rank_support.hpp>
 #include <omp.h>
+#include <algorithm>    // std::random_shuffle
+#include <ctime>        // std::time
 
 using namespace std;
 template<typename T>
@@ -90,12 +92,12 @@ public:
 	/*
 	 * Constructor using a prebuilt bitvector
 	 */
-	MIBloomFilter<T>(unsigned hashNum,
-			unsigned kmerSize, sdsl::bit_vector &bv, const vector<string> seeds = vector<string>(0)) :
+	MIBloomFilter<T>(unsigned hashNum, unsigned kmerSize, sdsl::bit_vector &bv,
+			const vector<string> seeds = vector<string>(0)) :
 			m_dSize(0), m_hashNum(hashNum), m_kmerSize(kmerSize), m_sseeds(
 					seeds) {
 		double start_time = omp_get_wtime();
-		m_bv = sdsl::bit_vector_il < BLOCKSIZE > (bv);
+		m_bv = sdsl::bit_vector_il<BLOCKSIZE>(bv);
 		bv = sdsl::bit_vector();
 		double time = omp_get_wtime() - start_time;
 		if (!seeds.empty()) {
@@ -107,7 +109,7 @@ public:
 				assert(m_kmerSize == itr->size());
 			}
 		}
-		m_rankSupport = sdsl::rank_support_il < 1 > (&m_bv);
+		m_rankSupport = sdsl::rank_support_il<1>(&m_bv);
 		m_dSize = getPop();
 		m_data = new T[m_dSize]();
 	}
@@ -197,7 +199,7 @@ public:
 				cerr << "Loading sdsl interleaved bit vector from: "
 						<< bvFilename << endl;
 				load_from_file(m_bv, bvFilename);
-				m_rankSupport = sdsl::rank_support_il < 1 > (&m_bv);
+				m_rankSupport = sdsl::rank_support_il<1>(&m_bv);
 			}
 		}
 
@@ -257,8 +259,20 @@ public:
 			bool &saturated) {
 		bool someValueSet = false;
 		unsigned count = 0;
-		for (size_t i = 0; i < m_hashNum; ++i) {
-			size_t pos = m_rankSupport(hashes[i] % m_bv.size());
+		std::srand(unsigned(std::time(0)));
+		std::vector<unsigned> myvector;
+
+		// set some values:
+		for (unsigned i = 0; i < m_hashNum; ++i) {
+			myvector.push_back(i);
+		}
+
+		// using built-in random generator:
+		std::random_shuffle(myvector.begin(), myvector.end());
+
+		for (std::vector<unsigned>::iterator itr = myvector.begin();
+				itr != myvector.end(); ++itr) {
+			size_t pos = m_rankSupport(hashes[*itr] % m_bv.size());
 			//check for saturation
 			T oldVal = setVal(&m_data[pos], value);
 			if (oldVal > mask) {
@@ -309,6 +323,7 @@ public:
 					results[i] = m_data[rankPos];
 					saturated = false;
 				}
+//				assert(rankPos<m_dSize);
 			}
 		}
 		return results;
@@ -391,7 +406,8 @@ private:
 		header.nhash = m_hashNum;
 
 		cerr << "Writing header... magic: " << magic << " hlen: " << header.hlen
-				<< " nhash: " << header.nhash << " size: " << header.size << endl;
+				<< " nhash: " << header.nhash << " size: " << header.size
+				<< endl;
 
 		out.write(reinterpret_cast<char*>(&header), sizeof(struct FileHeader));
 

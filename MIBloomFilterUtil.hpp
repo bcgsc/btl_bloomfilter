@@ -34,18 +34,51 @@ static unsigned nChoosek(unsigned n, unsigned k) {
 }
 
 //helper methods
-//calculates the per frame probability of match for single value
+//calculates the per frame probability of a random match for single value
 static double calcProbSingleFrame(double occupancy, unsigned hashNum,
 		double freq, unsigned allowedMisses = 0) {
 	double probTotal = 0.0;
-	for (unsigned i = 0; i <= allowedMisses; i++) {
+	for (unsigned i = hashNum - allowedMisses; i <= hashNum; i++) {
 		double prob = nChoosek(hashNum, i);
-		prob *= pow(occupancy, hashNum - i);
-		prob *= pow(1.0 - occupancy, i);
-		prob *= (1.0 - pow(1.0 - freq, hashNum - i));
+		prob *= pow(occupancy, i);
+		prob *= pow(1.0 - occupancy, hashNum - i);
+		prob *= (1.0 - pow(1.0 - freq, i));
 		probTotal += prob;
 	}
 	return probTotal;
+}
+
+//calculates the per frame probability of a random multi match given a significant result
+static double calcProbMultiMatchSingleFrame(double occupancy, unsigned hashNum,
+		double freq) {
+	double prob = 1.0
+			- pow(1.0 - freq, hashNum * (1 + occupancy / log(1 - occupancy)));
+	return prob;
+}
+
+/*
+ * Max value is the largest value seen in your set of possible values
+ */
+template<typename T>
+static vector<double> calcPerMultiMatchFrameProb(MIBloomFilter<T> &miBF,
+		T maxValue) {
+	double occupancy = double(miBF.getPop()) / double(miBF.size());
+	unsigned hashNum = miBF.getHashNum();
+	vector<size_t> countTable = vector<size_t>(maxValue + 1, 0);
+	miBF.getIDCounts(countTable);
+	size_t sum = 0;
+	for (vector<size_t>::const_iterator itr = countTable.begin();
+			itr != countTable.end(); ++itr) {
+		sum += *itr;
+	}
+	vector<double> perFrameProb = vector<double>(maxValue + 1, 0.0);
+	for (size_t i = 0; i < countTable.size(); ++i) {
+		perFrameProb[i] = MIBloomFilterUtil::calcProbMultiMatchSingleFrame(
+				occupancy, hashNum, double(countTable[i]) / double(sum));
+//		cerr << double(countTable[i]) / double(sum) << " " << perFrameProb[i] << endl;
+	}
+
+	return perFrameProb;
 }
 
 /*
@@ -64,9 +97,11 @@ static vector<double> calcPerFrameProb(MIBloomFilter<T> &miBF, T maxValue) {
 	}
 	vector<double> perFrameProb = vector<double>(maxValue + 1, 0.0);
 	for (size_t i = 0; i < countTable.size(); ++i) {
-		perFrameProb[i] = MIBloomFilterUtil::calcProbSingleFrame(occupancy, hashNum,
-				double(countTable[i]) / double(sum));
+		perFrameProb[i] = MIBloomFilterUtil::calcProbSingleFrame(occupancy,
+				hashNum, double(countTable[i]) / double(sum));
+//		cerr << double(countTable[i]) / double(sum) << " " << perFrameProb[i] << endl;
 	}
+
 	return perFrameProb;
 }
 
@@ -87,9 +122,9 @@ static vector<double> calcPerFrameProb(MIBloomFilter<T> &miBF, T maxValue) {
 //TODO return pVals?
 template<typename T, typename H>
 static vector<T> query(MIBloomFilter<T> &miBF, H &itr,
-		const vector<double> &perFrameProb, double alpha = 0.0001, size_t maxPos =
-				numeric_limits<size_t>::max()) {
-	vector<T> signifResults;
+		const vector<double> &perFrameProb, const vector<double> &perMultiMatchFrameProb,
+		size_t maxPos = numeric_limits<size_t>::max(), double alpha = 0.0001,
+		double multimapAlpha = 0.001) {
 	unsigned evaluatedSeeds = 0;
 
 	google::dense_hash_map<T, unsigned> counts;
@@ -108,6 +143,7 @@ static vector<T> query(MIBloomFilter<T> &miBF, H &itr,
 					if (tempIDs.find(*j) == tempIDs.end()) {
 						typename google::dense_hash_map<T, unsigned>::iterator tempItr =
 								counts.find(*j);
+						assert(*j > 0);
 						if (tempItr == counts.end()) {
 							counts[*j] = 1;
 						} else {
@@ -121,18 +157,47 @@ static vector<T> query(MIBloomFilter<T> &miBF, H &itr,
 		}
 		++itr;
 	}
-	//bonferroni
+
+	//potential signifResults
+	vector<T> potSignifResults;
+	vector<T> signifResults;
+
 	double adjustedPValThreshold = 1.0
 			- pow(1.0 - alpha, 1.0 / double(perFrameProb.size() - 1));
+	T bestSignifVal = counts.begin()->first;
 	for (typename google::dense_hash_map<T, unsigned>::const_iterator itr =
 			counts.begin(); itr != counts.end(); itr++) {
 		//TODO use complement cdf? so I don't have to subtract?
 		binomial bin(evaluatedSeeds, 1.0 - perFrameProb.at(itr->first));
 		double cumProb = cdf(bin, evaluatedSeeds - itr->second);
 		if (adjustedPValThreshold > cumProb) {
-			signifResults.push_back(itr->first);
+			if (counts[bestSignifVal] < counts[itr->first]) {
+				bestSignifVal = itr->first;
+			}
+			potSignifResults.push_back(itr->first);
 		}
+//		cerr << unsigned(itr->first) << " " << adjustedPValThreshold << " "
+//				<< cumProb << " " << itr->second << " " << miBF.getPop()
+//				<< endl;
 	}
+
+	adjustedPValThreshold = 1.0
+			- pow(1.0 - multimapAlpha, 1.0 / double(perFrameProb.size() - 1));
+	//TODO: generalized because this assumes a = 0, fix me?
+	for (typename vector<T>::const_iterator itr = potSignifResults.begin();
+			itr != potSignifResults.end(); ++itr) {
+		//compute single frame prob
+		binomial bin(counts[bestSignifVal], 1.0 - perMultiMatchFrameProb.at(*itr));
+		double cumProb = cdf(bin, counts[bestSignifVal] - counts[*itr]);
+		if (adjustedPValThreshold > cumProb) {
+			signifResults.push_back(*itr);
+		}
+//		cerr << unsigned(*itr) << " " << counts[bestSignifVal] << " "
+//				<< counts[*itr] << " " << adjustedPValThreshold << " "
+//				<< multimapAlpha << " " << cumProb << endl;
+	}
+
+	//Best hit considered the class with the most hits
 	return signifResults;
 }
 
