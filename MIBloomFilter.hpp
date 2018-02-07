@@ -98,7 +98,6 @@ public:
 					seeds) {
 		m_bv = sdsl::bit_vector_il<BLOCKSIZE>(bv);
 		bv = sdsl::bit_vector();
-		double time = omp_get_wtime() - start_time;
 		if (!seeds.empty()) {
 			m_ssVal = parseSeedString(m_sseeds);
 			assert(m_sseeds[0].size() == kmerSize);
