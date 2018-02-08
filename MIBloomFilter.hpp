@@ -263,11 +263,29 @@ public:
 		// set some values:
 		for (unsigned i = 0; i < m_hashNum; ++i) {
 			myvector.push_back(i);
+			//check if values are already set
+			size_t pos = m_rankSupport(hashes[i] % m_bv.size());
+			//check for saturation
+			T oldVal = m_data[pos];
+			if (oldVal > mask) {
+				oldVal = oldVal & antiMask;
+			} else {
+				saturated = false;
+			}
+			if (oldVal == value) {
+				someValueSet = true;
+				++count;
+			}
+			if (count >= max) {
+				return someValueSet;
+			}
 		}
 
+		count = 0;
 		// using built-in random generator:
 		std::random_shuffle(myvector.begin(), myvector.end());
 
+		//insert seeds in random order
 		for (std::vector<unsigned>::iterator itr = myvector.begin();
 				itr != myvector.end(); ++itr) {
 			size_t pos = m_rankSupport(hashes[*itr] % m_bv.size());
@@ -346,6 +364,21 @@ public:
 		for (size_t i = 0; i < m_dSize; ++i) {
 			++counts[m_data[i] & antiMask];
 		}
+	}
+
+	/*
+	 * Returns max ID seen in filter
+	 * Expensive operation.
+	 */
+	inline T getMaxID() const {
+		T max = 0;
+		for (size_t i = 0; i < m_dSize; ++i) {
+			T tempVal = m_data[i] & antiMask;
+			if(max < tempVal){
+				max = tempVal;
+			}
+		}
+		return max;
 	}
 
 	inline size_t getPop() const {
