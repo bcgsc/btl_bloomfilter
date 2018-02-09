@@ -257,12 +257,11 @@ public:
 			bool &saturated) {
 		bool someValueSet = false;
 		unsigned count = 0;
-		std::srand(unsigned(std::time(0)));
-		std::vector<unsigned> myvector;
+		std::vector<unsigned> hashOrder;
 
-		// set some values:
+		//check values and if value set
 		for (unsigned i = 0; i < m_hashNum; ++i) {
-			myvector.push_back(i);
+			hashOrder.push_back(i);
 			//check if values are already set
 			size_t pos = m_rankSupport(hashes[i] % m_bv.size());
 			//check for saturation
@@ -283,11 +282,11 @@ public:
 
 		count = 0;
 		// using built-in random generator:
-		std::random_shuffle(myvector.begin(), myvector.end());
+		std::random_shuffle(hashOrder.begin(), hashOrder.end());
 
 		//insert seeds in random order
-		for (std::vector<unsigned>::iterator itr = myvector.begin();
-				itr != myvector.end(); ++itr) {
+		for (std::vector<unsigned>::iterator itr = hashOrder.begin();
+				itr != hashOrder.end(); ++itr) {
 			size_t pos = m_rankSupport(hashes[*itr] % m_bv.size());
 			//check for saturation
 			T oldVal = setVal(&m_data[pos], value);
