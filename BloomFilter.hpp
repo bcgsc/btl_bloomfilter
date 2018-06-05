@@ -54,7 +54,7 @@ public:
 	 * Default constructor.
 	 */
 	BloomFilter() :
-			m_filter(0), m_size(0), m_sizeInBytes(0), m_hashNum(0), m_kmerSize(
+			m_filter(NULL), m_size(0), m_sizeInBytes(0), m_hashNum(0), m_kmerSize(
 					0), m_dFPR(0), m_nEntry(0), m_tEntry(0) {
 	}
 
@@ -66,10 +66,10 @@ public:
 	 * kmerSize refers to the number of bases the kmer has
 	 */
 	BloomFilter(size_t filterSize, unsigned hashNum, unsigned kmerSize) :
-			m_size(filterSize), m_hashNum(hashNum), m_kmerSize(kmerSize), m_dFPR(
-					0), m_nEntry(0), m_tEntry(0) {
+		m_filter(NULL), m_size(filterSize), m_hashNum(hashNum),
+		m_kmerSize(kmerSize), m_dFPR(0), m_nEntry(0), m_tEntry(0)
+	{
 		initSize(m_size);
-		memset(m_filter, 0, m_sizeInBytes);
 	}
 
 	/* De novo filter constructor.
@@ -88,7 +88,6 @@ public:
 			m_size = calcOptimalSize(expectedElemNum, m_dFPR);
 		}
 		initSize(m_size);
-		memset(m_filter, 0, m_sizeInBytes);
 	}
 
 	BloomFilter(const string &filterFilePath) {
@@ -343,7 +342,9 @@ protected:
 			exit(1);
 		}
 		m_sizeInBytes = size / bitsPerChar;
-		m_filter = new unsigned char[m_sizeInBytes];
+		if (m_filter != NULL)
+			delete[] m_filter;
+		m_filter = new unsigned char[m_sizeInBytes]();
 	}
 
 	/*
