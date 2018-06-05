@@ -76,11 +76,14 @@ void getCanon(std::string &bMer) {
 
 void loadSeq(BloomFilter & BloomFilterFilter, const string & seq) {
     if (seq.size() < opt::kmerLen) return;
-    for (size_t i = 0; i < seq.size() - opt::kmerLen + 1; i++) {
-        string kmer = seq.substr(i, opt::kmerLen);
-        getCanon(kmer);
-        BloomFilterFilter.insert(kmer.c_str());
-    }
+
+	ntHashIterator insertIt(seq, BloomFilterFilter.getHashNum(),
+		BloomFilterFilter.getKmerSize());
+	while(insertIt != insertIt.end()) {
+		BloomFilterFilter.insert(*insertIt);
+		++insertIt;
+	}
+
 }
 
 void loadSeqr(BloomFilter & BloomFilterFilter, const string & seq) {

@@ -11,6 +11,7 @@
 /* lightweight unit test framework */
 #include "catch.hpp"
 #include "BloomFilter.hpp"
+#include "ntHashIterator.hpp"
 
 #include <string>
 #include <assert.h>
@@ -66,23 +67,29 @@ TEST_CASE("test fixture", "[BloomFilter]")
 	const size_t filterSize = 1000000000;
 	const unsigned numHashes = 5;
 	const unsigned k = 4;
+	const char* seq = "ACGTAC";
 
 	BloomFilter filter(filterSize, numHashes, k);
-	filter.insert("AAAA");
-	filter.insert("CCCC");
-	filter.insert("GGGG");
-	filter.insert("TTTT");
+
+	/* insert k-mers ACGT, CGTA, GTAC */
+
+	ntHashIterator insertIt(seq, numHashes, k);
+	while(insertIt != insertIt.end()) {
+		filter.insert(*insertIt);
+		++insertIt;
+	}
 
 	/* END COMMON SETUP CODE */
 
 	SECTION("query elements")
 	{
-		REQUIRE(filter.contains("AAAA"));
-		REQUIRE(filter.contains("CCCC"));
-		REQUIRE(filter.contains("GGGG"));
-		REQUIRE(filter.contains("TTTT"));
+		/* check that k-mers were correctly inserted */
 
-		REQUIRE(!filter.contains("AACC"));
+		ntHashIterator queryIt(seq, numHashes, k);
+		while(queryIt != queryIt.end()) {
+			assert(filter.contains(*queryIt));
+			++queryIt;
+		}
 	}
 
 	SECTION("save/load Bloom file")
@@ -112,12 +119,11 @@ TEST_CASE("test fixture", "[BloomFilter]")
 
 		/* check if loaded filter is able to report expected results */
 
-		REQUIRE(filter2.contains("AAAA"));
-		REQUIRE(filter2.contains("CCCC"));
-		REQUIRE(filter2.contains("GGGG"));
-		REQUIRE(filter2.contains("TTTT"));
-
-		REQUIRE(!filter.contains("AACC"));
+		ntHashIterator queryIt(seq, numHashes, k);
+		while(queryIt != queryIt.end()) {
+			assert(filter.contains(*queryIt));
+			++queryIt;
+		}
 
 		/* cleanup */
 

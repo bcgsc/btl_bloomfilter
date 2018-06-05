@@ -6,6 +6,7 @@
  */
 
 #include "BloomFilter.hpp"
+#include "ntHashIterator.hpp"
 #include <string>
 #include <assert.h>
 #include <vector>
@@ -41,20 +42,28 @@ int main() {
 	int memUsage = memory_usage();
 
 	size_t filterSize = 1000000000;
-	BloomFilter filter(filterSize, 5, 20);
-	filter.insert("ATCGGGTCATCAACCAATAT");
-	filter.insert("ATCGGGTCATCAACCAATAC");
-	filter.insert("ATCGGGTCATCAACCAATAG");
-	filter.insert("ATCGGGTCATCAACCAATAA");
 
-	//Check if filter is able to report expected results
-	assert(filter.contains("ATCGGGTCATCAACCAATAT"));
-	assert(filter.contains("ATCGGGTCATCAACCAATAC"));
-	assert(filter.contains("ATCGGGTCATCAACCAATAG"));
-	assert(filter.contains("ATCGGGTCATCAACCAATAA"));
+	const unsigned numHashes = 3;
+	const unsigned k = 4;
+	const char* seq = "ACGTAC";
 
-	assert(!filter.contains("ATCGGGTCATCAACCAATTA"));
-	assert(!filter.contains("ATCGGGTCATCAACCAATTC"));
+	BloomFilter filter(filterSize, numHashes, k);
+
+	// insert k-mers ACGT, CGTA, GTAC
+
+	ntHashIterator insertIt(seq, numHashes, k);
+	while(insertIt != insertIt.end()) {
+		filter.insert(*insertIt);
+		++insertIt;
+	}
+
+	// check that k-mers were correctly inserted
+
+	ntHashIterator queryIt(seq, numHashes, k);
+	while(queryIt != queryIt.end()) {
+		assert(filter.contains(*queryIt));
+		++queryIt;
+	}
 
 	//should be size of bf (amortized)
 	cout << memory_usage() - memUsage << "kb" << endl;
@@ -86,13 +95,13 @@ int main() {
 	cout << memory_usage() - memUsage << "kb" << endl;
 
 	//Check if loaded filter is able to report expected results
-	assert(filter2.contains("ATCGGGTCATCAACCAATAT"));
-	assert(filter2.contains("ATCGGGTCATCAACCAATAC"));
-	assert(filter2.contains("ATCGGGTCATCAACCAATAG"));
-	assert(filter2.contains("ATCGGGTCATCAACCAATAA"));
 
-	assert(!filter2.contains("ATCGGGTCATCAACCAATTA"));
-	assert(!filter2.contains("ATCGGGTCATCAACCAATTC"));
+	ntHashIterator queryIt2(seq, numHashes, k);
+	while(queryIt2 != queryIt2.end()) {
+		assert(filter2.contains(*queryIt2));
+		++queryIt2;
+	}
+
 	cout << "premade bf tests done" << endl;
 
 	//memory leak tests
