@@ -34,13 +34,13 @@ int main(int argc, char** argv)
 		ntHashIterator itr(seq, numHashes, k);
 		while (itr != itr.end()) {
 			bloom.insert(*itr);
-			itr++;
+			++itr;
 		}
 		/* store the bloom filter */
 		bloom.storeFilter("filterPathname.bf");
 	}
 	
-	//After bulding
+	//After building
 	{
 		/* load the bloom filter */
 		BloomFilter bloom("filterPathname.bf");
@@ -51,11 +51,8 @@ int main(int argc, char** argv)
 		ntHashIterator itr(seq, numHashes, k);
 		while (itr != itr.end()) {
 			bloom.contains(*itr);
-			itr++;
+			++itr;
 		}
-		
-		/* single query (slow must use base hash)*/
-		bloom.contains("TAGAA"); //char* input must be the same length of k-mer
 	}
 	return 0;
 }
