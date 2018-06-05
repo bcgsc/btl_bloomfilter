@@ -90,7 +90,7 @@ public:
 		initSize(m_size);
 	}
 
-	BloomFilter(const string &filterFilePath) {
+	BloomFilter(const string &filterFilePath) : m_filter(NULL) {
 		FILE *file = fopen(filterFilePath.c_str(), "rb");
 		if (file == NULL) {
 			cerr << "file \"" << filterFilePath << "\" could not be read."
