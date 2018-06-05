@@ -91,6 +91,11 @@ public:
 	}
 
 	BloomFilter(const string &filterFilePath) : m_filter(NULL) {
+		loadFilter(filterFilePath);
+	}
+
+	void loadFilter(const string &filterFilePath)
+	{
 		FILE *file = fopen(filterFilePath.c_str(), "rb");
 		if (file == NULL) {
 			cerr << "file \"" << filterFilePath << "\" could not be read."
