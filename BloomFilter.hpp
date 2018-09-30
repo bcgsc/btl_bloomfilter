@@ -213,11 +213,11 @@ public:
 		}
 		return true;
 	}
-
+	
 	/*
 	 * Accepts a list of precomputed hash values. Faster than rehashing each time.
 	 */
-	bool contains(const size_t precomputed[]) const {
+	bool contains(const uint64_t precomputed[]) const {
 		for (size_t i = 0; i < m_hashNum; ++i) {
 			size_t normalizedValue = precomputed[i] % m_size;
 			unsigned char bit = bitMask[normalizedValue % bitsPerChar];
