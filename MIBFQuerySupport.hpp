@@ -318,7 +318,7 @@ private:
 	unsigned m_evalCount;
 
 	//resusable objects
-	vector<size_t> m_rankPos;
+	vector<uint64_t> m_rankPos;
 	vector<bool> m_hits;
 	vector<QueryResult> m_signifResults;
 	vector<CountResult> m_counts;

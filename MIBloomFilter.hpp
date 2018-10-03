@@ -95,8 +95,8 @@ public:
 	static unsigned insert(sdsl::bit_vector &bv, uint64_t * hashValues,
 			unsigned hashNum) {
 		unsigned colliCount = 0;
-		for (size_t i = 0; i < hashNum; ++i) {
-			size_t pos = hashValues[i] % bv.size();
+		for (unsigned i = 0; i < hashNum; ++i) {
+			uint64_t pos = hashValues[i] % bv.size();
 			uint64_t *dataIndex = bv.data() + (pos >> 6);
 			uint64_t bitMaskValue = (uint64_t) 1 << (pos & 0x3F);
 			colliCount += __sync_fetch_and_or(dataIndex, bitMaskValue)
@@ -284,18 +284,18 @@ public:
 	 * Contains strand information
 	 * Inserts hash functions in random order
 	 */
-	bool insert(const size_t *hashes, const bool *strand, T val, unsigned max) {
+	bool insert(const uint64_t *hashes, const bool *strand, T val, unsigned max) {
 		unsigned count = 0;
 		std::vector<unsigned> hashOrder;
 		bool saturated = true;
 		//for random number generator seed
-		size_t randValue = val;
+		uint64_t randValue = val;
 		bool strandDir = max % 2;
 
 		//check values and if value set
 		for (unsigned i = 0; i < m_hashNum; ++i) {
 			//check if values are already set
-			size_t pos = m_rankSupport(hashes[i] % m_bv.size());
+			uint64_t pos = m_rankSupport(hashes[i] % m_bv.size());
 			T value = strandDir ^ strand[i] ? val | s_strand : val;
 			//check for saturation
 			T oldVal = m_data[pos];
@@ -321,7 +321,7 @@ public:
 		//insert seeds in random order
 		for (std::vector<unsigned>::iterator itr = hashOrder.begin();
 				itr != hashOrder.end(); ++itr) {
-			size_t pos = m_rankSupport(hashes[*itr] % m_bv.size());
+			uint64_t pos = m_rankSupport(hashes[*itr] % m_bv.size());
 			T value = strandDir ^ strand[*itr] ? val | s_strand : val;
 			//check for saturation
 			T oldVal = setVal(&m_data[pos], value);
@@ -351,18 +351,18 @@ public:
 	 * Returns false if unable to insert hashes values
 	 * Inserts hash functions in random order
 	 */
-	bool insert(const size_t *hashes, T value, unsigned max) {
+	bool insert(const uint64_t *hashes, T value, unsigned max) {
 		unsigned count = 0;
 		std::vector<unsigned> hashOrder;
 		//for random number generator seed
-		size_t randValue = value;
+		uint64_t randValue = value;
 
 		bool saturated = true;
 
 		//check values and if value set
 		for (unsigned i = 0; i < m_hashNum; ++i) {
 			//check if values are already set
-			size_t pos = m_rankSupport(hashes[i] % m_bv.size());
+			uint64_t pos = m_rankSupport(hashes[i] % m_bv.size());
 			//check for saturation
 			T oldVal = m_data[pos];
 			if (oldVal > s_mask) {
@@ -387,7 +387,7 @@ public:
 		//insert seeds in random order
 		for (std::vector<unsigned>::iterator itr = hashOrder.begin();
 				itr != hashOrder.end(); ++itr) {
-			size_t pos = m_rankSupport(hashes[*itr] % m_bv.size());
+			uint64_t pos = m_rankSupport(hashes[*itr] % m_bv.size());
 			//check for saturation
 			T oldVal = setVal(&m_data[pos], value);
 			if (oldVal > s_mask) {
@@ -412,19 +412,19 @@ public:
 		return true;
 	}
 
-	void saturate(const size_t *hashes) {
-		for (size_t i = 0; i < m_hashNum; ++i) {
-			size_t pos = m_rankSupport(hashes[i] % m_bv.size());
+	void saturate(const uint64_t *hashes) {
+		for (unsigned i = 0; i < m_hashNum; ++i) {
+			uint64_t pos = m_rankSupport(hashes[i] % m_bv.size());
 			__sync_or_and_fetch(&m_data[pos], s_mask);
 		}
 	}
 
-	inline vector<T> at(const size_t *hashes, bool &saturated,
+	inline vector<T> at(const uint64_t *hashes, bool &saturated,
 			unsigned maxMiss = 0) {
 		vector<T> results(m_hashNum);
 		unsigned misses = 0;
 		for (unsigned i = 0; i < m_hashNum; ++i) {
-			size_t pos = hashes[i] % m_bv.size();
+			uint64_t pos = hashes[i] % m_bv.size();
 			if (m_bv[pos] == 0) {
 				++misses;
 				saturated = false;
@@ -432,7 +432,7 @@ public:
 					return vector<T>();
 				}
 			} else {
-				size_t rankPos = m_rankSupport(pos);
+				uint64_t rankPos = m_rankSupport(pos);
 				T tempResult = m_data[rankPos];
 				if (tempResult > s_mask) {
 					results[i] = m_data[rankPos] & s_antiMask;
@@ -449,11 +449,11 @@ public:
 	 * Populates rank pos vector. Boolean vector is use to confirm if hits are good
 	 * Returns total number of misses found
 	 */
-	unsigned atRank(const size_t *hashes, vector<size_t> &rankPos,
+	unsigned atRank(const uint64_t *hashes, vector<uint64_t> &rankPos,
 			vector<bool> &hits, unsigned maxMiss) const{
 		unsigned misses = 0;
 		for (unsigned i = 0; i < m_hashNum; ++i) {
-			size_t pos = hashes[i] % m_bv.size();
+			uint64_t pos = hashes[i] % m_bv.size();
 			if (m_bv[pos]) {
 				rankPos[i] = m_rankSupport(pos);
 				hits[i] = true;
@@ -470,9 +470,9 @@ public:
 	/*
 	 * For k-mers
 	 */
-	bool atRank(const size_t *hashes, vector<size_t> &rankPos) const{
+	bool atRank(const uint64_t *hashes, vector<uint64_t> &rankPos) const{
 		for (unsigned i = 0; i < m_hashNum; ++i) {
-			size_t pos = hashes[i] % m_bv.size();
+			uint64_t pos = hashes[i] % m_bv.size();
 			if (m_bv[pos]) {
 				rankPos[i] = m_rankSupport(pos);
 			} else {
@@ -482,10 +482,10 @@ public:
 		return true;
 	}
 
-	vector<size_t> getRankPos(const size_t *hashes) const{
-		vector<size_t> rankPos(m_hashNum);
+	vector<uint64_t> getRankPos(const size_t *hashes) const{
+		vector<uint64_t> rankPos(m_hashNum);
 		for (unsigned i = 0; i < m_hashNum; ++i) {
-			size_t pos = hashes[i] % m_bv.size();
+			uint64_t pos = hashes[i] % m_bv.size();
 			rankPos[i] = m_rankSupport(pos);
 		}
 		return rankPos;
@@ -591,11 +591,11 @@ public:
 	}
 
 	//overwrites existing value
-	void setData(size_t pos, T id){
+	void setData(uint64_t pos, T id){
 		m_data[pos] = id;
 	}
 
-	vector<T> getData(const vector<size_t> &rankPos) const{
+	vector<T> getData(const vector<uint64_t> &rankPos) const{
 		vector<T> results(rankPos.size());
 		for (unsigned i = 0; i < m_hashNum; ++i) {
 			results[i] = m_data[rankPos[i]];
@@ -603,7 +603,7 @@ public:
 		return results;
 	}
 
-	T getData(size_t rank) const{
+	T getData(uint64_t rank) const{
 		return m_data[rank];
 	}
 
