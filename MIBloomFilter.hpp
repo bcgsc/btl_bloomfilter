@@ -482,7 +482,7 @@ public:
 		return true;
 	}
 
-	vector<uint64_t> getRankPos(const size_t *hashes) const{
+	vector<uint64_t> getRankPos(const uint64_t *hashes) const{
 		vector<uint64_t> rankPos(m_hashNum);
 		for (unsigned i = 0; i < m_hashNum; ++i) {
 			uint64_t pos = hashes[i] % m_bv.size();
