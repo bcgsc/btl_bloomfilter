@@ -90,7 +90,7 @@ returned; otherwise, memory is left unchanged and 'false' returned.
 The value of m_filter[pos] may be changed by another thread between a read from
 that memory location and a write to it. The CAS operation is called in a loop
 until it succeeds, which ensures that a write does not happen if some other
-thread has incremented the value after between this thread's read and write.
+thread has incremented the value between this thread's read and write.
 
 Note that CAS operations suffer from the ABA problem.
 */
