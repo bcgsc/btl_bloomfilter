@@ -117,8 +117,10 @@ size_t CountBloomFilter<T>::getMinCounter(const U &hashes) const {
 	T min = m_filter[minPos];
 	for (size_t i = 1; i < m_hashNum; ++i) {
 		size_t pos = hashes[i] % m_size;
-		if (m_filter[pos] < min)
-			minPos = i;
+		if (m_filter[pos] < min) {
+			min = m_filter[pos];
+			minPos = pos;
+		}
 	}
 	return minPos;
 }
