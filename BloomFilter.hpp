@@ -130,10 +130,6 @@ public:
 		if (fread(&header, sizeof(struct FileHeader), 1, file) != 1) {
 			cerr << "Failed to header" << endl;
 		}
-		char magic[9];
-		strncpy(magic, header.magic, 8);
-		magic[8] = '\0';
-
 		m_size = header.size;
 		initSize(m_size);
 		m_hashNum = header.nhash;
@@ -231,9 +227,6 @@ public:
 	void writeHeader(std::ostream& out) const {
 		FileHeader header;
 		memcpy(header.magic, "BlOOMFXX", 8);
-		char magic[9];
-		strncpy(magic, header.magic, 8);
-		magic[8] = '\0';
 
 		header.hlen = sizeof(struct FileHeader);
 		header.size = m_size;
@@ -269,8 +262,8 @@ public:
 	void storeFilter(string const &filterFilePath) const {
 		ofstream myFile(filterFilePath.c_str(), ios::out | ios::binary);
 
-		cerr << "Storing filter. Filter is " << m_sizeInBytes << " bytes."
-				<< endl;
+//		cerr << "Storing filter. Filter is " << m_sizeInBytes << " bytes."
+//				<< endl;
 
 		myFile << *this;
 		myFile.close();

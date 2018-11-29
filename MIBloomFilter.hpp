@@ -249,8 +249,8 @@ public:
 				assert(myFile);
 				writeHeader(myFile);
 
-				cerr << "Storing filter. Filter is " << m_dSize * sizeof(T)
-						<< " bytes." << endl;
+//				cerr << "Storing filter. Filter is " << m_dSize * sizeof(T)
+//						<< " bytes." << endl;
 
 				//write out each block
 				myFile.write(reinterpret_cast<char*>(m_data),
@@ -267,14 +267,14 @@ public:
 				}
 			} else {
 				string bvFilename = filterFilePath + ".sdsl";
-				cerr << "Storing sdsl interleaved bit vector to: " << bvFilename
-						<< endl;
+//				cerr << "Storing sdsl interleaved bit vector to: " << bvFilename
+//						<< endl;
 				store_to_file(m_bv, bvFilename);
-				cerr << "Number of bit vector buckets is " << m_bv.size()
-						<< endl;
-				cerr << "Uncompressed bit vector size is "
-						<< (m_bv.size() + m_bv.size() * 64 / BLOCKSIZE) / 8
-						<< " bytes" << endl;
+//				cerr << "Number of bit vector buckets is " << m_bv.size()
+//						<< endl;
+//				cerr << "Uncompressed bit vector size is "
+//						<< (m_bv.size() + m_bv.size() * 64 / BLOCKSIZE) / 8
+//						<< " bytes" << endl;
 			}
 		}
 	}
@@ -675,19 +675,16 @@ private:
 	 */
 	void writeHeader(ofstream &out) const {
 		FileHeader header;
-		char magic[9];
-		strncpy(magic, MAGICSTR, 8);
-		magic[8] = '\0';
-		strncpy(header.magic, magic, 8);
+		memcpy(header.magic, MAGICSTR, 8);
 
 		header.hlen = sizeof(struct FileHeader) + m_kmerSize * m_sseeds.size();
 		header.kmer = m_kmerSize;
 		header.size = m_dSize;
 		header.nhash = m_hashNum;
 
-		cerr << "Writing header... magic: " << magic << " hlen: " << header.hlen
-				<< " nhash: " << header.nhash << " size: " << header.size
-				<< endl;
+//		cerr << "Writing header... magic: " << magic << " hlen: " << header.hlen
+//				<< " nhash: " << header.nhash << " size: " << header.size
+//				<< endl;
 
 		out.write(reinterpret_cast<char*>(&header), sizeof(struct FileHeader));
 
