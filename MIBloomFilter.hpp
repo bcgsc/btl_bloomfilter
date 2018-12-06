@@ -113,6 +113,7 @@ public:
 		uint64_t size;
 		uint32_t nhash;
 		uint32_t kmer;
+		uint32_t version;
 //		uint8_t allowedMiss;
 	};
 
@@ -160,9 +161,28 @@ public:
 					cerr << "Failed to Load header" << endl;
 					exit(1);
 				}
+
+				if (header.hlen != sizeof(FileHeader)) {
+					cerr
+							<< "Bloom Filter header length does not match expected length (likely version mismatch)"
+							<< endl;
+					exit(1);
+				}
 				char magic[9];
-				strncpy(magic, header.magic, 8);
+				memcpy(magic, header.magic, 8);
 				magic[8] = '\0';
+				if (strcmp(magic, "MIBLOOMF")) {
+					cerr << "Bloom Filter type does not match "
+							<< endl;
+					exit(1);
+				}
+
+				if (header.version != VERSION) {
+					cerr << "Bloom Filter version does not match: " << header.version
+							<< " expected: " << VERSION << endl;
+					exit(1);
+				}
+
 #pragma omp critical(stderr)
 				cerr << "Loaded header... magic: " << magic << " hlen: "
 						<< header.hlen << " size: " << header.size << " nhash: "
@@ -675,12 +695,13 @@ private:
 	 */
 	void writeHeader(ofstream &out) const {
 		FileHeader header;
-		memcpy(header.magic, MAGICSTR, 8);
+		memcpy(header.magic, "MIBLOOMF", 8);
 
 		header.hlen = sizeof(struct FileHeader) + m_kmerSize * m_sseeds.size();
 		header.kmer = m_kmerSize;
 		header.size = m_dSize;
 		header.nhash = m_hashNum;
+		header.version = VERSION;
 
 //		cerr << "Writing header... magic: " << magic << " hlen: " << header.hlen
 //				<< " nhash: " << header.nhash << " size: " << header.size
@@ -765,7 +786,8 @@ private:
 
 	double m_probSaturated;
 	SeedVal m_ssVal;
-	const char* MAGICSTR = "MIBLOOMF";
+
+	static const uint32_t VERSION  = 1;
 };
 
 #endif /* MIBLOOMFILTER_HPP_ */

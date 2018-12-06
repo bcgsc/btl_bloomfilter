@@ -47,6 +47,7 @@ public:
 		double dFPR;
 		uint64_t nEntry;
 		uint64_t tEntry;
+		uint32_t version;
 	};
 #pragma pack(pop)
 
@@ -129,6 +130,26 @@ public:
 		FileHeader header;
 		if (fread(&header, sizeof(struct FileHeader), 1, file) != 1) {
 			cerr << "Failed to header" << endl;
+			exit(1);
+		}
+		if (header.hlen != sizeof(FileHeader)) {
+			cerr
+					<< "Bloom Filter header length does not match expected length (likely version mismatch)"
+					<< endl;
+			exit(1);
+		}
+		char magic[9];
+		memcpy(magic, header.magic, 8);
+		magic[8] = '\0';
+		if (strcmp(magic,"BLOOMFXX")) {
+			cerr << "Bloom Filter type does not match"
+					<< endl;
+			exit(1);
+		}
+		if (header.version != VERSION) {
+			cerr << "Bloom Filter version does not match: " << header.version
+					<< " expected: " << VERSION << endl;
+			exit(1);
 		}
 		m_size = header.size;
 		initSize(m_size);
@@ -226,7 +247,7 @@ public:
 
 	void writeHeader(std::ostream& out) const {
 		FileHeader header;
-		memcpy(header.magic, "BlOOMFXX", 8);
+		memcpy(header.magic, "BLOOMFXX", 8);
 
 		header.hlen = sizeof(struct FileHeader);
 		header.size = m_size;
@@ -235,6 +256,8 @@ public:
 		header.dFPR = m_dFPR;
 		header.nEntry = m_nEntry;
 		header.tEntry = m_tEntry;
+		header.tEntry = m_tEntry;
+		header.version = VERSION;
 
 		out.write(reinterpret_cast<char*>(&header), sizeof(struct FileHeader));
 		assert(out);
@@ -402,6 +425,8 @@ protected:
 	double m_dFPR;
 	uint64_t m_nEntry;
 	uint64_t m_tEntry;
+
+	static const uint32_t VERSION = 1;
 };
 
 #endif /* BLOOMFILTER_H_ */
