@@ -146,9 +146,9 @@ public:
 					<< endl;
 			exit(1);
 		}
-		if (header.version != VERSION) {
+		if (header.version != BloomFilter_VERSION) {
 			cerr << "Bloom Filter version does not match: " << header.version
-					<< " expected: " << VERSION << endl;
+					<< " expected: " << BloomFilter_VERSION << endl;
 			exit(1);
 		}
 		m_size = header.size;
@@ -257,7 +257,7 @@ public:
 		header.nEntry = m_nEntry;
 		header.tEntry = m_tEntry;
 		header.tEntry = m_tEntry;
-		header.version = VERSION;
+		header.version = BloomFilter_VERSION;
 
 		out.write(reinterpret_cast<char*>(&header), sizeof(struct FileHeader));
 		assert(out);
@@ -426,7 +426,7 @@ protected:
 	uint64_t m_nEntry;
 	uint64_t m_tEntry;
 
-	static const uint32_t VERSION = 1;
+	static const uint32_t BloomFilter_VERSION = 1;
 };
 
 #endif /* BLOOMFILTER_H_ */

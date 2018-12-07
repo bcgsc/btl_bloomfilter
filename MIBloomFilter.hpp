@@ -177,9 +177,9 @@ public:
 					exit(1);
 				}
 
-				if (header.version != VERSION) {
+				if (header.version != MIBloomFilter_VERSION) {
 					cerr << "Bloom Filter version does not match: " << header.version
-							<< " expected: " << VERSION << endl;
+							<< " expected: " << MIBloomFilter_VERSION << endl;
 					exit(1);
 				}
 
@@ -701,7 +701,7 @@ private:
 		header.kmer = m_kmerSize;
 		header.size = m_dSize;
 		header.nhash = m_hashNum;
-		header.version = VERSION;
+		header.version = MIBloomFilter_VERSION;
 
 //		cerr << "Writing header... magic: " << magic << " hlen: " << header.hlen
 //				<< " nhash: " << header.nhash << " size: " << header.size
@@ -787,7 +787,7 @@ private:
 	double m_probSaturated;
 	SeedVal m_ssVal;
 
-	static const uint32_t VERSION  = 1;
+	static const uint32_t MIBloomFilter_VERSION  = 1;
 };
 
 #endif /* MIBLOOMFILTER_HPP_ */
