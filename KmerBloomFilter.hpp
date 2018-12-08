@@ -45,7 +45,7 @@ public:
 	 * Single pass filtering, computes hash values on the fly
 	 */
 	bool contains(const char* kmer) const {
-		uint64_t hVal = NTPC64(kmer, m_kmerSize);
+		uint64_t hVal = NTC64(kmer, m_kmerSize);
 		size_t normalizedValue = hVal % m_size;
 		unsigned char bit = bitMask[normalizedValue % bitsPerChar];
 		if ((m_filter[normalizedValue / bitsPerChar] & bit) == 0)
@@ -60,7 +60,7 @@ public:
 	}
 
 	void insert(const char* kmer) {
-		uint64_t hVal = NTPC64(kmer, m_kmerSize);
+		uint64_t hVal = NTC64(kmer, m_kmerSize);
 		size_t normalizedValue = hVal % m_size;
 		__sync_fetch_and_or(&m_filter[normalizedValue / bitsPerChar],
 				bitMask[normalizedValue % bitsPerChar]);
