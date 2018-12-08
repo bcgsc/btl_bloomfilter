@@ -133,9 +133,9 @@ public:
 			exit(1);
 		}
 		if (header.hlen != sizeof(FileHeader)) {
-			cerr
-					<< "Bloom Filter header length does not match expected length (likely version mismatch)"
-					<< endl;
+			cerr << "Bloom Filter header length: " << header.hlen
+					<< " does not match expected length: " << sizeof(FileHeader)
+					<< " (likely version mismatch)" << endl;
 			exit(1);
 		}
 		char magic[9];

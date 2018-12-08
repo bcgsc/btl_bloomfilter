@@ -162,26 +162,9 @@ public:
 					exit(1);
 				}
 
-				if (header.hlen != sizeof(FileHeader)) {
-					cerr
-							<< "Bloom Filter header length does not match expected length (likely version mismatch)"
-							<< endl;
-					exit(1);
-				}
 				char magic[9];
 				memcpy(magic, header.magic, 8);
 				magic[8] = '\0';
-				if (strcmp(magic, "MIBLOOMF")) {
-					cerr << "Bloom Filter type does not match "
-							<< endl;
-					exit(1);
-				}
-
-				if (header.version != MIBloomFilter_VERSION) {
-					cerr << "Bloom Filter version does not match: " << header.version
-							<< " expected: " << MIBloomFilter_VERSION << endl;
-					exit(1);
-				}
 
 #pragma omp critical(stderr)
 				cerr << "Loaded header... magic: " << magic << " hlen: "
@@ -216,6 +199,26 @@ public:
 						assert(m_kmerSize == itr->size());
 					}
 				}
+
+				if (header.hlen != (sizeof(FileHeader) + m_kmerSize * m_sseeds.size())) {
+					cerr << "Multi Index Bloom Filter header length: " << header.hlen
+							<< " does not match expected length: " << (sizeof(FileHeader) + m_kmerSize * m_sseeds.size())
+							<< " (likely version mismatch)" << endl;
+					exit(1);
+				}
+
+				if (strcmp(magic, "MIBLOOMF")) {
+					cerr << "Bloom Filter type does not match "
+							<< endl;
+					exit(1);
+				}
+
+				if (header.version != MIBloomFilter_VERSION) {
+					cerr << "Multi Index Bloom Filter version does not match: " << header.version
+							<< " expected: " << MIBloomFilter_VERSION << endl;
+					exit(1);
+				}
+
 
 #pragma omp critical(stderr)
 				cerr << "Loading data vector" << endl;
