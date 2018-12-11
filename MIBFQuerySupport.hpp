@@ -125,7 +125,7 @@ public:
 		while ((itr1 != itr1.end() || itr2 != itr2.end()) && !candidateFound) {
 			stHashIterator &itr =
 					frameCount % 2 == 0 && itr1 != itr1.end() ? itr1 :
-					frameCount % 2 == 1 && itr2 != itr2.end() ? itr2 : itr1;
+					itr2 != itr2.end() ? itr2 : itr1;
 			candidateFound = updateCountsSeeds(itr, minCount, bestNonSatCount,
 					secondBestNonSatCount, bestCount, extraFrame);
 			++itr;
