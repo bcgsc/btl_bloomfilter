@@ -201,7 +201,7 @@ public:
 			stHashIterator itr(seq, m_miBF.getSeedValues(), m_miBF.getHashNum(),
 					m_miBF.getKmerSize());
 			while (itr != itr.end()) {
-				if (m_miBF.atRank(*itr, m_rankPos, m_hits, m_maxMiss)) {
+				if (m_maxMiss >= m_miBF.atRank(*itr, m_rankPos, m_hits, m_maxMiss)) {
 					vector<T> results = m_miBF.getData(m_rankPos);
 					vector<pair<T, bool>> processedResults(results.size(),
 							pair<T, bool>(0, false));
@@ -272,6 +272,7 @@ private:
 	 * totalNonSatCount
 	 * totalCount
 	 * frameProb
+	 *
 	 */
 	static inline bool sortCandidates(const QueryResult &a,
 			const QueryResult &b) {
@@ -426,7 +427,7 @@ private:
 			if (result > m_miBF.s_mask) {
 				//if non-saturated version already exists
 				if (find(m_seenSet.begin(), m_seenSet.end(), result & m_miBF.s_antiMask)
-						== m_seenSet.end()) {
+						!= m_seenSet.end()) {
 					continue;
 				}
 				result &= m_miBF.s_antiMask;
