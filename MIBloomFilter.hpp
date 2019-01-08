@@ -492,6 +492,7 @@ public:
 
 	/*
 	 * For k-mers
+	 * Returns if match succeeded
 	 */
 	bool atRank(const uint64_t *hashes, vector<uint64_t> &rankPos) const{
 		for (unsigned i = 0; i < m_hashNum; ++i) {
@@ -512,6 +513,10 @@ public:
 			rankPos[i] = m_rankSupport(pos);
 		}
 		return rankPos;
+	}
+
+	uint64_t getRankPos(const uint64_t hash) const{
+		return m_rankSupport(hash % m_bv.size());
 	}
 
 	const vector<vector<unsigned> > &getSeedValues() const {
@@ -613,9 +618,24 @@ public:
 		return m_bv.size();
 	}
 
-	//overwrites existing value
+	//overwrites existing value CAS
 	void setData(uint64_t pos, T id){
-		m_data[pos] = id;
+		T oldValue;
+		do {
+			oldValue = m_data[pos];
+		} while (!__sync_bool_compare_and_swap(&m_data[pos], oldValue, id));
+	}
+
+	//saturates values
+	void saturateData(uint64_t pos){
+#pragma omp critical
+		m_data[pos] |= s_mask;
+	}
+
+
+	//Does not overwrite
+	void setDataIfEmpty(uint64_t pos, T id){
+		setVal(&m_data[pos], id);
 	}
 
 	vector<T> getData(const vector<uint64_t> &rankPos) const{
@@ -747,6 +767,7 @@ private:
 
 	/*
 	 * Returns old value that was inside
+	 * Does not overwrite if non-zero value already exists
 	 */
 	T setVal(T *val, T newVal) {
 		T oldValue;
