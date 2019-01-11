@@ -35,9 +35,10 @@ public:
 			bool bestHitAgree) :
 			m_miBF(miBF), m_perFrameProb(perFrameProb), m_extraCount(
 					extraCount), m_extraFrameLimit(extraFrameLimit), m_maxMiss(
-					maxMiss), m_minCount(minCount), m_bestHitAgree(bestHitAgree), m_satCount(
-					0), m_evalCount(0), m_rankPos(miBF.getHashNum()), m_hits(
-					miBF.getHashNum(), true), m_counts(
+					maxMiss), m_minCount(minCount), m_bestHitAgree(
+					bestHitAgree), m_satCount(0), m_evalCount(0), m_bestCounts(
+					{ 0, 0, 0, 0, 0, 0, 0 }), m_secondBestNonSatFrameCount(0), m_rankPos(
+					miBF.getHashNum()), m_hits(miBF.getHashNum(), true), m_counts(
 					vector<CountResult>(perFrameProb.size(),
 							{ 0, 0, 0, 0, 0, 0, 0 })), m_totalReads(0) {
 		//this should always be a small array
@@ -73,17 +74,13 @@ public:
 		init();
 
 		unsigned extraFrame = 0;
-		unsigned bestNonSatCount = 0;
-		unsigned secondBestNonSatCount = 0;
-		unsigned bestCount = 0;
 		bool candidateFound = false;
 
 		while (itr != itr.end() && !candidateFound) {
-			candidateFound = updateCountsSeeds(itr, minCount, bestNonSatCount,
-					secondBestNonSatCount, bestCount, extraFrame);
+			candidateFound = updateCountsSeeds(itr, minCount, extraFrame);
 			++itr;
 		}
-		summarizeCandiates(bestNonSatCount);
+		summarizeCandiates();
 
 		return m_signifResults;
 	}
@@ -96,17 +93,13 @@ public:
 		init();
 
 		unsigned extraFrame = 0;
-		unsigned bestNonSatCount = 0;
-		unsigned secondBestNonSatCount = 0;
-		unsigned bestCount = 0;
 		bool candidateFound = false;
 
 		while (itr != itr.end() && !candidateFound) {
-			candidateFound = updateCountsKmer(itr, minCount, bestNonSatCount,
-					secondBestNonSatCount, bestCount, extraFrame);
+			candidateFound = updateCountsKmer(itr, minCount, extraFrame);
 			++itr;
 		}
-		summarizeCandiates(bestNonSatCount);
+		summarizeCandiates();
 
 		return m_signifResults;
 	}
@@ -117,21 +110,17 @@ public:
 
 		unsigned extraFrame = 0;
 		unsigned frameCount = 0;
-		unsigned bestNonSatCount = 0;
-		unsigned secondBestNonSatCount = 0;
-		unsigned bestCount = 0;
 		bool candidateFound = false;
 
 		while ((itr1 != itr1.end() || itr2 != itr2.end()) && !candidateFound) {
 			stHashIterator &itr =
 					frameCount % 2 == 0 && itr1 != itr1.end() ? itr1 :
 					itr2 != itr2.end() ? itr2 : itr1;
-			candidateFound = updateCountsSeeds(itr, minCount, bestNonSatCount,
-					secondBestNonSatCount, bestCount, extraFrame);
+			candidateFound = updateCountsSeeds(itr, minCount, extraFrame);
 			++itr;
 			++frameCount;
 		}
-		summarizeCandiates(bestNonSatCount);
+		summarizeCandiates();
 
 		return m_signifResults;
 	}
@@ -142,21 +131,17 @@ public:
 
 		unsigned extraFrame = 0;
 		unsigned frameCount = 0;
-		unsigned bestNonSatCount = 0;
-		unsigned secondBestNonSatCount = 0;
-		unsigned bestCount = 0;
 		bool candidateFound = false;
 
 		while ((itr1 != itr1.end() || itr2 != itr2.end()) && !candidateFound) {
 			ntHashIterator &itr =
 					frameCount % 2 == 0 && itr1 != itr1.end() ? itr1 :
 					frameCount % 2 == 1 && itr2 != itr2.end() ? itr2 : itr1;
-			candidateFound = updateCountsKmer(itr, minCount, bestNonSatCount,
-					secondBestNonSatCount, bestCount, extraFrame);
+			candidateFound = updateCountsKmer(itr, minCount, extraFrame);
 			++itr;
 			++frameCount;
 		}
-		summarizeCandiates(bestNonSatCount);
+		summarizeCandiates();
 
 		return m_signifResults;
 	}
@@ -275,20 +260,107 @@ private:
 	 *
 	 */
 	static inline bool sortCandidates(const QueryResult &a,
-			const QueryResult &b) {
-		return (b.nonSatFrameCount == a.nonSatFrameCount ?
-				(b.count == a.count ?
-				(b.solidCount == a.solidCount ?
-				(b.nonSatCount == a.nonSatCount ?
-				(b.totalNonSatCount == a.totalNonSatCount ?
-				(b.totalCount == a.totalCount ?
+			const QueryResult &b, unsigned extraCount ) {
+		return (isRoughlyEqual(b.count, a.count, extraCount) ?
+				(isRoughlyEqual(b.totalNonSatCount, a.totalNonSatCount, extraCount) ?
+				(isRoughlyEqual(b.nonSatFrameCount, a.nonSatFrameCount, extraCount) ?
+				(isRoughlyEqual(b.solidCount, a.solidCount, extraCount) ?
+				(isRoughlyEqual(b.nonSatCount, a.nonSatCount, extraCount) ?
+				(isRoughlyEqual(b.totalCount, a.totalCount, extraCount) ?
 				(a.frameProb > b.frameProb) :
 					a.totalCount > b.totalCount) :
-					a.totalNonSatCount > b.totalNonSatCount) :
 					a.nonSatCount > b.nonSatCount) :
 					a.solidCount > b.solidCount) :
-					a.count > b.count) :
-					a.nonSatFrameCount > b.nonSatFrameCount);
+					a.nonSatFrameCount > b.nonSatFrameCount) :
+					a.totalNonSatCount > b.totalNonSatCount) :
+					a.count > b.count);
+	}
+
+//	static inline bool sortCandidates(const QueryResult &a,
+//			const QueryResult &b ) {
+//		return (compareStdErr(b.count, a.count) ?
+//				(compareStdErr(b.totalNonSatCount, a.totalNonSatCount) ?
+//				(compareStdErr(b.nonSatFrameCount, a.nonSatFrameCount) ?
+//				(compareStdErr(b.solidCount, a.solidCount) ?
+//				(compareStdErr(b.nonSatCount, a.nonSatCount) ?
+//				(compareStdErr(b.totalCount, a.totalCount) ?
+//				(a.frameProb > b.frameProb) :
+//					a.totalCount > b.totalCount) :
+//					a.nonSatCount > b.nonSatCount) :
+//					a.solidCount > b.solidCount) :
+//					a.nonSatFrameCount > b.nonSatFrameCount) :
+//					a.totalNonSatCount > b.totalNonSatCount) :
+//					a.count > b.count);
+//	}
+
+	/*
+	 * Returns true if considered roughly equal
+	 */
+	static inline bool isRoughlyEqual(unsigned a, unsigned b,
+			unsigned extraCount) {
+		if (a > b) {
+			return a <= b + extraCount;
+		}
+		return b <= a + extraCount;
+	}
+
+	/*
+	 * Returns true if considered roughly equal
+	 */
+	static inline bool compareStdErr(unsigned a, unsigned b) {
+		double stderrA = sqrt(a);
+		double stderrB = sqrt(b);
+		if (a > b) {
+			return double(a) - stderrA <= double(b) + stderrB;
+		}
+		return double(b) - stderrB <= double(a) + stderrA;
+	}
+
+	/*
+	 * Returns true if considered roughly equal or b is larger
+	 */
+	inline bool compareStdErrLarger(unsigned a, unsigned b) const {
+		double stderrA = sqrt(a) * m_extraCount;
+		double stderrB = sqrt(b) * m_extraCount;
+		return double(a) - stderrA <= double(b) + stderrB;
+	}
+
+
+	/*
+	 * Returns true if considered roughly equal
+	 */
+	bool isRoughlyEqual(const CountResult &a, const CountResult &b,
+			unsigned extraCount) const {
+		return (isRoughlyEqual(b.count, a.count, extraCount)
+				&& isRoughlyEqual(b.totalNonSatCount, a.totalNonSatCount, extraCount)
+				&& isRoughlyEqual(b.nonSatFrameCount, a.nonSatFrameCount, extraCount)
+				&& isRoughlyEqual(b.solidCount, a.solidCount, extraCount)
+				&& isRoughlyEqual(b.nonSatCount, a.nonSatCount, extraCount)
+				&& isRoughlyEqual(b.totalCount, a.totalCount, extraCount));
+	}
+
+	/*
+	 * Returns true if considered roughly equal
+	 */
+	bool isValid(const CountResult &a, const CountResult &b) const {
+		return (compareStdErr(b.count, a.count)
+				|| compareStdErr(b.totalNonSatCount, a.totalNonSatCount)
+				|| compareStdErr(b.nonSatFrameCount, a.nonSatFrameCount)
+				|| compareStdErr(b.solidCount, a.solidCount)
+				|| compareStdErr(b.nonSatCount, a.nonSatCount)
+				|| compareStdErr(b.totalCount, a.totalCount));
+	}
+
+	/*
+	 * Returns true if considered roughly equal
+	 */
+	bool isRoughlyEqualOrLarger(const QueryResult &a, const QueryResult &b) const {
+		return (compareStdErrLarger(a.count, b.count)
+				&& compareStdErrLarger(a.totalNonSatCount, b.totalNonSatCount)
+				&& compareStdErrLarger(a.nonSatFrameCount, b.nonSatFrameCount)
+				&& compareStdErrLarger(a.solidCount, b.solidCount)
+				&& compareStdErrLarger(a.nonSatCount, b.nonSatCount)
+				&& compareStdErrLarger(a.totalCount, b.totalCount));
 	}
 
 	bool checkCountAgreement(QueryResult b, QueryResult a){
@@ -318,6 +390,10 @@ private:
 	unsigned m_satCount;
 	unsigned m_evalCount;
 
+	//current bestCounts
+	CountResult m_bestCounts;
+	uint16_t m_secondBestNonSatFrameCount;
+
 	//resusable objects
 	vector<uint64_t> m_rankPos;
 	vector<bool> m_hits;
@@ -330,26 +406,20 @@ private:
 	size_t m_totalReads;
 
 	bool updateCountsSeeds(const stHashIterator &itr,
-			const vector<unsigned> &minCount, unsigned &bestNonSatCount,
-			unsigned &secondBestNonSatCount, unsigned &bestCount,
-			unsigned &extraFrame) {
+			const vector<unsigned> &minCount, unsigned &extraFrame) {
 		bool candidateFound = false;
 		unsigned misses = m_miBF.atRank(*itr, m_rankPos, m_hits, m_maxMiss);
 		if (misses <= m_maxMiss) {
-			candidateFound = updatesCounts(minCount, bestNonSatCount,
-					secondBestNonSatCount, bestCount, extraFrame, misses);
+			candidateFound = updatesCounts(minCount, extraFrame, misses);
 		}
 		return candidateFound;
 	}
 
 	bool updateCountsKmer(const ntHashIterator &itr,
-			const vector<unsigned> &minCount, unsigned &bestNonSatCount,
-			unsigned &secondBestNonSatCount, unsigned &bestCount,
-			unsigned &extraFrame) {
+			const vector<unsigned> &minCount, unsigned &extraFrame) {
 		bool candidateFound = false;
 		if (m_miBF.atRank(*itr, m_rankPos)) {
-			candidateFound = updatesCounts(minCount, bestNonSatCount,
-					secondBestNonSatCount, bestCount, extraFrame);
+			candidateFound = updatesCounts(minCount, extraFrame);
 		}
 		++m_evalCount;
 		return candidateFound;
@@ -360,12 +430,13 @@ private:
 		m_signifResults.clear();
 		m_satCount = 0;
 		m_evalCount = 0;
+		m_bestCounts = { 0, 0, 0, 0, 0, 0, 0 };
+		m_secondBestNonSatFrameCount = 0;
 		++m_totalReads;
 	}
 
-	bool updatesCounts(const vector<unsigned> &minCount,
-			unsigned &bestNonSatCount, unsigned &secondBestNonSatCount,
-			unsigned &bestCount, unsigned &extraFrame, unsigned misses = 0) {
+	bool updatesCounts(const vector<unsigned> &minCount, unsigned &extraFrame,
+			unsigned misses = 0) {
 		m_seenSet.clear();
 		unsigned satCount = 0;
 		for (unsigned i = 0; i < m_miBF.getHashNum(); ++i) {
@@ -437,37 +508,48 @@ private:
 						result) == m_candidateMatches.end()) {
 					m_candidateMatches.push_back(result);
 				}
-				if (m_counts[result].nonSatFrameCount > bestNonSatCount) {
-					bestNonSatCount = m_counts[result].nonSatFrameCount;
-				} else if (m_counts[result].nonSatFrameCount > secondBestNonSatCount) {
-					secondBestNonSatCount = m_counts[result].nonSatFrameCount;
-				}
-				if (m_counts[result].count > bestCount) {
-					bestCount = m_counts[result].count;
-				}
-			}
-			else if (m_candidateMatches.size() && m_counts[result].count >= bestCount) {
-				bestCount = m_counts[result].count;
+				updateMaxCounts(m_counts[result]);
+			} else if (m_candidateMatches.size()
+					&& m_counts[result].count >= m_bestCounts.count) {
 				if (find(m_candidateMatches.begin(), m_candidateMatches.end(),
 						result) == m_candidateMatches.end()) {
 					m_candidateMatches.push_back(result);
 				}
-				if (m_counts[result].nonSatFrameCount > bestNonSatCount) {
-					bestNonSatCount = m_counts[result].nonSatFrameCount;
-				} else if (m_counts[result].nonSatFrameCount > secondBestNonSatCount) {
-					secondBestNonSatCount = m_counts[result].nonSatFrameCount;
-				}
+				updateMaxCounts(m_counts[result]);
 			}
 		}
-		if (bestNonSatCount <= secondBestNonSatCount + m_extraCount) {
+		if (m_bestCounts.nonSatFrameCount <= m_secondBestNonSatFrameCount + m_extraCount) {
 			extraFrame = 0;
 		}
-		if (bestNonSatCount > secondBestNonSatCount) {
+		if (m_bestCounts.nonSatFrameCount > m_secondBestNonSatFrameCount) {
 			if (m_extraFrameLimit < extraFrame++) {
 				return true;
 			}
 		}
 		return false;
+	}
+
+	void updateMaxCounts(const CountResult &count) {
+		if (count.nonSatFrameCount > m_bestCounts.nonSatFrameCount) {
+			m_bestCounts.nonSatFrameCount = count.nonSatFrameCount;
+		} else if (count.nonSatFrameCount > m_secondBestNonSatFrameCount) {
+			m_secondBestNonSatFrameCount = count.nonSatFrameCount;
+		}
+		if (count.count > m_bestCounts.count) {
+			m_bestCounts.count = count.count;
+		}
+		if (count.nonSatCount > m_bestCounts.nonSatCount) {
+			m_bestCounts.nonSatCount = count.nonSatCount;
+		}
+		if (count.solidCount > m_bestCounts.solidCount) {
+			m_bestCounts.solidCount = count.solidCount;
+		}
+		if (count.totalCount > m_bestCounts.totalCount) {
+			m_bestCounts.totalCount = count.totalCount;
+		}
+		if (count.totalNonSatCount > m_bestCounts.totalNonSatCount) {
+			m_bestCounts.totalNonSatCount = count.totalNonSatCount;
+		}
 	}
 
 	double calcSat(unsigned evaluatedValues,
@@ -480,13 +562,15 @@ private:
 		return probSaturated;
 	}
 
-	void summarizeCandiates(unsigned bestCount) {
-		if (m_candidateMatches.size() && m_minCount <= bestCount) {
+	void summarizeCandiates() {
+		if (m_candidateMatches.size()
+				&& m_minCount <= m_bestCounts.nonSatFrameCount) {
+			vector<QueryResult> signifResults;
 			for (typename vector<T>::const_iterator candidate =
 					m_candidateMatches.begin();
 					candidate != m_candidateMatches.end(); candidate++) {
 				const CountResult &resultCount = m_counts[*candidate];
-				if (bestCount <= resultCount.nonSatFrameCount + m_extraCount) {
+//				if (isValid(resultCount, m_bestCounts)) {
 					QueryResult result;
 					result.id = *candidate;
 					result.count = resultCount.count;
@@ -496,15 +580,30 @@ private:
 					result.nonSatFrameCount = resultCount.nonSatFrameCount;
 					result.solidCount = resultCount.solidCount;
 					result.frameProb = m_perFrameProb.at(*candidate);
-					m_signifResults.push_back(result);
+					signifResults.push_back(result);
+//				}
+			}
+			if(signifResults.size() > 1){
+//				sort(m_signifResults.begin(), m_signifResults.end(), sortCandidates);
+				sort(signifResults.begin(), signifResults.end(),
+						bind(sortCandidates, placeholders::_1, placeholders::_2,
+								m_extraCount));
+				for (typename vector<QueryResult>::iterator candidate =
+						signifResults.begin();
+						candidate != signifResults.end(); candidate++) {
+					if (isRoughlyEqualOrLarger(signifResults[0],
+							*candidate)) {
+						m_signifResults.push_back(*candidate);
+					}
+				}
+				if (m_bestHitAgree && m_signifResults.size() >= 2
+						&& !checkCountAgreement(m_signifResults[0],
+								m_signifResults[1])) {
+					m_signifResults.clear();
 				}
 			}
-			sort(m_signifResults.begin(), m_signifResults.end(),
-					sortCandidates);
-			if (m_bestHitAgree && m_signifResults.size() >= 2
-					&& !checkCountAgreement(m_signifResults[0],
-							m_signifResults[1])) {
-				m_signifResults.clear();
+			else{
+				m_signifResults.push_back(signifResults[0]);
 			}
 		}
 	}
