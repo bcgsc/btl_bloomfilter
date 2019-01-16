@@ -257,24 +257,40 @@ private:
 	 * totalNonSatCount
 	 * totalCount
 	 * frameProb
-	 *
 	 */
 	static inline bool sortCandidates(const QueryResult &a,
-			const QueryResult &b, unsigned extraCount ) {
-		return (isRoughlyEqual(b.count, a.count, extraCount) ?
-				(isRoughlyEqual(b.totalNonSatCount, a.totalNonSatCount, extraCount) ?
-				(isRoughlyEqual(b.nonSatFrameCount, a.nonSatFrameCount, extraCount) ?
-				(isRoughlyEqual(b.solidCount, a.solidCount, extraCount) ?
-				(isRoughlyEqual(b.nonSatCount, a.nonSatCount, extraCount) ?
-				(isRoughlyEqual(b.totalCount, a.totalCount, extraCount) ?
+			const QueryResult &b) {
+		return (b.nonSatFrameCount == a.nonSatFrameCount ?
+				(b.count == a.count ?
+				(b.solidCount == a.solidCount ?
+				(b.nonSatCount == a.nonSatCount ?
+				(b.totalNonSatCount == a.totalNonSatCount ?
+				(b.totalCount == a.totalCount ?
 				(a.frameProb > b.frameProb) :
 					a.totalCount > b.totalCount) :
+					a.totalNonSatCount > b.totalNonSatCount) :
 					a.nonSatCount > b.nonSatCount) :
 					a.solidCount > b.solidCount) :
-					a.nonSatFrameCount > b.nonSatFrameCount) :
-					a.totalNonSatCount > b.totalNonSatCount) :
-					a.count > b.count);
+					a.count > b.count) :
+					a.nonSatFrameCount > b.nonSatFrameCount);
 	}
+
+//	static inline bool sortCandidates(const QueryResult &a,
+//			const QueryResult &b, unsigned extraCount ) {
+//		return (isRoughlyEqual(b.count, a.count, extraCount) ?
+//				(isRoughlyEqual(b.totalNonSatCount, a.totalNonSatCount, extraCount) ?
+//				(isRoughlyEqual(b.nonSatFrameCount, a.nonSatFrameCount, extraCount) ?
+//				(isRoughlyEqual(b.solidCount, a.solidCount, extraCount) ?
+//				(isRoughlyEqual(b.nonSatCount, a.nonSatCount, extraCount) ?
+//				(isRoughlyEqual(b.totalCount, a.totalCount, extraCount) ?
+//				(a.frameProb > b.frameProb) :
+//					a.totalCount > b.totalCount) :
+//					a.nonSatCount > b.nonSatCount) :
+//					a.solidCount > b.solidCount) :
+//					a.nonSatFrameCount > b.nonSatFrameCount) :
+//					a.totalNonSatCount > b.totalNonSatCount) :
+//					a.count > b.count);
+//	}
 
 //	static inline bool sortCandidates(const QueryResult &a,
 //			const QueryResult &b ) {
@@ -584,10 +600,10 @@ private:
 //				}
 			}
 			if(signifResults.size() > 1){
-//				sort(m_signifResults.begin(), m_signifResults.end(), sortCandidates);
-				sort(signifResults.begin(), signifResults.end(),
-						bind(sortCandidates, placeholders::_1, placeholders::_2,
-								m_extraCount));
+				sort(signifResults.begin(), signifResults.end(), sortCandidates);
+//				sort(signifResults.begin(), signifResults.end(),
+//						bind(sortCandidates, placeholders::_1, placeholders::_2,
+//								m_extraCount));
 				for (typename vector<QueryResult>::iterator candidate =
 						signifResults.begin();
 						candidate != signifResults.end(); candidate++) {
