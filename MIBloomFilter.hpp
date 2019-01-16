@@ -623,6 +623,9 @@ public:
 		T oldValue;
 		do {
 			oldValue = m_data[pos];
+			if(oldValue > s_mask){
+				id |= s_mask;
+			}
 		} while (!__sync_bool_compare_and_swap(&m_data[pos], oldValue, id));
 	}
 
