@@ -327,9 +327,9 @@ private:
 		double stderrA = sqrt(a);
 		double stderrB = sqrt(b);
 		if (a > b) {
-			return double(a) - stderrA <= double(b) + stderrB;
+			return (double(a) - stderrA) <= (double(b) + stderrB);
 		}
-		return double(b) - stderrB <= double(a) + stderrA;
+		return (double(b) - stderrB) <= (double(a) + stderrA);
 	}
 
 	/*
@@ -338,7 +338,7 @@ private:
 	inline bool compareStdErrLarger(unsigned a, unsigned b) const {
 		double stderrA = sqrt(a) * m_extraCount;
 		double stderrB = sqrt(b) * m_extraCount;
-		return double(a) - stderrA <= double(b) + stderrB;
+		return (double(a) - stderrA) <= (double(b) + stderrB);
 	}
 
 
@@ -395,7 +395,7 @@ private:
 	const vector<double> &m_perFrameProb;
 
 	//not references, but shared other objects or static variables
-	const unsigned m_extraCount;
+	const double m_extraCount;
 	const unsigned m_extraFrameLimit;
 	const unsigned m_maxMiss;
 	const unsigned m_minCount;
@@ -534,7 +534,7 @@ private:
 				updateMaxCounts(m_counts[result]);
 			}
 		}
-		if (m_bestCounts.nonSatFrameCount <= m_secondBestNonSatFrameCount + m_extraCount) {
+		if (compareStdErr(m_bestCounts.totalNonSatCount, m_secondBestNonSatFrameCount)) {
 			extraFrame = 0;
 		}
 		if (m_bestCounts.nonSatFrameCount > m_secondBestNonSatFrameCount) {
@@ -586,7 +586,7 @@ private:
 					m_candidateMatches.begin();
 					candidate != m_candidateMatches.end(); candidate++) {
 				const CountResult &resultCount = m_counts[*candidate];
-//				if (isValid(resultCount, m_bestCounts)) {
+				if (isValid(resultCount, m_bestCounts)) {
 					QueryResult result;
 					result.id = *candidate;
 					result.count = resultCount.count;
@@ -597,7 +597,7 @@ private:
 					result.solidCount = resultCount.solidCount;
 					result.frameProb = m_perFrameProb.at(*candidate);
 					signifResults.push_back(result);
-//				}
+				}
 			}
 			if(signifResults.size() > 1){
 				sort(signifResults.begin(), signifResults.end(), sortCandidates);
