@@ -66,10 +66,17 @@ public:
 		size_t readCount; //determines if count should be reset
 	};
 
+	//For returning an empty result
+	const vector<QueryResult> &emptyResult() {
+		init();
+		return m_signifResults;
+	}
+
 	/*
 	 * totalTrials = number of possible trials that can be checked
 	 */
-	const vector<QueryResult> &query(stHashIterator &itr,
+	template<typename ITR>
+	const vector<QueryResult> &query(ITR &itr,
 			const vector<unsigned> &minCount) {
 		init();
 
@@ -77,7 +84,7 @@ public:
 		bool candidateFound = false;
 
 		while (itr != itr.end() && !candidateFound) {
-			candidateFound = updateCountsSeeds(itr, minCount, extraFrame);
+			candidateFound = updateCounts(itr, minCount, extraFrame);
 			++itr;
 		}
 		summarizeCandiates();
@@ -85,26 +92,8 @@ public:
 		return m_signifResults;
 	}
 
-	/*
-	 * Normal query using k-mers
-	 */
-	const vector<QueryResult> &query(ntHashIterator &itr,
-			const vector<unsigned> &minCount) {
-		init();
-
-		unsigned extraFrame = 0;
-		bool candidateFound = false;
-
-		while (itr != itr.end() && !candidateFound) {
-			candidateFound = updateCountsKmer(itr, minCount, extraFrame);
-			++itr;
-		}
-		summarizeCandiates();
-
-		return m_signifResults;
-	}
-
-	const vector<QueryResult> &query(stHashIterator &itr1, stHashIterator &itr2,
+	template<typename ITR>
+	const vector<QueryResult> &query(ITR &itr1, ITR &itr2,
 			const vector<unsigned> &minCount) {
 		init();
 
@@ -113,31 +102,10 @@ public:
 		bool candidateFound = false;
 
 		while ((itr1 != itr1.end() || itr2 != itr2.end()) && !candidateFound) {
-			stHashIterator &itr =
+			auto &itr =
 					frameCount % 2 == 0 && itr1 != itr1.end() ? itr1 :
 					itr2 != itr2.end() ? itr2 : itr1;
-			candidateFound = updateCountsSeeds(itr, minCount, extraFrame);
-			++itr;
-			++frameCount;
-		}
-		summarizeCandiates();
-
-		return m_signifResults;
-	}
-
-	const vector<QueryResult> &query(ntHashIterator &itr1, ntHashIterator &itr2,
-			const vector<unsigned> &minCount) {
-		init();
-
-		unsigned extraFrame = 0;
-		unsigned frameCount = 0;
-		bool candidateFound = false;
-
-		while ((itr1 != itr1.end() || itr2 != itr2.end()) && !candidateFound) {
-			ntHashIterator &itr =
-					frameCount % 2 == 0 && itr1 != itr1.end() ? itr1 :
-					frameCount % 2 == 1 && itr2 != itr2.end() ? itr2 : itr1;
-			candidateFound = updateCountsKmer(itr, minCount, extraFrame);
+			candidateFound = updateCounts(itr, minCount, extraFrame);
 			++itr;
 			++frameCount;
 		}
@@ -421,7 +389,7 @@ private:
 	//Number of reads processed by object
 	size_t m_totalReads;
 
-	bool updateCountsSeeds(const stHashIterator &itr,
+	bool updateCounts(const stHashIterator &itr,
 			const vector<unsigned> &minCount, unsigned &extraFrame) {
 		bool candidateFound = false;
 		unsigned misses = m_miBF.atRank(*itr, m_rankPos, m_hits, m_maxMiss);
@@ -431,7 +399,7 @@ private:
 		return candidateFound;
 	}
 
-	bool updateCountsKmer(const ntHashIterator &itr,
+	bool updateCounts(const ntHashIterator &itr,
 			const vector<unsigned> &minCount, unsigned &extraFrame) {
 		bool candidateFound = false;
 		if (m_miBF.atRank(*itr, m_rankPos)) {
