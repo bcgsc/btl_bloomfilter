@@ -1,0 +1,9 @@
+pool:
+  vmImage: 'Ubuntu 18.04'
+
+steps:
+- script: |
+    ./autogen.sh
+    ./configure
+    make distcheck
+  displayName: 'Compile btl_bloomfilter'
