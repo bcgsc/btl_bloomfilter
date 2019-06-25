@@ -4,7 +4,11 @@
 #include <cstring>
 #include <limits>
 #include <cmath>
-#include <map>
+#include <vector>
+#include <cassert>
+#include <fstream>
+
+using namespace std;
 
 // Forward declaraions.
 template <typename T>
@@ -17,35 +21,44 @@ std::ostream& operator<<(std::ostream&, const CountBloomFilter<T>&);
 template <typename T>
 class CountBloomFilter {
 public:
-	CountBloomFilter(): m_filter(NULL), m_size(0), m_sizeInBytes(0), m_hashNum(0),
-			    m_kmerSize(0), m_nEntry(0), m_tEntry(0),
-			    m_dFPR(0), m_countThreshold(0) { }
-	CountBloomFilter(size_t sz, unsigned m_hashNum, unsigned m_kmerSize,
-			 int m_countThreshold = 0)
-		: m_hashNum(m_hashNum), m_kmerSize(m_kmerSize), m_nEntry(0), m_tEntry(0),
-		  m_dFPR(0), m_countThreshold(m_countThreshold) {
-		// Round up sz to a multiple of 64.
-		m_size = ((sz - 1) | 63) + 1;
-		m_filter  = new T[m_size];
-		std::memset(m_filter, 0, sizeof(T) * m_size);
-		m_sizeInBytes = m_size * sizeof(T);
+	CountBloomFilter(): m_filter(NULL), m_size(0), m_sizeInBytes(0),
+			    m_hashNum(0), m_kmerSize(0), m_nEntry(0),
+			    m_tEntry(0), m_dFPR(0), m_countThreshold(0) { }
+	CountBloomFilter(size_t sz, unsigned hashNum, unsigned kmerSize,
+			 unsigned countThreshold)
+		: m_filter(new T[sz]), m_size(sz),
+		  m_sizeInBytes(sz * sizeof(T)), m_hashNum(hashNum),
+		  m_kmerSize(kmerSize), m_nEntry(0), m_tEntry(0), m_dFPR(0),
+		  m_countThreshold(countThreshold) {
+		std::memset(m_filter, 0, m_sizeInBytes);
 	}
 	CountBloomFilter(const string &path);
 	~CountBloomFilter() {
 		delete[] m_filter;
 	}
-	template <typename U> T      minCount(const U &hashes) const;
-	template <typename U> size_t getMinCounter(const U &hashes) const;
+	T operator[](size_t i) {
+		return m_filter[i];
+	}
+	template <typename U> T minCount(const U &hashes) const {
+		T min = m_filter[hashes[0] % m_size];
+		for (size_t i = 1; i < m_hashNum; ++i) {
+			size_t pos = hashes[i] % m_size;
+			if (m_filter[pos] < min)
+				min = m_filter[pos];
+		}
+		return min;
+	}
 	template <typename U> bool   contains(const U &hashes) const;
 	template <typename U> void   insert(const U &hashes);
 	template <typename U> bool   insertAndCheck(const U &hashes);
 	template <typename U> void   incrementMin(const U &hashes);
 	template <typename U> void   incrementAll(const U &hashes);
-	unsigned getKmerSize(void) const;
-	unsigned getHashNum(void) const;
-	size_t   getFilterSize() const;
+	unsigned getKmerSize(void) const { return m_kmerSize; };
+	unsigned getHashNum(void)  const { return m_hashNum; };
+	size_t   size(void)        const { return m_size; };
+	size_t   sizeInBytes(void) const { return m_sizeInBytes; };
 	size_t   popCount() const;
-	double   FPR(void) const;
+	double   FPR(void)  const;
 
 	// Serialization interface
 	struct FileHeader {
@@ -62,17 +75,15 @@ public:
 	void readFilter(const string &path);
 	void writeHeader(std::ostream& out) const;
 	void writeFilter(string const &path) const;
-	friend std::ostream& operator<< <> (std::ostream&, const CountBloomFilter&);
-	
-	// Debug utitlities.
-
-	// A hash table to ever check filter's counts with accurate counts.
-	map<string, uint64_t> htab;
+	friend std::ostream& operator<< <> (std::ostream&,
+					    const CountBloomFilter&);
 
 private:
-	// m_filter         : An array of elements of type T; the bit-array or filter.
+	// m_filter         : An array of elements of type T; the bit-array or
+	//                    filter.
 	// m_size           : Size of bloom filter (size of m_filter array).
-	// m_sizeInBytes    : Size of the bloom filter in bytes (m_size * sizeof(T)).
+	// m_sizeInBytes    : Size of the bloom filter in bytes, that is,
+	//                    (m_size * sizeof(T)).
 	// m_hashNum        : Number of hash functions.
 	// m_kmerSize       : Size of a k-mer.
 	// m_nEntry         : Number of items the bloom filter holds.
@@ -89,78 +100,55 @@ private:
 	size_t   m_nEntry;
 	size_t   m_tEntry;
 	double   m_dFPR;
-	size_t   m_countThreshold;
+	unsigned m_countThreshold;
 };
 
-// Method definitions.
+// Method definitions
 
-// Bloom filter operations.
-
-// Get the minimum count of the m_hashNum positions of m_filter.
-template <typename T>
-template <typename U>
-T CountBloomFilter<T>::minCount(const U &hashes) const {
-	T min = m_filter[hashes[0] % m_size];
-	for (size_t i = 1; i < m_hashNum; ++i) {
-		size_t pos = hashes[i] % m_size;
-		if (m_filter[pos] < min)
-			min = m_filter[pos];
-	}
-	return min;
-}
-
-// Get the index of the minimum counter from the m_hashNum positions of m_filter.
-template <typename T>
-template <typename U>
-size_t CountBloomFilter<T>::getMinCounter(const U &hashes) const {
-	size_t minPos = hashes[0] % m_size;
-	T min = m_filter[minPos];
-	for (size_t i = 1; i < m_hashNum; ++i) {
-		size_t pos = hashes[i] % m_size;
-		if (m_filter[pos] < min) {
-			min = m_filter[pos];
-			minPos = pos;
-		}
-	}
-	return minPos;
-}
+// Bloom filter operations
 
 /*
-Use of atomic increments in incrementMin() and incrementAll():
+  Use of atomic increments in incrementMin() and incrementAll():
 
-A atomic compare-and-swap (CAS) operation increments m_filter[pos]. The CAS
-operation takes a memory location and a value that the caller believes the
-location currently stores. If the memory location still holds that value when
-the atomic compare-and-swap executes, then a new value is stored and 'true'
-returned; otherwise, memory is left unchanged and 'false' returned.
+  A atomic compare-and-swap (CAS) operation increments m_filter[pos]. The CAS
+  operation takes a memory location and a value that the caller believes the
+  location currently stores. If the memory location still holds that value when
+  the atomic compare-and-swap executes, then a new value is stored and 'true'
+  returned; otherwise, memory is left unchanged and 'false' returned.
 
-The value of m_filter[pos] may be changed by another thread between a read from
-that memory location and a write to it. The CAS operation is called in a loop
-until it succeeds, which ensures that a write does not happen if some other
-thread has incremented the value between this thread's read and write.
+  The value of m_filter[pos] may be changed by another thread between a read from
+  that memory location and a write to it. The CAS operation is called in a loop
+  until it succeeds, which ensures that a write does not happen if some other
+  thread has incremented the value between this thread's read and write.
 
-Note that CAS operations suffer from the ABA problem.
+  Note that CAS operations suffer from the ABA problem.
 */
 
-// Of the m_hashNum counters, increment only the minimum.
+// Of the m_hashNum counters, increment all the minimum values.
 template <typename T>
 template <typename U>
-void CountBloomFilter<T>::incrementMin(const U &hashes) {
-	static T currentVal, newVal;
-	size_t pos = getMinCounter(hashes);
-	do {
-		currentVal = m_filter[pos];
-		newVal     = currentVal + 1;
-		if (newVal < currentVal)
-			break;
-	} while(!__sync_bool_compare_and_swap(&m_filter[pos], currentVal, newVal));
+inline void CountBloomFilter<T>::incrementMin(const U &hashes) {
+	T currentVal, newVal;
+	T minVal = minCount(hashes);
+	for (size_t i = 0; i < m_hashNum; ++i) {
+		size_t pos = hashes[i] % m_size;
+		if (m_filter[pos] != minVal)
+			continue;
+		do {
+			currentVal = m_filter[pos];
+			newVal     = currentVal + 1;
+			if (newVal < currentVal)
+				break;
+		} while(!__sync_bool_compare_and_swap(&m_filter[pos],
+						      currentVal, newVal));
+	}
 }
 
 // Increment all the m_hashNum counters.
 template <typename T>
 template <typename U>
-void CountBloomFilter<T>::incrementAll(const U &hashes) {
-	static T currentVal, newVal;
+inline void CountBloomFilter<T>::incrementAll(const U &hashes) {
+	T currentVal, newVal;
 	for (size_t i = 0; i < m_hashNum; ++i) {
 		size_t pos = hashes[i] % m_size;
 		do {
@@ -168,44 +156,36 @@ void CountBloomFilter<T>::incrementAll(const U &hashes) {
 			newVal     = currentVal + 1;
 			if (newVal < currentVal)
 				break;
-		} while(!__sync_bool_compare_and_swap(&m_filter[pos], currentVal, newVal));
+		} while(!__sync_bool_compare_and_swap(&m_filter[pos],
+						      currentVal, newVal));
 	}
 }
 
-/*
-Check if an element exists. If the minimum count at the m_hashNum positions of
-m_filter is more than or equal to a predefined count threshold, then the element
-is said to be present in the Bloom filter. count() therefore returns true when
-this condition is satisfied, or else, false.
-*/
+
+// Check if an element exists. If the minimum count at the m_hashNum positions
+// of m_filter is more than or equal to a predefined count threshold, then the
+// element is said to be present in the Bloom filter. count() therefore returns
+// true when this condition is satisfied, or else, false.
+
 template <typename T>
 template <typename U>
-bool CountBloomFilter<T>::contains(const U &hashes) const {
-	return minCount(hashes) > m_countThreshold;
+inline bool CountBloomFilter<T>::contains(const U &hashes) const {
+	return minCount(hashes) >= m_countThreshold;
 }
 
 template <typename T>
 template <typename U>
-void CountBloomFilter<T>::insert(const U &hashes) {
+inline void CountBloomFilter<T>::insert(const U &hashes) {
 	incrementMin(hashes);
 }
 
 template <typename T>
 template <typename U>
-bool CountBloomFilter<T>::insertAndCheck(const U &hashes) {
+inline bool CountBloomFilter<T>::insertAndCheck(const U &hashes) {
 	bool found = contains(hashes);
 	incrementMin(hashes);
 	return found;
 }
-
-template <typename T>
-unsigned CountBloomFilter<T>::getKmerSize(void) const { return m_kmerSize; }
-
-template <typename T>
-unsigned CountBloomFilter<T>::getHashNum(void) const { return m_hashNum; }
-
-template <typename T>
-size_t CountBloomFilter<T>::getFilterSize() const { return m_size; }
 
 /* Count the number of non-zero counters. */
 template <typename T>
