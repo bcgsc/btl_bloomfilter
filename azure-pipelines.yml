@@ -1,9 +1,9 @@
 pool:
-  vmImage: 'Ubuntu 16.04'
+  vmImage: "Ubuntu 16.04"
 
 steps:
 - script: |
     ./autogen.sh
     ./configure
-    make
-  displayName: 'Compile btl_bloomfilter'
+    make distcheck
+  displayName: "Compile btl_bloomfilter"
