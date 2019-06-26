@@ -148,19 +148,28 @@ template<typename U>
 inline void
 CountingBloomFilter<T>::incrementMin(const U& hashes)
 {
-	T currentVal, newVal;
+	// update flag to track if increment is done on at least one counter
+	bool updateDone = false;
+	T newVal;
 	T minVal = minCount(hashes);
-	for (size_t i = 0; i < m_hashNum; ++i) {
-		size_t pos = hashes[i] % m_size;
-		if (m_filter[pos] != minVal)
-			continue;
-		do {
-			currentVal = m_filter[pos];
-			newVal = currentVal + 1;
-			if (newVal < currentVal)
-				break;
-		} while (!__sync_bool_compare_and_swap(&m_filter[pos], currentVal, newVal));
+	while (!updateDone) {
+		// Simple check to deal with overflow
+		newVal = minVal + 1;
+		if (minVal > newVal) {
+			return;
+		}
+		for (size_t i = 0; i < m_hashNum; ++i) {
+			if (__sync_bool_compare_and_swap(&m_filter[hashes[i] % m_size], minVal, newVal)) {
+				updateDone = true;
+			}
+		}
+		// Recalculate minval because if increment fails, it needs a new minval to use and
+		// if it doesnt hava a new one, the while loop runs forever.
+		if (!updateDone) {
+			minVal = minCount(hashes);
+		}
 	}
+	return;
 }
 
 // Increment all the m_hashNum counters.
