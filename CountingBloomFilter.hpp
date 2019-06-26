@@ -73,6 +73,7 @@ class CountingBloomFilter
 	void incrementAll(const U& hashes);
 	unsigned getKmerSize(void) const { return m_kmerSize; };
 	unsigned getHashNum(void) const { return m_hashNum; };
+	unsigned threshold(void) const { return m_countThreshold; };
 	size_t size(void) const { return m_size; };
 	size_t sizeInBytes(void) const { return m_sizeInBytes; };
 	size_t popCount() const;
