@@ -1,3 +1,4 @@
+CXXFLAGS= -std=c++11
 SUBDIRS = \
 	Tests/AdHoc \
 	Tests/Unit
