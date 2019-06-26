@@ -1,5 +1,5 @@
-#ifndef COUNTBLOOM_H
-#define COUNTBLOOM_H
+#ifndef COUNTINGBLOOM_H
+#define COUNTINGBLOOM_H
 
 #include <cassert>
 #include <cmath>
@@ -12,18 +12,18 @@ using namespace std;
 
 // Forward declaraions.
 template<typename T>
-class CountBloomFilter;
+class CountingBloomFilter;
 
 // Method declarations.
 template<typename T>
 std::ostream&
-operator<<(std::ostream&, const CountBloomFilter<T>&);
+operator<<(std::ostream&, const CountingBloomFilter<T>&);
 
 template<typename T>
-class CountBloomFilter
+class CountingBloomFilter
 {
   public:
-	CountBloomFilter()
+	CountingBloomFilter()
 	  : m_filter(NULL)
 	  , m_size(0)
 	  , m_sizeInBytes(0)
@@ -34,7 +34,7 @@ class CountBloomFilter
 	  , m_dFPR(0)
 	  , m_countThreshold(0)
 	{}
-	CountBloomFilter(size_t sz, unsigned hashNum, unsigned kmerSize, unsigned countThreshold)
+	CountingBloomFilter(size_t sz, unsigned hashNum, unsigned kmerSize, unsigned countThreshold)
 	  : m_filter(new T[sz])
 	  , m_size(sz)
 	  , m_sizeInBytes(sz * sizeof(T))
@@ -47,8 +47,8 @@ class CountBloomFilter
 	{
 		std::memset(m_filter, 0, m_sizeInBytes);
 	}
-	CountBloomFilter(const string& path);
-	~CountBloomFilter() { delete[] m_filter; }
+	CountingBloomFilter(const string& path);
+	~CountingBloomFilter() { delete[] m_filter; }
 	T operator[](size_t i) { return m_filter[i]; }
 	template<typename U>
 	T minCount(const U& hashes) const
@@ -94,7 +94,7 @@ class CountBloomFilter
 	void readFilter(const string& path);
 	void writeHeader(std::ostream& out) const;
 	void writeFilter(string const& path) const;
-	friend std::ostream& operator<<<>(std::ostream&, const CountBloomFilter&);
+	friend std::ostream& operator<<<>(std::ostream&, const CountingBloomFilter&);
 
   private:
 	// m_filter         : An array of elements of type T; the bit-array or
@@ -146,7 +146,7 @@ class CountBloomFilter
 template<typename T>
 template<typename U>
 inline void
-CountBloomFilter<T>::incrementMin(const U& hashes)
+CountingBloomFilter<T>::incrementMin(const U& hashes)
 {
 	T currentVal, newVal;
 	T minVal = minCount(hashes);
@@ -167,7 +167,7 @@ CountBloomFilter<T>::incrementMin(const U& hashes)
 template<typename T>
 template<typename U>
 inline void
-CountBloomFilter<T>::incrementAll(const U& hashes)
+CountingBloomFilter<T>::incrementAll(const U& hashes)
 {
 	T currentVal, newVal;
 	for (size_t i = 0; i < m_hashNum; ++i) {
@@ -189,7 +189,7 @@ CountBloomFilter<T>::incrementAll(const U& hashes)
 template<typename T>
 template<typename U>
 inline bool
-CountBloomFilter<T>::contains(const U& hashes) const
+CountingBloomFilter<T>::contains(const U& hashes) const
 {
 	return minCount(hashes) >= m_countThreshold;
 }
@@ -197,7 +197,7 @@ CountBloomFilter<T>::contains(const U& hashes) const
 template<typename T>
 template<typename U>
 inline void
-CountBloomFilter<T>::insert(const U& hashes)
+CountingBloomFilter<T>::insert(const U& hashes)
 {
 	incrementMin(hashes);
 }
@@ -205,7 +205,7 @@ CountBloomFilter<T>::insert(const U& hashes)
 template<typename T>
 template<typename U>
 inline bool
-CountBloomFilter<T>::insertAndCheck(const U& hashes)
+CountingBloomFilter<T>::insertAndCheck(const U& hashes)
 {
 	bool found = contains(hashes);
 	incrementMin(hashes);
@@ -215,7 +215,7 @@ CountBloomFilter<T>::insertAndCheck(const U& hashes)
 /* Count the number of non-zero counters. */
 template<typename T>
 size_t
-CountBloomFilter<T>::popCount() const
+CountingBloomFilter<T>::popCount() const
 {
 	size_t count = 0;
 	for (size_t i = 0; i < m_size; ++i) {
@@ -227,14 +227,14 @@ CountBloomFilter<T>::popCount() const
 
 template<typename T>
 double
-CountBloomFilter<T>::FPR(void) const
+CountingBloomFilter<T>::FPR(void) const
 {
 	return std::pow((double)popCount() / (double)m_size, m_hashNum);
 }
 
 // Serialization interface.
 template<typename T>
-CountBloomFilter<T>::CountBloomFilter(const string& path)
+CountingBloomFilter<T>::CountingBloomFilter(const string& path)
 {
 	if (m_filter != NULL)
 		delete[] m_filter;
@@ -243,7 +243,7 @@ CountBloomFilter<T>::CountBloomFilter(const string& path)
 }
 template<typename T>
 void
-CountBloomFilter<T>::readFilter(const string& path)
+CountingBloomFilter<T>::readFilter(const string& path)
 {
 	FILE* fp;
 	if ((fp = fopen(path.c_str(), "rb")) == NULL) {
@@ -269,7 +269,7 @@ CountBloomFilter<T>::readFilter(const string& path)
 }
 template<typename T>
 void
-CountBloomFilter<T>::readHeader(FILE* fp)
+CountingBloomFilter<T>::readHeader(FILE* fp)
 {
 	FileHeader header;
 	char magic[9];
@@ -286,7 +286,7 @@ CountBloomFilter<T>::readHeader(FILE* fp)
 }
 template<typename T>
 void
-CountBloomFilter<T>::writeFilter(string const& path) const
+CountingBloomFilter<T>::writeFilter(string const& path) const
 {
 	ofstream ofs(path.c_str(), ios::out | ios::binary);
 	cerr << "Writing a " << m_sizeInBytes << " byte filter to a file on disk.\n";
@@ -296,7 +296,7 @@ CountBloomFilter<T>::writeFilter(string const& path) const
 }
 template<typename T>
 void
-CountBloomFilter<T>::writeHeader(std::ostream& out) const
+CountingBloomFilter<T>::writeHeader(std::ostream& out) const
 {
 	FileHeader header;
 	char magic[9];
@@ -316,7 +316,7 @@ CountBloomFilter<T>::writeHeader(std::ostream& out) const
 // Serialize the bloom filter to a C++ stream */
 template<typename T>
 std::ostream&
-operator<<(std::ostream& os, const CountBloomFilter<T>& cbf)
+operator<<(std::ostream& os, const CountingBloomFilter<T>& cbf)
 {
 	assert(os);
 	cbf.writeHeader(os);
@@ -326,4 +326,4 @@ operator<<(std::ostream& os, const CountBloomFilter<T>& cbf)
 	return os;
 }
 
-#endif // COUNTBLOOM_H
+#endif // COUNTINGBLOOM_H
