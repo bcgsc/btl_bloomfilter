@@ -9,21 +9,22 @@
 #define CATCH_CONFIG_MAIN
 
 /* lightweight unit test framework */
-#include "catch.hpp"
 #include "BloomFilter.hpp"
+#include "catch.hpp"
 #include "ntHashIterator.hpp"
 
-#include <string>
 #include <assert.h>
+#include <cstring>
 #include <fstream>
 #include <sstream>
-#include <cstring>
 #include <stdlib.h>
+#include <string>
 
 using namespace std;
 
 /** create a uniquely-named temp file (tedious!) */
-string createTempFile()
+string
+createTempFile()
 {
 	const unsigned MAX_FILENAME_SIZE = 1024;
 	const char* fileTemplate = "/XXXXXX";
@@ -58,8 +59,9 @@ TEST_CASE("test fixture", "[BloomFilter]")
 	 * - The common setup code is _re-run_ before each SECTION
 	 * - In unit test terminology, this type of setup is known as a
 	 * "test fixture"
-	 * - See https://github.com/philsquared/Catch/blob/master/docs/tutorial.md#test-cases-and-sections
-	 * for details
+	 * - See
+	 * https://github.com/philsquared/Catch/blob/master/docs/tutorial.md#test-cases-and-sections for
+	 * details
 	 */
 
 	/* START COMMON SETUP CODE */
@@ -74,7 +76,7 @@ TEST_CASE("test fixture", "[BloomFilter]")
 	/* insert k-mers ACGT, CGTA, GTAC */
 
 	ntHashIterator insertIt(seq, numHashes, k);
-	while(insertIt != insertIt.end()) {
+	while (insertIt != insertIt.end()) {
 		filter.insert(*insertIt);
 		++insertIt;
 	}
@@ -86,7 +88,7 @@ TEST_CASE("test fixture", "[BloomFilter]")
 		/* check that k-mers were correctly inserted */
 
 		ntHashIterator queryIt(seq, numHashes, k);
-		while(queryIt != queryIt.end()) {
+		while (queryIt != queryIt.end()) {
 			assert(filter.contains(*queryIt));
 			++queryIt;
 		}
@@ -103,13 +105,15 @@ TEST_CASE("test fixture", "[BloomFilter]")
 		/* check size of newly-created file */
 
 		assert(ifile.is_open());
-		ifile.seekg(0, ios::end); // move to end of file
+		ifile.seekg(0, ios::end);        // move to end of file
 		size_t fileSize = ifile.tellg(); // file size in bytes
-		//file size should be same as filter size (Round to block size)
+		// file size should be same as filter size (Round to block size)
 		if (filterSize % 64 > 0) {
-			assert((filterSize + (64 - (filterSize% 64))) + sizeof(BloomFilter::FileHeader)*8 == fileSize*8);
+			assert(
+			    (filterSize + (64 - (filterSize % 64))) + sizeof(BloomFilter::FileHeader) * 8 ==
+			    fileSize * 8);
 		} else {
-			assert(filterSize + sizeof(BloomFilter::FileHeader)*8 == fileSize*8);
+			assert(filterSize + sizeof(BloomFilter::FileHeader) * 8 == fileSize * 8);
 		}
 		ifile.close();
 
@@ -120,7 +124,7 @@ TEST_CASE("test fixture", "[BloomFilter]")
 		/* check if loaded filter is able to report expected results */
 
 		ntHashIterator queryIt(seq, numHashes, k);
-		while(queryIt != queryIt.end()) {
+		while (queryIt != queryIt.end()) {
 			assert(filter.contains(*queryIt));
 			++queryIt;
 		}
@@ -131,4 +135,3 @@ TEST_CASE("test fixture", "[BloomFilter]")
 	}
 
 } /* end test fixture */
-

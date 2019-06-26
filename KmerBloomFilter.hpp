@@ -13,15 +13,15 @@
 
 using namespace std;
 
-
-class KmerBloomFilter : public BloomFilter {
-public:
-
+class KmerBloomFilter : public BloomFilter
+{
+  public:
 	/*
 	 * Default constructor.
 	 */
-	KmerBloomFilter() : BloomFilter() {
-	}
+	KmerBloomFilter()
+	  : BloomFilter()
+	{}
 
 	/* De novo filter constructor.
 	 *
@@ -30,13 +30,13 @@ public:
 	 *
 	 * kmerSize refers to the number of bases the kmer has
 	 */
-	KmerBloomFilter(size_t filterSize, unsigned hashNum, unsigned kmerSize) :
-			BloomFilter(filterSize, hashNum, kmerSize) {
-	}
+	KmerBloomFilter(size_t filterSize, unsigned hashNum, unsigned kmerSize)
+	  : BloomFilter(filterSize, hashNum, kmerSize)
+	{}
 
-	KmerBloomFilter(const string &filterFilePath) :
-			BloomFilter(filterFilePath) {
-	}
+	KmerBloomFilter(const string& filterFilePath)
+	  : BloomFilter(filterFilePath)
+	{}
 
 	using BloomFilter::contains;
 	using BloomFilter::insert;
@@ -44,7 +44,8 @@ public:
 	/*
 	 * Single pass filtering, computes hash values on the fly
 	 */
-	bool contains(const char* kmer) const {
+	bool contains(const char* kmer) const
+	{
 		uint64_t hVal = NTC64(kmer, m_kmerSize);
 		size_t normalizedValue = hVal % m_size;
 		unsigned char bit = bitMask[normalizedValue % bitsPerChar];
@@ -59,15 +60,16 @@ public:
 		return true;
 	}
 
-	void insert(const char* kmer) {
+	void insert(const char* kmer)
+	{
 		uint64_t hVal = NTC64(kmer, m_kmerSize);
 		size_t normalizedValue = hVal % m_size;
-		__sync_fetch_and_or(&m_filter[normalizedValue / bitsPerChar],
-				bitMask[normalizedValue % bitsPerChar]);
+		__sync_fetch_and_or(
+		    &m_filter[normalizedValue / bitsPerChar], bitMask[normalizedValue % bitsPerChar]);
 		for (unsigned i = 1; i < m_hashNum; i++) {
 			size_t normalizedValue = NTE64(hVal, m_kmerSize, i) % m_size;
-			__sync_fetch_and_or(&m_filter[normalizedValue / bitsPerChar],
-					bitMask[normalizedValue % bitsPerChar]);
+			__sync_fetch_and_or(
+			    &m_filter[normalizedValue / bitsPerChar], bitMask[normalizedValue % bitsPerChar]);
 		}
 	}
 };
