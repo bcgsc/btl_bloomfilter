@@ -104,8 +104,8 @@ void loadBf(BloomFilter &BloomFilterFilter, const char* faqFile) {
     for(string line, hline; good;) {
         #pragma omp critical(uFile)
         {
-            good = getline(uFile, hline);
-            good = getline(uFile, line);
+            good = static_cast<bool>(getline(uFile, hline));
+            good = static_cast<bool>(getline(uFile, line));
             //good = getline(uFile, hline);
             //good = getline(uFile, hline);
         }
