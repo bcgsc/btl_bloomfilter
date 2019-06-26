@@ -272,6 +272,7 @@ CountingBloomFilter<T>::CountingBloomFilter(const string& path)
 	m_filter = new T[m_size];
 	readFilter(path);
 }
+
 template<typename T>
 void
 CountingBloomFilter<T>::readFilter(const string& path)
@@ -298,6 +299,7 @@ CountingBloomFilter<T>::readFilter(const string& path)
 		exit(1);
 	}
 }
+
 template<typename T>
 void
 CountingBloomFilter<T>::readHeader(FILE* fp)
@@ -315,6 +317,7 @@ CountingBloomFilter<T>::readHeader(FILE* fp)
 	m_kmerSize = header.kmer;
 	m_sizeInBytes = m_size * sizeof(T);
 }
+
 template<typename T>
 void
 CountingBloomFilter<T>::writeFilter(string const& path) const
@@ -325,6 +328,7 @@ CountingBloomFilter<T>::writeFilter(string const& path) const
 	ofs.close();
 	assert(ofs);
 }
+
 template<typename T>
 void
 CountingBloomFilter<T>::writeHeader(std::ostream& out) const
@@ -344,6 +348,7 @@ CountingBloomFilter<T>::writeHeader(std::ostream& out) const
 	out.write(reinterpret_cast<char*>(&header), sizeof(struct FileHeader));
 	assert(out);
 }
+
 // Serialize the bloom filter to a C++ stream */
 template<typename T>
 std::ostream&
