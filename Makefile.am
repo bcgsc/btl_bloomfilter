@@ -1,4 +1,3 @@
-CXXFLAGS= -std=c++11
 SUBDIRS = \
 	Tests/AdHoc \
 	Tests/Unit
@@ -20,6 +19,6 @@ dist_doc_DATA = \
 EXTRA_DIST = autogen.sh
 
 clang-format:
-	for i in ./*tingBloomFilter.hpp; do clang-format -style=file $$i >$$i.fixed; done
-	for i in ./*tingBloomFilter.hpp; do diff -su $$i $$i.fixed && rm -f $$i.fixed; done
+	for i in ./*tingBloomFilter.hpp ./nthash.*pp; do clang-format -style=file $$i >$$i.fixed; done
+	for i in ./*tingBloomFilter.hpp ./nthash.*pp; do diff -su $$i $$i.fixed && rm -f $$i.fixed; done
 	if ls *.fixed; then exit 1; fi
