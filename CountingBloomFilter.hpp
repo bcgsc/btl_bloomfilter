@@ -78,6 +78,7 @@ class CountingBloomFilter
 	size_t popCount() const;
 	size_t filtered_popcount() const;
 	double FPR(void) const;
+	double filtered_FPR(void) const;
 
 	// Serialization interface
 	struct FileHeader
@@ -253,6 +254,13 @@ double
 CountingBloomFilter<T>::FPR(void) const
 {
 	return std::pow((double)popCount() / (double)m_size, m_hashNum);
+}
+
+template<typename T>
+double
+CountingBloomFilter<T>::filtered_FPR(void) const
+{
+	return std::pow((double)filtered_popcount() / (double)m_size, m_hashNum);
 }
 
 // Serialization interface.
