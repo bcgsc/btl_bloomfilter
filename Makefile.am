@@ -19,6 +19,6 @@ dist_doc_DATA = \
 EXTRA_DIST = autogen.sh
 
 clang-format:
-	for i in ./*tingBloomFilter.hpp ./nthash.*pp; do clang-format -style=file $$i >$$i.fixed; done
-	for i in ./*tingBloomFilter.hpp ./nthash.*pp; do diff -su $$i $$i.fixed && rm -f $$i.fixed; done
+	for i in *.hpp *.h */*.cpp Tests/*/*.*pp; do clang-format -style=file $$i >$$i.fixed; done
+	for i in *.hpp *.h */*.cpp Tests/*/*.*pp; do diff -su $$i $$i.fixed && rm -f $$i.fixed; done
 	if ls *.fixed; then exit 1; fi
