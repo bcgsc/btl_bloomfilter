@@ -8,37 +8,38 @@
 
 #ifndef BLOOMFILTER_H_
 #define BLOOMFILTER_H_
-#include <string>
-#include <vector>
-#include <stdint.h>
-#include <math.h>
-#include <fstream>
-#include <iostream>
-#include <sys/stat.h>
-#include <cstring>
 #include <cassert>
 #include <cstdlib>
-#include <stdio.h>
 #include <cstring>
+#include <fstream>
+#include <iostream>
+#include <math.h>
+#include <stdint.h>
+#include <stdio.h>
+#include <string>
+#include <sys/stat.h>
+#include <vector>
 
 using namespace std;
 
 static const uint8_t bitsPerChar = 0x08;
-static const unsigned char bitMask[0x08] = { 0x01, 0x02, 0x04, 0x08, 0x10, 0x20,
-		0x40, 0x80 };
+static const unsigned char bitMask[0x08] = { 0x01, 0x02, 0x04, 0x08, 0x10, 0x20, 0x40, 0x80 };
 
-inline unsigned popCnt(unsigned char x) {
-	return ((0x876543210
-			>> (((0x4332322132212110 >> ((x & 0xF) << 2)) & 0xF) << 2))
-			>> ((0x4332322132212110 >> (((x & 0xF0) >> 2)) & 0xF) << 2)) & 0xf;
+inline unsigned
+popCnt(unsigned char x)
+{
+	return ((0x876543210 >> (((0x4332322132212110 >> ((x & 0xF) << 2)) & 0xF) << 2)) >>
+	        ((0x4332322132212110 >> (((x & 0xF0) >> 2)) & 0xF) << 2)) &
+	       0xf;
 }
 
-class BloomFilter {
-public:
-
+class BloomFilter
+{
+  public:
 #pragma pack(push)
-#pragma pack(1) //to maintain consistent values across platforms
-	struct FileHeader {
+#pragma pack(1) // to maintain consistent values across platforms
+	struct FileHeader
+	{
 		char magic[8];
 		uint32_t hlen;
 		uint64_t size;
@@ -54,10 +55,16 @@ public:
 	/*
 	 * Default constructor.
 	 */
-	BloomFilter() :
-			m_filter(NULL), m_size(0), m_sizeInBytes(0), m_hashNum(0), m_kmerSize(
-					0), m_dFPR(0), m_nEntry(0), m_tEntry(0) {
-	}
+	BloomFilter()
+	  : m_filter(NULL)
+	  , m_size(0)
+	  , m_sizeInBytes(0)
+	  , m_hashNum(0)
+	  , m_kmerSize(0)
+	  , m_dFPR(0)
+	  , m_nEntry(0)
+	  , m_tEntry(0)
+	{}
 
 	/* De novo filter constructor.
 	 *
@@ -66,9 +73,14 @@ public:
 	 *
 	 * kmerSize refers to the number of bases the kmer has
 	 */
-	BloomFilter(size_t filterSize, unsigned hashNum, unsigned kmerSize) :
-		m_filter(NULL), m_size(filterSize), m_hashNum(hashNum),
-		m_kmerSize(kmerSize), m_dFPR(0), m_nEntry(0), m_tEntry(0)
+	BloomFilter(size_t filterSize, unsigned hashNum, unsigned kmerSize)
+	  : m_filter(NULL)
+	  , m_size(filterSize)
+	  , m_hashNum(hashNum)
+	  , m_kmerSize(kmerSize)
+	  , m_dFPR(0)
+	  , m_nEntry(0)
+	  , m_tEntry(0)
 	{
 		initSize(m_size);
 	}
@@ -78,10 +90,14 @@ public:
 	 *
 	 * If hashNum is set to 0, an optimal value is computed based on the FPR
 	 */
-	BloomFilter(size_t expectedElemNum, double fpr, unsigned hashNum,
-			unsigned kmerSize) :
-			m_size(0), m_hashNum(hashNum), m_kmerSize(kmerSize), m_dFPR(fpr), m_nEntry(
-					0), m_tEntry(0) {
+	BloomFilter(size_t expectedElemNum, double fpr, unsigned hashNum, unsigned kmerSize)
+	  : m_size(0)
+	  , m_hashNum(hashNum)
+	  , m_kmerSize(kmerSize)
+	  , m_dFPR(fpr)
+	  , m_nEntry(0)
+	  , m_tEntry(0)
+	{
 		if (m_hashNum == 0) {
 			m_hashNum = calcOptiHashNum(m_dFPR);
 		}
@@ -91,16 +107,17 @@ public:
 		initSize(m_size);
 	}
 
-	BloomFilter(const string &filterFilePath) : m_filter(NULL) {
+	BloomFilter(const string& filterFilePath)
+	  : m_filter(NULL)
+	{
 		loadFilter(filterFilePath);
 	}
 
-	void loadFilter(const string &filterFilePath)
+	void loadFilter(const string& filterFilePath)
 	{
-		FILE *file = fopen(filterFilePath.c_str(), "rb");
+		FILE* file = fopen(filterFilePath.c_str(), "rb");
 		if (file == NULL) {
-			cerr << "file \"" << filterFilePath << "\" could not be read."
-					<< endl;
+			cerr << "file \"" << filterFilePath << "\" could not be read." << endl;
 			exit(1);
 		}
 
@@ -112,20 +129,20 @@ public:
 		fseek(file, lCurPos, 0);
 		if (fileSize != m_sizeInBytes) {
 			cerr << "Error: " << filterFilePath
-					<< " does not match size given by its header. Size: "
-					<< fileSize << " vs " << m_sizeInBytes << " bytes." << endl;
+			     << " does not match size given by its header. Size: " << fileSize << " vs "
+			     << m_sizeInBytes << " bytes." << endl;
 			exit(1);
 		}
 
 		size_t countRead = fread(m_filter, fileSize, 1, file);
 		if (countRead != 1 && fclose(file) != 0) {
-			cerr << "file \"" << filterFilePath << "\" could not be read."
-					<< endl;
+			cerr << "file \"" << filterFilePath << "\" could not be read." << endl;
 			exit(1);
 		}
 	}
 
-	void loadHeader(FILE *file) {
+	void loadHeader(FILE* file)
+	{
 
 		FileHeader header;
 		if (fread(&header, sizeof(struct FileHeader), 1, file) != 1) {
@@ -134,21 +151,20 @@ public:
 		}
 		if (header.hlen != sizeof(FileHeader)) {
 			cerr << "Bloom Filter header length: " << header.hlen
-					<< " does not match expected length: " << sizeof(FileHeader)
-					<< " (likely version mismatch)" << endl;
+			     << " does not match expected length: " << sizeof(FileHeader)
+			     << " (likely version mismatch)" << endl;
 			exit(1);
 		}
 		char magic[9];
 		memcpy(magic, header.magic, 8);
 		magic[8] = '\0';
-		if (strcmp(magic,"BLOOMFXX")) {
-			cerr << "Bloom Filter type does not match"
-					<< endl;
+		if (strcmp(magic, "BLOOMFXX")) {
+			cerr << "Bloom Filter type does not match" << endl;
 			exit(1);
 		}
 		if (header.version != BloomFilter_VERSION) {
 			cerr << "Bloom Filter version does not match: " << header.version
-					<< " expected: " << BloomFilter_VERSION << endl;
+			     << " expected: " << BloomFilter_VERSION << endl;
 			exit(1);
 		}
 		m_size = header.size;
@@ -160,26 +176,28 @@ public:
 	/*
 	 * Accepts a list of precomputed hash values. Faster than rehashing each time.
 	 */
-	void insert(vector<uint64_t> const &precomputed) {
+	void insert(vector<uint64_t> const& precomputed)
+	{
 
-		//iterates through hashed values adding it to the filter
+		// iterates through hashed values adding it to the filter
 		for (unsigned i = 0; i < m_hashNum; ++i) {
 			uint64_t normalizedValue = precomputed.at(i) % m_size;
-			__sync_or_and_fetch(&m_filter[normalizedValue / bitsPerChar],
-					bitMask[normalizedValue % bitsPerChar]);
+			__sync_or_and_fetch(
+			    &m_filter[normalizedValue / bitsPerChar], bitMask[normalizedValue % bitsPerChar]);
 		}
 	}
 
 	/*
 	 * Accepts a list of precomputed hash values. Faster than rehashing each time.
 	 */
-	void insert(const uint64_t precomputed[]) {
+	void insert(const uint64_t precomputed[])
+	{
 
-		//iterates through hashed values adding it to the filter
+		// iterates through hashed values adding it to the filter
 		for (unsigned i = 0; i < m_hashNum; ++i) {
 			uint64_t normalizedValue = precomputed[i] % m_size;
-			__sync_or_and_fetch(&m_filter[normalizedValue / bitsPerChar],
-				bitMask[normalizedValue % bitsPerChar]);
+			__sync_or_and_fetch(
+			    &m_filter[normalizedValue / bitsPerChar], bitMask[normalizedValue % bitsPerChar]);
 		}
 	}
 
@@ -187,15 +205,17 @@ public:
 	 * Accepts a list of precomputed hash values. Faster than rehashing each time.
 	 * Returns if already inserted
 	 */
-	bool insertAndCheck(const uint64_t precomputed[]) {
-		//iterates through hashed values adding it to the filter
+	bool insertAndCheck(const uint64_t precomputed[])
+	{
+		// iterates through hashed values adding it to the filter
 		bool found = true;
 		for (unsigned i = 0; i < m_hashNum; ++i) {
 			uint64_t normalizedValue = precomputed[i] % m_size;
 			found &= __sync_fetch_and_or(
-					&m_filter[normalizedValue / bitsPerChar],
-					bitMask[normalizedValue % bitsPerChar])
-					>> (normalizedValue % bitsPerChar) & 1;
+			             &m_filter[normalizedValue / bitsPerChar],
+			             bitMask[normalizedValue % bitsPerChar]) >>
+			             (normalizedValue % bitsPerChar) &
+			         1;
 		}
 		return found;
 	}
@@ -204,15 +224,17 @@ public:
 	 * Accepts a list of precomputed hash values. Faster than rehashing each time.
 	 * Returns if already inserted
 	 */
-	bool insertAndCheck(vector<uint64_t> const &precomputed) {
-		//iterates through hashed values adding it to the filter
+	bool insertAndCheck(vector<uint64_t> const& precomputed)
+	{
+		// iterates through hashed values adding it to the filter
 		bool found = true;
 		for (unsigned i = 0; i < m_hashNum; ++i) {
 			uint64_t normalizedValue = precomputed.at(i) % m_size;
 			found &= __sync_fetch_and_or(
-					&m_filter[normalizedValue / bitsPerChar],
-					bitMask[normalizedValue % bitsPerChar])
-					>> (normalizedValue % bitsPerChar) & 1;
+			             &m_filter[normalizedValue / bitsPerChar],
+			             bitMask[normalizedValue % bitsPerChar]) >>
+			             (normalizedValue % bitsPerChar) &
+			         1;
 		}
 		return found;
 	}
@@ -220,7 +242,8 @@ public:
 	/*
 	 * Accepts a list of precomputed hash values. Faster than rehashing each time.
 	 */
-	bool contains(vector<uint64_t> const &precomputed) const {
+	bool contains(vector<uint64_t> const& precomputed) const
+	{
 		for (unsigned i = 0; i < m_hashNum; ++i) {
 			uint64_t normalizedValue = precomputed.at(i) % m_size;
 			unsigned char bit = bitMask[normalizedValue % bitsPerChar];
@@ -234,7 +257,8 @@ public:
 	/*
 	 * Accepts a list of precomputed hash values. Faster than rehashing each time.
 	 */
-	bool contains(const uint64_t precomputed[]) const {
+	bool contains(const uint64_t precomputed[]) const
+	{
 		for (unsigned i = 0; i < m_hashNum; ++i) {
 			uint64_t normalizedValue = precomputed[i] % m_size;
 			unsigned char bit = bitMask[normalizedValue % bitsPerChar];
@@ -245,7 +269,8 @@ public:
 		return true;
 	}
 
-	void writeHeader(std::ostream& out) const {
+	void writeHeader(std::ostream& out) const
+	{
 		FileHeader header;
 		memcpy(header.magic, "BLOOMFXX", 8);
 
@@ -270,7 +295,7 @@ public:
 		o.writeHeader(out);
 		assert(out);
 
-		//write out each block
+		// write out each block
 		out.write(reinterpret_cast<char*>(o.m_filter), o.m_sizeInBytes);
 
 		assert(out);
@@ -282,38 +307,37 @@ public:
 	 * Stores uncompressed because the random data tends to
 	 * compress poorly anyway
 	 */
-	void storeFilter(string const &filterFilePath) const {
+	void storeFilter(string const& filterFilePath) const
+	{
 		ofstream myFile(filterFilePath.c_str(), ios::out | ios::binary);
 
-//		cerr << "Storing filter. Filter is " << m_sizeInBytes << " bytes."
-//				<< endl;
+		//		cerr << "Storing filter. Filter is " << m_sizeInBytes << " bytes."
+		//				<< endl;
 
 		myFile << *this;
 		myFile.close();
 		assert(myFile);
 	}
 
-	uint64_t getPop() const {
+	uint64_t getPop() const
+	{
 		uint64_t i, popBF = 0;
-//#pragma omp parallel for reduction(+:popBF)
+		//#pragma omp parallel for reduction(+:popBF)
 		for (i = 0; i < (m_size + 7) / 8; i++)
 			popBF = popBF + popCnt(m_filter[i]);
 		return popBF;
 	}
 
-	unsigned getHashNum() const {
-		return m_hashNum;
-	}
+	unsigned getHashNum() const { return m_hashNum; }
 
-	unsigned getKmerSize() const {
-		return m_kmerSize;
-	}
+	unsigned getKmerSize() const { return m_kmerSize; }
 
 	/*
 	 * Calculates that False positive rate that a redundant entry is actually
 	 * a unique entry
 	 */
-	double getRedudancyFPR() {
+	double getRedudancyFPR()
+	{
 		assert(m_nEntry > 0);
 		double total = log(calcFPR_numInserted(1));
 		for (uint64_t i = 2; i < m_nEntry; ++i) {
@@ -325,51 +349,39 @@ public:
 	/*
 	 * Return FPR based on popcount
 	 */
-	double getFPR() const {
-		return pow(double(getPop())/double(m_size), double(m_hashNum));
-	}
+	double getFPR() const { return pow(double(getPop()) / double(m_size), double(m_hashNum)); }
 
 	/*
 	 * Return FPR based on number of inserted elements
 	 */
-	double getFPR_numEle() const {
+	double getFPR_numEle() const
+	{
 		assert(m_nEntry > 0);
 		return calcFPR_numInserted(m_nEntry);
 	}
 
-	uint64_t getnEntry() {
-		return m_nEntry;
-	}
+	uint64_t getnEntry() { return m_nEntry; }
 
-	uint64_t gettEntry() {
-		return m_tEntry;
-	}
+	uint64_t gettEntry() { return m_tEntry; }
 
-	void setnEntry(uint64_t value) {
-		m_nEntry = value;
-	}
+	void setnEntry(uint64_t value) { m_nEntry = value; }
 
-	void settEntry(uint64_t value) {
-		m_tEntry = value;
-	}
+	void settEntry(uint64_t value) { m_tEntry = value; }
 
-	uint64_t getFilterSize() const {
-		return m_size;
-	}
+	uint64_t getFilterSize() const { return m_size; }
 
-	~BloomFilter() {
-		delete[] m_filter;
-	}
-protected:
-	BloomFilter(const BloomFilter& that); //to prevent copy construction
+	~BloomFilter() { delete[] m_filter; }
+
+  protected:
+	BloomFilter(const BloomFilter& that); // to prevent copy construction
 
 	/*
 	 * Checks filter size and initializes filter
 	 */
-	void initSize(size_t size) {
+	void initSize(size_t size)
+	{
 		if (size % 8 != 0) {
-			cerr << "ERROR: Filter Size \"" << size
-					<< "\" is not a multiple of 8." << endl;
+			cerr << "ERROR: Filter Size \"" << size << "\" is not a multiple of 8." << endl;
 			exit(1);
 		}
 		m_sizeInBytes = size / bitsPerChar;
@@ -383,10 +395,11 @@ protected:
 	 * Is an estimated size using approximations of FPR formula
 	 * given the number of hash functions
 	 */
-	size_t calcOptimalSize(size_t entries, double fpr) const {
+	size_t calcOptimalSize(size_t entries, double fpr) const
+	{
 		size_t non64ApproxVal = size_t(
-				-double(entries) * double(m_hashNum)
-						/ log(1.0 - pow(fpr, double(1 / double(m_hashNum)))));
+		    -double(entries) * double(m_hashNum) /
+		    log(1.0 - pow(fpr, double(1 / double(m_hashNum)))));
 
 		return non64ApproxVal + (64 - non64ApproxVal % 64);
 	}
@@ -395,27 +408,22 @@ protected:
 	 * Calculates the optimal number of hash function to use
 	 * Calculation assumes optimal ratio of bytes per entry given a fpr
 	 */
-	static unsigned calcOptiHashNum(double fpr) {
-		return unsigned(-log(fpr) / log(2));
-	}
+	static unsigned calcOptiHashNum(double fpr) { return unsigned(-log(fpr) / log(2)); }
 
 	/*
 	 * Calculate FPR based on hash functions, size and number of entries
 	 * see http://en.wikipedia.org/wiki/Bloom_filter
 	 */
-	double calcFPR_numInserted(size_t numEntr) const {
+	double calcFPR_numInserted(size_t numEntr) const
+	{
 		return pow(
-				1.0
-						- pow(1.0 - 1.0 / double(m_size),
-								double(numEntr) * m_hashNum), double(m_hashNum));
+		    1.0 - pow(1.0 - 1.0 / double(m_size), double(numEntr) * m_hashNum), double(m_hashNum));
 	}
 
 	/*
 	 * Calculates the optimal FPR to use based on hash functions
 	 */
-	double calcFPR_hashNum(unsigned hashFunctNum) const {
-		return pow(2, -double(hashFunctNum));
-	}
+	double calcFPR_hashNum(unsigned hashFunctNum) const { return pow(2, -double(hashFunctNum)); }
 
 	uint8_t* m_filter;
 	size_t m_size;
