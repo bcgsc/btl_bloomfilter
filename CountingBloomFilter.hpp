@@ -76,6 +76,7 @@ class CountingBloomFilter
 	size_t size(void) const { return m_size; };
 	size_t sizeInBytes(void) const { return m_sizeInBytes; };
 	size_t popCount() const;
+	size_t filtered_popcount() const;
 	double FPR(void) const;
 
 	// Serialization interface
@@ -229,6 +230,19 @@ CountingBloomFilter<T>::popCount() const
 	size_t count = 0;
 	for (size_t i = 0; i < m_size; ++i) {
 		if (m_filter[i] != 0)
+			++count;
+	}
+	return count;
+}
+
+/* Count the number of above threshold counters. */
+template<typename T>
+size_t
+CountingBloomFilter<T>::filtered_popcount() const
+{
+	size_t count = 0;
+	for (size_t i = 0; i < m_size; ++i) {
+		if (m_filter[i] >= m_countThreshold)
 			++count;
 	}
 	return count;
