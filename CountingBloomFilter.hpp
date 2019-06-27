@@ -82,6 +82,10 @@ class CountingBloomFilter
 	double filtered_FPR(void) const;
 
 	// Serialization interface
+	// When modifiying the header, never remove any fields.
+	// Always append to the end of the struct.
+	// If there are unused fields, you may rename them,
+	// but never change the type or delete the field.
 	struct FileHeader
 	{
 		char magic[8];
