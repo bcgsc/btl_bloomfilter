@@ -308,7 +308,7 @@ CountingBloomFilter<T>::readHeader(FILE* fp)
 	char magic[9];
 	memcpy(magic, header.magic, 8);
 	magic[8] = '\0';
-	if (strcmp(magic, "BLOOMFXX")) {
+	if (strcmp(magic, "BLOOMCOU")) {
 		cerr << "Bloom Filter type does not match" << endl;
 		exit(1);
 	}
