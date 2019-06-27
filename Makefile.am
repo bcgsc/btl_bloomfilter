@@ -8,10 +8,10 @@ include_HEADERS = \
 	KmerBloomFilter.hpp \
 	MIBFQuerySupport.hpp \
 	MIBloomFilter.hpp \
-	nthash.hpp \
-	ntHashIterator.hpp \
-	ssHashIterator.hpp \
-	stHashIterator.hpp
+	vendor/nthash.hpp \
+	vendor/ntHashIterator.hpp \
+	vendor/ssHashIterator.hpp \
+	vendor/stHashIterator.hpp
 
 dist_doc_DATA = \
 	README.md
