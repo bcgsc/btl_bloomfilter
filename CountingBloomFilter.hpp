@@ -29,9 +29,6 @@ class CountingBloomFilter
 	  , m_sizeInBytes(0)
 	  , m_hashNum(0)
 	  , m_kmerSize(0)
-	  , m_nEntry(0)
-	  , m_tEntry(0)
-	  , m_dFPR(0)
 	  , m_countThreshold(0)
 	{}
 	CountingBloomFilter(size_t sz, unsigned hashNum, unsigned kmerSize, unsigned countThreshold)
@@ -40,9 +37,6 @@ class CountingBloomFilter
 	  , m_sizeInBytes(sz * sizeof(T))
 	  , m_hashNum(hashNum)
 	  , m_kmerSize(kmerSize)
-	  , m_nEntry(0)
-	  , m_tEntry(0)
-	  , m_dFPR(0)
 	  , m_countThreshold(countThreshold)
 	{
 		std::memset(m_filter, 0, m_sizeInBytes);
@@ -89,9 +83,6 @@ class CountingBloomFilter
 		uint64_t size;
 		uint32_t nhash;
 		uint32_t kmer;
-		double dFPR;
-		uint64_t nEntry;
-		uint64_t tEntry;
 	};
 	void readHeader(FILE* file);
 	void readFilter(const string& path);
@@ -107,9 +98,6 @@ class CountingBloomFilter
 	//                    (m_size * sizeof(T)).
 	// m_hashNum        : Number of hash functions.
 	// m_kmerSize       : Size of a k-mer.
-	// m_nEntry         : Number of items the bloom filter holds.
-	// m_tEntry         : ?
-	// m_dFPR           : Why d?
 	// m_countThreshold : A count greater or equal to this threshold
 	//                    establishes existence of an element in the filter.
 
@@ -118,9 +106,6 @@ class CountingBloomFilter
 	size_t m_sizeInBytes;
 	unsigned m_hashNum;
 	unsigned m_kmerSize;
-	size_t m_nEntry;
-	size_t m_tEntry;
-	double m_dFPR;
 	unsigned m_countThreshold;
 };
 
@@ -343,9 +328,6 @@ CountingBloomFilter<T>::writeHeader(std::ostream& out) const
 	header.size = m_size;
 	header.nhash = m_hashNum;
 	header.kmer = m_kmerSize;
-	header.dFPR = m_dFPR;
-	header.nEntry = m_nEntry;
-	header.tEntry = m_tEntry;
 	out.write(reinterpret_cast<char*>(&header), sizeof(struct FileHeader));
 	assert(out);
 }
