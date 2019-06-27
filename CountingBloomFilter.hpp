@@ -83,8 +83,8 @@ class CountingBloomFilter
 		uint64_t size;
 		uint32_t nhash;
 		uint32_t kmer;
-        uint8_t threshold;
-        uint32_t version;
+		uint8_t threshold;
+		uint32_t version;
 	};
 	void readHeader(FILE* file);
 	void readFilter(const string& path);
@@ -109,7 +109,7 @@ class CountingBloomFilter
 	unsigned m_hashNum;
 	unsigned m_kmerSize;
 	unsigned m_countThreshold;
-    static const uint32_t BloomFilter_VERSION = 2;
+	static const uint32_t BloomFilter_VERSION = 2;
 };
 
 // Method definitions
@@ -297,8 +297,8 @@ CountingBloomFilter<T>::readHeader(FILE* fp)
 	}
 	if (header.hlen != sizeof(FileHeader)) {
 		cerr << "Bloom Filter header length: " << header.hlen
-			 << " does not match expected length: " << sizeof(FileHeader)
-			 << " (likely version mismatch)" << endl;
+		     << " does not match expected length: " << sizeof(FileHeader)
+		     << " (likely version mismatch)" << endl;
 		exit(1);
 	}
 	char magic[9];
@@ -307,10 +307,10 @@ CountingBloomFilter<T>::readHeader(FILE* fp)
 	if (strcmp(magic, "BLOOMFXX")) {
 		cerr << "Bloom Filter type does not match" << endl;
 		exit(1);
-		}
+	}
 	if (header.version != BloomFilter_VERSION) {
 		cerr << "Bloom Filter version does not match: " << header.version
-			 << " expected: " << BloomFilter_VERSION << endl;
+		     << " expected: " << BloomFilter_VERSION << endl;
 		exit(1);
 	}
 	m_size = header.size;
@@ -318,7 +318,7 @@ CountingBloomFilter<T>::readHeader(FILE* fp)
 	m_kmerSize = header.kmer;
 	m_sizeInBytes = m_size * sizeof(T);
 	m_filter = new T[m_size]();
-    m_countThreshold = header.threshold;
+	m_countThreshold = header.threshold;
 }
 
 template<typename T>
