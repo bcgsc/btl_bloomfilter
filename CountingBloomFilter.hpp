@@ -292,7 +292,7 @@ CountingBloomFilter<T>::readFilter(const string& path)
 	FILE* fp;
 	if ((fp = fopen(path.c_str(), "rb")) == NULL) {
 		cerr << "ERROR: Failed to open file: " << path << "\n";
-		exit(1);
+		exit(EXIT_FAILURE);
 	}
 	readHeader(fp);
 	long int lCurPos = ftell(fp);
@@ -302,13 +302,13 @@ CountingBloomFilter<T>::readFilter(const string& path)
 	if (arraySizeOnDisk != m_sizeInBytes) {
 		cerr << "ERROR: File size of " << path << " (" << arraySizeOnDisk << " bytes), "
 		     << "does not match size read from its header (" << m_sizeInBytes << " bytes).\n";
-		exit(1);
+		exit(EXIT_FAILURE);
 	}
 
 	size_t nread = fread(m_filter, arraySizeOnDisk, 1, fp);
 	if (nread != 1 && fclose(fp) != 0) {
 		cerr << "ERROR: The bit array could not be read from the file: " << path << "\n";
-		exit(1);
+		exit(EXIT_FAILURE);
 	}
 }
 
@@ -319,25 +319,25 @@ CountingBloomFilter<T>::readHeader(FILE* fp)
 	FileHeader header;
 	if (fread(&header, sizeof(struct FileHeader), 1, fp) != 1) {
 		cerr << "Failed to read header\n";
-		exit(1);
+		exit(EXIT_FAILURE);
 	}
 	if (header.hlen != sizeof(FileHeader)) {
 		cerr << "Bloom Filter header length: " << header.hlen
 		     << " does not match expected length: " << sizeof(FileHeader)
 		     << " (likely version mismatch)" << endl;
-		exit(1);
+		exit(EXIT_FAILURE);
 	}
 	char magic[9];
 	memcpy(magic, header.magic, 8);
 	magic[8] = '\0';
 	if (strcmp(magic, "BLOOMCOU")) {
 		cerr << "Bloom Filter type does not match" << endl;
-		exit(1);
+		exit(EXIT_FAILURE);
 	}
 	if (header.version != BloomFilter_VERSION) {
 		cerr << "Bloom Filter version does not match: " << header.version
 		     << " expected: " << BloomFilter_VERSION << endl;
-		exit(1);
+		exit(EXIT_FAILURE);
 	}
 	m_size = header.size;
 	m_hashNum = header.nhash;
