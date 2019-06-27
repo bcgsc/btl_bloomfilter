@@ -89,10 +89,11 @@ class CountingBloomFilter
 		uint64_t size;
 		uint32_t nhash;
 		uint32_t kmer;
-		double m_dFPR; //unused
-		uint64_t m_nEntry; //unused
-		uint64_t m_tEntry; //unsed
+		double dFPR; //unused
+		uint64_t nEntry; //unused
+		uint64_t tEntry; //unsed
 		uint32_t version;
+		uint32_t bitsPerCounter;
 	};
 	void readHeader(FILE* file);
 	void readFilter(const string& path);
@@ -114,6 +115,7 @@ class CountingBloomFilter
 	// BloomFilter_VERSION  : Size of a k-mer.
 	// m_countThreshold     : A count greater or equal to this threshold
 	//                        establishes existence of an element in the filter.
+	// m_bitsPerCounter     : Number of bits per counter.
 
 	T* m_filter;
 	size_t m_size;
@@ -125,6 +127,7 @@ class CountingBloomFilter
 	uint64_t m_tEntry; //unused
 	static const uint32_t BloomFilter_VERSION = 2;
 	unsigned m_countThreshold;
+	unsigned m_bitsPerCounter = 8;
 };
 
 // Method definitions
@@ -274,8 +277,7 @@ CountingBloomFilter<T>::CountingBloomFilter(const string& path, unsigned countTh
 	  , m_nEntry(0)
       , m_tEntry(0)
 	  , m_countThreshold(countThreshold)
-{
-	
+{	
 	readFilter(path);
 }
 
@@ -338,6 +340,7 @@ CountingBloomFilter<T>::readHeader(FILE* fp)
 	m_kmerSize = header.kmer;
 	m_sizeInBytes = m_size * sizeof(T);
 	m_filter = new T[m_size]();
+	m_bitsPerCounter = header.bitsPerCounter;
 }
 
 template<typename T>
@@ -362,6 +365,7 @@ CountingBloomFilter<T>::writeHeader(std::ostream& out) const
 	header.nhash = m_hashNum;
 	header.kmer = m_kmerSize;
 	header.version = BloomFilter_VERSION;
+	header.bitsPerCounter = m_bitsPerCounter;
 	out.write(reinterpret_cast<char*>(&header), sizeof(struct FileHeader));
 	assert(out);
 }
