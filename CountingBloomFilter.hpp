@@ -291,13 +291,28 @@ void
 CountingBloomFilter<T>::readHeader(FILE* fp)
 {
 	FileHeader header;
-	char magic[9];
 	if (fread(&header, sizeof(struct FileHeader), 1, fp) != 1) {
 		cerr << "Failed to read header\n";
 		exit(1);
 	}
+	if (header.hlen != sizeof(FileHeader)) {
+		cerr << "Bloom Filter header length: " << header.hlen
+			 << " does not match expected length: " << sizeof(FileHeader)
+			 << " (likely version mismatch)" << endl;
+		exit(1);
+	}
+	char magic[9];
 	memcpy(magic, header.magic, 8);
 	magic[8] = '\0';
+	if (strcmp(magic, "BLOOMFXX")) {
+		cerr << "Bloom Filter type does not match" << endl;
+		exit(1);
+		}
+	if (header.version != BloomFilter_VERSION) {
+		cerr << "Bloom Filter version does not match: " << header.version
+			 << " expected: " << BloomFilter_VERSION << endl;
+		exit(1);
+	}
 	m_size = header.size;
 	m_hashNum = header.nhash;
 	m_kmerSize = header.kmer;
@@ -322,10 +337,7 @@ void
 CountingBloomFilter<T>::writeHeader(std::ostream& out) const
 {
 	FileHeader header;
-	char magic[9];
 	memcpy(header.magic, "BLOOMFXX", 8);
-	memcpy(magic, header.magic, 8);
-	magic[8] = '\0';
 	header.hlen = sizeof(struct FileHeader);
 	header.size = m_size;
 	header.nhash = m_hashNum;
