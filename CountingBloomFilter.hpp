@@ -256,9 +256,6 @@ CountingBloomFilter<T>::filtered_FPR(void) const
 template<typename T>
 CountingBloomFilter<T>::CountingBloomFilter(const string& path)
 {
-	if (m_filter != NULL)
-		delete[] m_filter;
-	m_filter = new T[m_size];
 	readFilter(path);
 }
 
@@ -305,6 +302,8 @@ CountingBloomFilter<T>::readHeader(FILE* fp)
 	m_hashNum = header.nhash;
 	m_kmerSize = header.kmer;
 	m_sizeInBytes = m_size * sizeof(T);
+	m_filter = new T[m_size]();
+    m_countThreshold = header.threshold;
 }
 
 template<typename T>
@@ -324,13 +323,15 @@ CountingBloomFilter<T>::writeHeader(std::ostream& out) const
 {
 	FileHeader header;
 	char magic[9];
-	memcpy(header.magic, "BlOOMFXX", 8);
+	memcpy(header.magic, "BLOOMFXX", 8);
 	memcpy(magic, header.magic, 8);
 	magic[8] = '\0';
 	header.hlen = sizeof(struct FileHeader);
 	header.size = m_size;
 	header.nhash = m_hashNum;
 	header.kmer = m_kmerSize;
+	header.threshold = m_countThreshold;
+	header.version = BloomFilter_VERSION;
 	out.write(reinterpret_cast<char*>(&header), sizeof(struct FileHeader));
 	assert(out);
 }
