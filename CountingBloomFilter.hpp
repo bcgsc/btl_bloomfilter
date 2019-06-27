@@ -359,7 +359,7 @@ void
 CountingBloomFilter<T>::writeHeader(std::ostream& out) const
 {
 	FileHeader header;
-	memcpy(header.magic, "BLOOMFXX", 8);
+	memcpy(header.magic, "BLOOMCOU", 8);
 	header.hlen = sizeof(struct FileHeader);
 	header.size = m_size;
 	header.nhash = m_hashNum;
