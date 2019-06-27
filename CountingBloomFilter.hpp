@@ -83,6 +83,7 @@ class CountingBloomFilter
 		uint64_t size;
 		uint32_t nhash;
 		uint32_t kmer;
+        uint8_t threshold;
 	};
 	void readHeader(FILE* file);
 	void readFilter(const string& path);
