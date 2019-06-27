@@ -47,7 +47,7 @@ class CountingBloomFilter
 	{
 		std::memset(m_filter, 0, m_sizeInBytes);
 	}
-	CountingBloomFilter(const string& path);
+	CountingBloomFilter(const string& path, unsigned countThreshold);
 	~CountingBloomFilter() { delete[] m_filter; }
 	T operator[](size_t i) { return m_filter[i]; }
 	template<typename U>
@@ -93,7 +93,6 @@ class CountingBloomFilter
 		uint64_t m_nEntry; //unused
 		uint64_t m_tEntry; //unsed
 		uint32_t version;
-		uint32_t threshold;
 	};
 	void readHeader(FILE* file);
 	void readFilter(const string& path);
@@ -270,10 +269,11 @@ CountingBloomFilter<T>::filtered_FPR(void) const
 
 // Serialization interface.
 template<typename T>
-CountingBloomFilter<T>::CountingBloomFilter(const string& path)
+CountingBloomFilter<T>::CountingBloomFilter(const string& path, unsigned countThreshold)
 	  : m_dFPR(0)
 	  , m_nEntry(0)
       , m_tEntry(0)
+	  , m_countThreshold(countThreshold)
 {
 	
 	readFilter(path);
@@ -338,7 +338,6 @@ CountingBloomFilter<T>::readHeader(FILE* fp)
 	m_kmerSize = header.kmer;
 	m_sizeInBytes = m_size * sizeof(T);
 	m_filter = new T[m_size]();
-	m_countThreshold = header.threshold;
 }
 
 template<typename T>
@@ -362,7 +361,6 @@ CountingBloomFilter<T>::writeHeader(std::ostream& out) const
 	header.size = m_size;
 	header.nhash = m_hashNum;
 	header.kmer = m_kmerSize;
-	header.threshold = m_countThreshold;
 	header.version = BloomFilter_VERSION;
 	out.write(reinterpret_cast<char*>(&header), sizeof(struct FileHeader));
 	assert(out);
