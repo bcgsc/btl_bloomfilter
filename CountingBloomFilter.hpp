@@ -84,6 +84,7 @@ class CountingBloomFilter
 		uint32_t nhash;
 		uint32_t kmer;
         uint8_t threshold;
+        uint32_t version;
 	};
 	void readHeader(FILE* file);
 	void readFilter(const string& path);
@@ -108,6 +109,7 @@ class CountingBloomFilter
 	unsigned m_hashNum;
 	unsigned m_kmerSize;
 	unsigned m_countThreshold;
+    static const uint32_t BloomFilter_VERSION = 2;
 };
 
 // Method definitions
