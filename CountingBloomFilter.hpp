@@ -8,7 +8,6 @@
 #include <limits>
 #include <vector>
 
-using namespace std;
 
 // Forward declaraions.
 template<typename T>
@@ -41,7 +40,7 @@ class CountingBloomFilter
 	{
 		std::memset(m_filter, 0, m_sizeInBytes);
 	}
-	CountingBloomFilter(const string& path, unsigned countThreshold);
+	CountingBloomFilter(const std::string& path, unsigned countThreshold);
 	~CountingBloomFilter() { delete[] m_filter; }
 	T operator[](size_t i) { return m_filter[i]; }
 	template<typename U>
@@ -94,9 +93,9 @@ class CountingBloomFilter
 		uint32_t bitsPerCounter;
 	};
 	void readHeader(FILE* file);
-	void readFilter(const string& path);
+	void readFilter(const std::string& path);
 	void writeHeader(std::ostream& out) const;
-	void writeFilter(string const& path) const;
+	void writeFilter(std::string const& path) const;
 	friend std::ostream& operator<<<>(std::ostream&, const CountingBloomFilter&);
 
   private:
@@ -266,7 +265,7 @@ CountingBloomFilter<T>::filtered_FPR(void) const
 
 // Serialization interface.
 template<typename T>
-CountingBloomFilter<T>::CountingBloomFilter(const string& path, unsigned countThreshold)
+CountingBloomFilter<T>::CountingBloomFilter(const std::string& path, unsigned countThreshold)
   : m_countThreshold(countThreshold)
 {
 	readFilter(path);
@@ -274,29 +273,29 @@ CountingBloomFilter<T>::CountingBloomFilter(const string& path, unsigned countTh
 
 template<typename T>
 void
-CountingBloomFilter<T>::readFilter(const string& path)
+CountingBloomFilter<T>::readFilter(const std::string& path)
 {
 	FILE* fp;
 	if ((fp = fopen(path.c_str(), "rb")) == nullptr) {
-		cerr << "ERROR: Failed to open file: " << path << "\n";
+		std::cerr << "ERROR: Failed to open file: " << path << "\n";
 		exit(EXIT_FAILURE);
 	}
 	readHeader(fp);
 	struct stat buf;
 	if (fstat(fileno(fp), &buf) != 0) {
-		cerr << "ERROR: Failed to open file: " << path << "\n";
+		std::cerr << "ERROR: Failed to open file: " << path << "\n";
 		exit(EXIT_FAILURE);
 	}
 	size_t arraySizeOnDisk = buf.st_size - sizeof(struct FileHeader);
 	if (arraySizeOnDisk != m_sizeInBytes) {
-		cerr << "ERROR: File size of " << path << " (" << arraySizeOnDisk << " bytes), "
+		std::cerr << "ERROR: File size of " << path << " (" << arraySizeOnDisk << " bytes), "
 		     << "does not match size read from its header (" << m_sizeInBytes << " bytes).\n";
 		exit(EXIT_FAILURE);
 	}
 
 	size_t nread = fread(m_filter, arraySizeOnDisk, 1, fp);
 	if (nread != 1 && fclose(fp) != 0) {
-		cerr << "ERROR: The byte array could not be read from the file: " << path << "\n";
+		std::cerr << "ERROR: The byte array could not be read from the file: " << path << "\n";
 		exit(EXIT_FAILURE);
 	}
 }
@@ -307,21 +306,21 @@ CountingBloomFilter<T>::readHeader(FILE* fp)
 {
 	FileHeader header;
 	if (fread(&header, sizeof(struct FileHeader), 1, fp) != 1) {
-		cerr << "Failed to read header\n";
+		std::cerr << "Failed to read header\n";
 		exit(EXIT_FAILURE);
 	}
 	if (header.hlen != sizeof(FileHeader)) {
-		cerr << "Bloom Filter header length: " << header.hlen
+		std::cerr << "Bloom Filter header length: " << header.hlen
 		     << " does not match expected length: " << sizeof(FileHeader)
 		     << " (likely version mismatch)" << endl;
 		exit(EXIT_FAILURE);
 	}
 	if (memcmp(header.magic, MAGIC_HEADER_STRING, strlen(MAGIC_HEADER_STRING)) != 0) {
-		cerr << "Bloom Filter type does not match" << endl;
+		std::cerr << "Bloom Filter type does not match" << endl;
 		exit(EXIT_FAILURE);
 	}
 	if (header.version != BloomFilter_VERSION) {
-		cerr << "Bloom Filter version does not match: " << header.version
+		std::cerr << "Bloom Filter version does not match: " << header.version
 		     << " expected: " << BloomFilter_VERSION << endl;
 		exit(EXIT_FAILURE);
 	}
@@ -335,10 +334,10 @@ CountingBloomFilter<T>::readHeader(FILE* fp)
 
 template<typename T>
 void
-CountingBloomFilter<T>::writeFilter(string const& path) const
+CountingBloomFilter<T>::writeFilter(std::string const& path) const
 {
-	ofstream ofs(path.c_str(), ios::out | ios::binary);
-	cerr << "Writing a " << m_sizeInBytes << " byte filter to a file on disk.\n";
+	std::ofstream ofs(path.c_str(), ios::out | ios::binary);
+	std::cerr << "Writing a " << m_sizeInBytes << " byte filter to a file on disk.\n";
 	ofs << *this;
 	ofs.close();
 	assert(ofs);
