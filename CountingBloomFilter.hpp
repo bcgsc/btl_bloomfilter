@@ -4,6 +4,7 @@
 #include <cassert>
 #include <cmath>
 #include <cstring>
+#include <iostream>
 #include <fstream>
 #include <limits>
 #include <vector>
@@ -15,7 +16,7 @@ class CountingBloomFilter;
 // Method declarations.
 template<typename T>
 std::ostream&
-operator<<(std::ostream&, const CountingBloomFilter<T>&);
+operator<<(std::ostream& os, const CountingBloomFilter<T>& cbf);
 
 template<typename T>
 class CountingBloomFilter
@@ -23,11 +24,6 @@ class CountingBloomFilter
   public:
 	CountingBloomFilter()
 	  : m_filter(nullptr)
-	  , m_size(0)
-	  , m_sizeInBytes(0)
-	  , m_hashNum(0)
-	  , m_kmerSize(0)
-	  , m_countThreshold(0)
 	{}
 	CountingBloomFilter(size_t sz, unsigned hashNum, unsigned kmerSize, unsigned countThreshold)
 	  : m_filter(new T[sz])
@@ -63,15 +59,15 @@ class CountingBloomFilter
 	void incrementMin(const U& hashes);
 	template<typename U>
 	void incrementAll(const U& hashes);
-	unsigned getKmerSize(void) const { return m_kmerSize; };
-	unsigned getHashNum(void) const { return m_hashNum; };
-	unsigned threshold(void) const { return m_countThreshold; };
-	size_t size(void) const { return m_size; };
-	size_t sizeInBytes(void) const { return m_sizeInBytes; };
+	unsigned getKmerSize() const { return m_kmerSize; };
+	unsigned getHashNum() const { return m_hashNum; };
+	unsigned threshold() const { return m_countThreshold; };
+	size_t size() const { return m_size; };
+	size_t sizeInBytes() const { return m_sizeInBytes; };
 	size_t popCount() const;
 	size_t filtered_popcount() const;
-	double FPR(void) const;
-	double filtered_FPR(void) const;
+	double FPR() const;
+	double filtered_FPR() const;
 
 	// Serialization interface
 	// When modifiying the header, never remove any fields.
@@ -80,7 +76,7 @@ class CountingBloomFilter
 	// but never change the type or delete the field.
 	struct FileHeader
 	{
-		char magic[8];
+		char magic[sizeof(uint64_t)];
 		uint32_t hlen;
 		uint64_t size;
 		uint32_t nhash;
@@ -91,7 +87,7 @@ class CountingBloomFilter
 		uint32_t version;
 		uint32_t bitsPerCounter;
 	};
-	void readHeader(FILE* file);
+	void readHeader(FILE* fp);
 	void readFilter(const std::string& path);
 	void writeHeader(std::ostream& out) const;
 	void writeFilter(std::string const& path) const;
@@ -112,12 +108,12 @@ class CountingBloomFilter
 	// MAGIC_HEADER_STRING  : Magic string used to identify the type of bloom filter.
 
 	T* m_filter;
-	size_t m_size;
-	size_t m_sizeInBytes;
-	unsigned m_hashNum;
-	unsigned m_kmerSize;
+	size_t m_size = 0;
+	size_t m_sizeInBytes = 0;
+	unsigned m_hashNum = 0;
+	unsigned m_kmerSize = 0;
 	static const uint32_t BloomFilter_VERSION = 2;
-	unsigned m_countThreshold;
+	unsigned m_countThreshold = 0;
 	unsigned m_bitsPerCounter = 8;
 	static constexpr const char* MAGIC_HEADER_STRING = "BLOOMCOU";
 };
@@ -186,7 +182,9 @@ CountingBloomFilter<T>::incrementAll(const U& hashes)
 			currentVal = m_filter[pos];
 			newVal = currentVal + 1;
 			if (newVal < currentVal)
+			{
 				break;
+			}
 		} while (!__sync_bool_compare_and_swap(&m_filter[pos], currentVal, newVal));
 	}
 }
@@ -230,7 +228,9 @@ CountingBloomFilter<T>::popCount() const
 	size_t count = 0;
 	for (size_t i = 0; i < m_size; ++i) {
 		if (m_filter[i] != 0)
+		{
 			++count;
+		}
 	}
 	return count;
 }
@@ -243,21 +243,23 @@ CountingBloomFilter<T>::filtered_popcount() const
 	size_t count = 0;
 	for (size_t i = 0; i < m_size; ++i) {
 		if (m_filter[i] >= m_countThreshold)
+		{
 			++count;
+		}
 	}
 	return count;
 }
 
 template<typename T>
 double
-CountingBloomFilter<T>::FPR(void) const
+CountingBloomFilter<T>::FPR() const
 {
 	return std::pow((double)popCount() / (double)m_size, m_hashNum);
 }
 
 template<typename T>
 double
-CountingBloomFilter<T>::filtered_FPR(void) const
+CountingBloomFilter<T>::filtered_FPR() const
 {
 	return std::pow((double)filtered_popcount() / (double)m_size, m_hashNum);
 }
@@ -265,7 +267,8 @@ CountingBloomFilter<T>::filtered_FPR(void) const
 // Serialization interface.
 template<typename T>
 CountingBloomFilter<T>::CountingBloomFilter(const std::string& path, unsigned countThreshold)
-  : m_countThreshold(countThreshold)
+  : m_filter(nullptr)
+  , m_countThreshold(countThreshold)
 {
 	readFilter(path);
 }
@@ -311,16 +314,16 @@ CountingBloomFilter<T>::readHeader(FILE* fp)
 	if (header.hlen != sizeof(FileHeader)) {
 		std::cerr << "Bloom Filter header length: " << header.hlen
 		          << " does not match expected length: " << sizeof(FileHeader)
-		          << " (likely version mismatch)" << endl;
+		          << " (likely version mismatch)" << std::endl;
 		exit(EXIT_FAILURE);
 	}
 	if (memcmp(header.magic, MAGIC_HEADER_STRING, strlen(MAGIC_HEADER_STRING)) != 0) {
-		std::cerr << "Bloom Filter type does not match" << endl;
+		std::cerr << "Bloom Filter type does not match" << std::endl;
 		exit(EXIT_FAILURE);
 	}
 	if (header.version != BloomFilter_VERSION) {
 		std::cerr << "Bloom Filter version does not match: " << header.version
-		          << " expected: " << BloomFilter_VERSION << endl;
+		          << " expected: " << BloomFilter_VERSION << std::endl;
 		exit(EXIT_FAILURE);
 	}
 	m_size = header.size;
@@ -335,7 +338,7 @@ template<typename T>
 void
 CountingBloomFilter<T>::writeFilter(std::string const& path) const
 {
-	std::ofstream ofs(path.c_str(), ios::out | ios::binary);
+	std::ofstream ofs(path.c_str(), std::ios::out | std::ios::binary);
 	std::cerr << "Writing a " << m_sizeInBytes << " byte filter to a file on disk.\n";
 	ofs << *this;
 	ofs.close();
@@ -347,7 +350,7 @@ void
 CountingBloomFilter<T>::writeHeader(std::ostream& out) const
 {
 	FileHeader header;
-	memcpy(header.magic, MAGIC_HEADER_STRING, 8);
+	memcpy(header.magic, MAGIC_HEADER_STRING, sizeof(uint64_t));
 	header.hlen = sizeof(struct FileHeader);
 	header.size = m_size;
 	header.nhash = m_hashNum;
