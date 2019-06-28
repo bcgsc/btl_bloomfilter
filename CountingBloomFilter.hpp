@@ -295,10 +295,12 @@ CountingBloomFilter<T>::readFilter(const string& path)
 		exit(EXIT_FAILURE);
 	}
 	readHeader(fp);
-	long int lCurPos = ftell(fp);
-	fseek(fp, 0, 2);
-	size_t arraySizeOnDisk = ftell(fp) - sizeof(struct FileHeader);
-	fseek(fp, lCurPos, 0);
+	struct stat buf;
+	if (fstat(fileno(fp), &buf) != 0){
+		cerr << "ERROR: Failed to open file: " << path << "\n";
+		exit(EXIT_FAILURE);
+	}
+	size_t arraySizeOnDisk = buf.st_size - sizeof(struct FileHeader);
 	if (arraySizeOnDisk != m_sizeInBytes) {
 		cerr << "ERROR: File size of " << path << " (" << arraySizeOnDisk << " bytes), "
 		     << "does not match size read from its header (" << m_sizeInBytes << " bytes).\n";
@@ -307,7 +309,7 @@ CountingBloomFilter<T>::readFilter(const string& path)
 
 	size_t nread = fread(m_filter, arraySizeOnDisk, 1, fp);
 	if (nread != 1 && fclose(fp) != 0) {
-		cerr << "ERROR: The bit array could not be read from the file: " << path << "\n";
+		cerr << "ERROR: The byte array could not be read from the file: " << path << "\n";
 		exit(EXIT_FAILURE);
 	}
 }
