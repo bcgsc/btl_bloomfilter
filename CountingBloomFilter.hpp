@@ -120,6 +120,8 @@ class CountingBloomFilter
 	static const uint32_t BloomFilter_VERSION = 2;
 	unsigned m_countThreshold;
 	unsigned m_bitsPerCounter = 8;
+	static constexpr const char* MAGIC_HEADER_STRING = "BLOOMCOU\0";
+	unsigned magicLen = strlen(MAGIC_HEADER_STRING) + 1;
 };
 
 // Method definitions
@@ -314,10 +316,10 @@ CountingBloomFilter<T>::readHeader(FILE* fp)
 		     << " (likely version mismatch)" << endl;
 		exit(EXIT_FAILURE);
 	}
-	char magic[9];
+	char magic[magicLen];
 	memcpy(magic, header.magic, 8);
 	magic[8] = '\0';
-	if (strcmp(magic, "BLOOMCOU")) {
+	if (strcmp(magic, MAGIC_HEADER_STRING)) {
 		cerr << "Bloom Filter type does not match" << endl;
 		exit(EXIT_FAILURE);
 	}
@@ -350,7 +352,7 @@ void
 CountingBloomFilter<T>::writeHeader(std::ostream& out) const
 {
 	FileHeader header;
-	memcpy(header.magic, "BLOOMCOU", 8);
+	memcpy(header.magic, MAGIC_HEADER_STRING, 8);
 	header.hlen = sizeof(struct FileHeader);
 	header.size = m_size;
 	header.nhash = m_hashNum;
