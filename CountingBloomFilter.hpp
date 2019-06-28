@@ -283,7 +283,7 @@ CountingBloomFilter<T>::readFilter(const string& path)
 	}
 	readHeader(fp);
 	struct stat buf;
-	if (fstat(fileno(fp), &buf) != 0){
+	if (fstat(fileno(fp), &buf) != 0) {
 		cerr << "ERROR: Failed to open file: " << path << "\n";
 		exit(EXIT_FAILURE);
 	}
