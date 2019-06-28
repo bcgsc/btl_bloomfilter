@@ -16,3 +16,5 @@ steps:
   displayName: Install clang-format
 - script: make clang-format
   displayName: Run clang-format
+- script: make clang-tidy
+  displayName: Run clang-tidy
