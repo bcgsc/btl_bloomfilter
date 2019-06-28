@@ -2,7 +2,7 @@
 check_PROGRAMS = BloomFilterTests
 
 BloomFilterTests_SOURCES = BloomFilterTests.cpp catch.hpp
-BloomFilterTests_CPPFLAGS = -I$(top_srcdir)
+BloomFilterTests_CPPFLAGS = -I$(top_srcdir) -I$(top_srcdir)/vendor
 BloomFilterTests_CXXFLAGS = $(AM_CXXFLAGS) $(OPENMP_CXXFLAGS) -std=c++11
 
 # programs that will be run by 'make check' (after compiling)
