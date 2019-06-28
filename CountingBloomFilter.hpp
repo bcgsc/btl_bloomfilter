@@ -24,7 +24,7 @@ class CountingBloomFilter
 {
   public:
 	CountingBloomFilter()
-	  : m_filter(NULL)
+	  : m_filter(nullptr)
 	  , m_size(0)
 	  , m_sizeInBytes(0)
 	  , m_hashNum(0)
@@ -166,7 +166,7 @@ CountingBloomFilter<T>::incrementMin(const U& hashes)
 	T newVal;
 	T minVal = minCount(hashes);
 	while (!updateDone) {
-		// Simple check to deal with overflow
+		// Simple check to deal with overflowhttps://en.wikipedia.org/wiki/Magic_string
 		newVal = minVal + 1;
 		if (minVal > newVal) {
 			return;
@@ -290,7 +290,7 @@ void
 CountingBloomFilter<T>::readFilter(const string& path)
 {
 	FILE* fp;
-	if ((fp = fopen(path.c_str(), "rb")) == NULL) {
+	if ((fp = fopen(path.c_str(), "rb")) == nullptr) {
 		cerr << "ERROR: Failed to open file: " << path << "\n";
 		exit(EXIT_FAILURE);
 	}
