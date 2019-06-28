@@ -3,7 +3,7 @@ check_PROGRAMS = BloomFilterTests \
 	ParallelFilter
 
 BloomFilterTests_SOURCES = BloomFilterTests.cpp
-BloomFilterTests_CPPFLAGS = -I$(top_srcdir)
+BloomFilterTests_CPPFLAGS = -I$(top_srcdir) -I$(top_srcdir)/vendor
 BloomFilterTests_CXXFLAGS = $(AM_CXXFLAGS) $(OPENMP_CXXFLAGS) -std=c++11
 
 ParallelFilter_SOURCES = ParallelFilter.cpp
