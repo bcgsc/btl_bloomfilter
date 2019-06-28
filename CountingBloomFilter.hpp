@@ -4,8 +4,8 @@
 #include <cassert>
 #include <cmath>
 #include <cstring>
-#include <iostream>
 #include <fstream>
+#include <iostream>
 #include <limits>
 #include <vector>
 
@@ -181,8 +181,7 @@ CountingBloomFilter<T>::incrementAll(const U& hashes)
 		do {
 			currentVal = m_filter[pos];
 			newVal = currentVal + 1;
-			if (newVal < currentVal)
-			{
+			if (newVal < currentVal) {
 				break;
 			}
 		} while (!__sync_bool_compare_and_swap(&m_filter[pos], currentVal, newVal));
@@ -227,8 +226,7 @@ CountingBloomFilter<T>::popCount() const
 {
 	size_t count = 0;
 	for (size_t i = 0; i < m_size; ++i) {
-		if (m_filter[i] != 0)
-		{
+		if (m_filter[i] != 0) {
 			++count;
 		}
 	}
@@ -242,8 +240,7 @@ CountingBloomFilter<T>::filtered_popcount() const
 {
 	size_t count = 0;
 	for (size_t i = 0; i < m_size; ++i) {
-		if (m_filter[i] >= m_countThreshold)
-		{
+		if (m_filter[i] >= m_countThreshold) {
 			++count;
 		}
 	}
