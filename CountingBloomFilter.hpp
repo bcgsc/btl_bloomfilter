@@ -29,9 +29,6 @@ class CountingBloomFilter
 	  , m_sizeInBytes(0)
 	  , m_hashNum(0)
 	  , m_kmerSize(0)
-	  , m_dFPR(0)
-	  , m_nEntry(0)
-	  , m_tEntry(0)
 	  , m_countThreshold(0)
 	{}
 	CountingBloomFilter(size_t sz, unsigned hashNum, unsigned kmerSize, unsigned countThreshold)
@@ -40,9 +37,6 @@ class CountingBloomFilter
 	  , m_sizeInBytes(sz * sizeof(T))
 	  , m_hashNum(hashNum)
 	  , m_kmerSize(kmerSize)
-	  , m_dFPR(0)
-	  , m_nEntry(0)
-	  , m_tEntry(0)
 	  , m_countThreshold(countThreshold)
 	{
 		std::memset(m_filter, 0, m_sizeInBytes);
@@ -93,9 +87,9 @@ class CountingBloomFilter
 		uint64_t size;
 		uint32_t nhash;
 		uint32_t kmer;
-		double dFPR;     // unused
-		uint64_t nEntry; // unused
-		uint64_t tEntry; // unsed
+		double dFPR = 0;     // unused
+		uint64_t nEntry = 0; // unused
+		uint64_t tEntry = 0; // unsed
 		uint32_t version;
 		uint32_t bitsPerCounter;
 	};
@@ -113,9 +107,6 @@ class CountingBloomFilter
 	//                        (m_size * sizeof(T)).
 	// m_hashNum            : Number of hash functions.
 	// m_kmerSize           : Size of a k-mer.
-	// m_dFPR               : Unused variable kept for compatability reasons.
-	// m_nEntry             : Unused variable kept for compatability reasons.
-	// m_tEntry             : Unused variable kept for compatability reasons.
 	// BloomFilter_VERSION  : Size of a k-mer.
 	// m_countThreshold     : A count greater or equal to this threshold
 	//                        establishes existence of an element in the filter.
@@ -126,9 +117,6 @@ class CountingBloomFilter
 	size_t m_sizeInBytes;
 	unsigned m_hashNum;
 	unsigned m_kmerSize;
-	double m_dFPR;     // unused
-	uint64_t m_nEntry; // unused
-	uint64_t m_tEntry; // unused
 	static const uint32_t BloomFilter_VERSION = 2;
 	unsigned m_countThreshold;
 	unsigned m_bitsPerCounter = 8;
@@ -166,7 +154,7 @@ CountingBloomFilter<T>::incrementMin(const U& hashes)
 	T newVal;
 	T minVal = minCount(hashes);
 	while (!updateDone) {
-		// Simple check to deal with overflowhttps://en.wikipedia.org/wiki/Magic_string
+		// Simple check to deal with overflow
 		newVal = minVal + 1;
 		if (minVal > newVal) {
 			return;
@@ -277,10 +265,7 @@ CountingBloomFilter<T>::filtered_FPR(void) const
 // Serialization interface.
 template<typename T>
 CountingBloomFilter<T>::CountingBloomFilter(const string& path, unsigned countThreshold)
-  : m_dFPR(0)
-  , m_nEntry(0)
-  , m_tEntry(0)
-  , m_countThreshold(countThreshold)
+  : m_countThreshold(countThreshold)
 {
 	readFilter(path);
 }
