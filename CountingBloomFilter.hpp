@@ -8,7 +8,6 @@
 #include <limits>
 #include <vector>
 
-
 // Forward declaraions.
 template<typename T>
 class CountingBloomFilter;
@@ -289,7 +288,7 @@ CountingBloomFilter<T>::readFilter(const std::string& path)
 	size_t arraySizeOnDisk = buf.st_size - sizeof(struct FileHeader);
 	if (arraySizeOnDisk != m_sizeInBytes) {
 		std::cerr << "ERROR: File size of " << path << " (" << arraySizeOnDisk << " bytes), "
-		     << "does not match size read from its header (" << m_sizeInBytes << " bytes).\n";
+		          << "does not match size read from its header (" << m_sizeInBytes << " bytes).\n";
 		exit(EXIT_FAILURE);
 	}
 
@@ -311,8 +310,8 @@ CountingBloomFilter<T>::readHeader(FILE* fp)
 	}
 	if (header.hlen != sizeof(FileHeader)) {
 		std::cerr << "Bloom Filter header length: " << header.hlen
-		     << " does not match expected length: " << sizeof(FileHeader)
-		     << " (likely version mismatch)" << endl;
+		          << " does not match expected length: " << sizeof(FileHeader)
+		          << " (likely version mismatch)" << endl;
 		exit(EXIT_FAILURE);
 	}
 	if (memcmp(header.magic, MAGIC_HEADER_STRING, strlen(MAGIC_HEADER_STRING)) != 0) {
@@ -321,7 +320,7 @@ CountingBloomFilter<T>::readHeader(FILE* fp)
 	}
 	if (header.version != BloomFilter_VERSION) {
 		std::cerr << "Bloom Filter version does not match: " << header.version
-		     << " expected: " << BloomFilter_VERSION << endl;
+		          << " expected: " << BloomFilter_VERSION << endl;
 		exit(EXIT_FAILURE);
 	}
 	m_size = header.size;
