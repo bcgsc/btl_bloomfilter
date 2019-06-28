@@ -111,6 +111,7 @@ class CountingBloomFilter
 	// m_countThreshold     : A count greater or equal to this threshold
 	//                        establishes existence of an element in the filter.
 	// m_bitsPerCounter     : Number of bits per counter.
+	// MAGIC_HEADER_STRING  : Magic string used to identify the type of bloom filter.
 
 	T* m_filter;
 	size_t m_size;
@@ -120,8 +121,7 @@ class CountingBloomFilter
 	static const uint32_t BloomFilter_VERSION = 2;
 	unsigned m_countThreshold;
 	unsigned m_bitsPerCounter = 8;
-	static constexpr const char* MAGIC_HEADER_STRING = "BLOOMCOU\0";
-	unsigned magicLen = strlen(MAGIC_HEADER_STRING) + 1;
+	static constexpr const char* MAGIC_HEADER_STRING = "BLOOMCOU";
 };
 
 // Method definitions
@@ -316,10 +316,7 @@ CountingBloomFilter<T>::readHeader(FILE* fp)
 		     << " (likely version mismatch)" << endl;
 		exit(EXIT_FAILURE);
 	}
-	char magic[magicLen];
-	memcpy(magic, header.magic, 8);
-	magic[8] = '\0';
-	if (strcmp(magic, MAGIC_HEADER_STRING)) {
+	if (memcmp(header.magic, MAGIC_HEADER_STRING, strlen(MAGIC_HEADER_STRING)) != 0) {
 		cerr << "Bloom Filter type does not match" << endl;
 		exit(EXIT_FAILURE);
 	}
