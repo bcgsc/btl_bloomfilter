@@ -114,7 +114,7 @@ class CountingBloomFilter
 	static const uint32_t BloomFilter_VERSION = 2;
 	unsigned m_countThreshold = 0;
 	unsigned m_bitsPerCounter = 8;
-	static constexpr const char* MAGIC_HEADER_STRING = "BLOOMCOU";
+	static constexpr const char* MAGIC_HEADER_STRING = "BTLBloom";
 };
 
 // Method definitions
