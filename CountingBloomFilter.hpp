@@ -5,7 +5,7 @@
 #include <cmath>
 #include <cstring>
 #include <fstream>
-#include <iostream>
+#include <ostream>
 #include <limits>
 #include <vector>
 
@@ -23,7 +23,6 @@ class CountingBloomFilter
 {
   public:
 	CountingBloomFilter()
-	  : m_filter(nullptr)
 	{}
 	CountingBloomFilter(size_t sz, unsigned hashNum, unsigned kmerSize, unsigned countThreshold)
 	  : m_filter(new T[sz])
@@ -107,7 +106,7 @@ class CountingBloomFilter
 	// m_bitsPerCounter     : Number of bits per counter.
 	// MAGIC_HEADER_STRING  : Magic string used to identify the type of bloom filter.
 
-	T* m_filter;
+	T* m_filter = nullptr;
 	size_t m_size = 0;
 	size_t m_sizeInBytes = 0;
 	unsigned m_hashNum = 0;
@@ -264,8 +263,7 @@ CountingBloomFilter<T>::filtered_FPR() const
 // Serialization interface.
 template<typename T>
 CountingBloomFilter<T>::CountingBloomFilter(const std::string& path, unsigned countThreshold)
-  : m_filter(nullptr)
-  , m_countThreshold(countThreshold)
+  : m_countThreshold(countThreshold)
 {
 	readFilter(path);
 }
