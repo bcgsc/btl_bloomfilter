@@ -86,7 +86,7 @@ class CountingBloomFilter
 		uint32_t version;
 		uint32_t bitsPerCounter;
 	};
-	void readHeader(FILE* fp);
+	void readHeader(FILE* file);
 	void readFilter(const std::string& path);
 	void writeHeader(std::ostream& out) const;
 	void writeFilter(const std::string& path) const;
@@ -272,14 +272,14 @@ template<typename T>
 void
 CountingBloomFilter<T>::readFilter(const std::string& path)
 {
-	FILE* fp;
-	if ((fp = fopen(path.c_str(), "rb")) == nullptr) {
+	FILE* file;
+	if ((file = fopen(path.c_str(), "rb")) == nullptr) {
 		std::cerr << "ERROR: Failed to open file: " << path << "\n";
 		exit(EXIT_FAILURE);
 	}
-	readHeader(fp);
+	readHeader(file);
 	struct stat buf;
-	if (fstat(fileno(fp), &buf) != 0) {
+	if (fstat(fileno(file), &buf) != 0) {
 		std::cerr << "ERROR: Failed to open file: " << path << "\n";
 		exit(EXIT_FAILURE);
 	}
@@ -290,8 +290,8 @@ CountingBloomFilter<T>::readFilter(const std::string& path)
 		exit(EXIT_FAILURE);
 	}
 
-	size_t nread = fread(m_filter, arraySizeOnDisk, 1, fp);
-	if (nread != 1 && fclose(fp) != 0) {
+	size_t nread = fread(m_filter, arraySizeOnDisk, 1, file);
+	if (nread != 1 && fclose(file) != 0) {
 		std::cerr << "ERROR: The byte array could not be read from the file: " << path << "\n";
 		exit(EXIT_FAILURE);
 	}
@@ -299,10 +299,10 @@ CountingBloomFilter<T>::readFilter(const std::string& path)
 
 template<typename T>
 void
-CountingBloomFilter<T>::readHeader(FILE* fp)
+CountingBloomFilter<T>::readHeader(FILE* file)
 {
 	FileHeader header;
-	if (fread(&header, sizeof(struct FileHeader), 1, fp) != 1) {
+	if (fread(&header, sizeof(struct FileHeader), 1, file) != 1) {
 		std::cerr << "Failed to read header\n";
 		exit(EXIT_FAILURE);
 	}
