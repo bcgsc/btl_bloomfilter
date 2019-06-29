@@ -89,7 +89,7 @@ class CountingBloomFilter
 	void readHeader(FILE* fp);
 	void readFilter(const std::string& path);
 	void writeHeader(std::ostream& out) const;
-	void writeFilter(std::string const& path) const;
+	void writeFilter(const std::string& path) const;
 	friend std::ostream& operator<<<>(std::ostream&, const CountingBloomFilter&);
 
   private:
@@ -331,7 +331,7 @@ CountingBloomFilter<T>::readHeader(FILE* fp)
 
 template<typename T>
 void
-CountingBloomFilter<T>::writeFilter(std::string const& path) const
+CountingBloomFilter<T>::writeFilter(const std::string& path) const
 {
 	std::ofstream ofs(path.c_str(), std::ios::out | std::ios::binary);
 	std::cerr << "Writing a " << m_sizeInBytes << " byte filter to a file on disk.\n";
