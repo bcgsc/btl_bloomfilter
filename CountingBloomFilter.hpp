@@ -5,8 +5,8 @@
 #include <cmath>
 #include <cstring>
 #include <fstream>
-#include <limits>
 #include <ostream>
+#include <limits>
 #include <vector>
 
 // Forward declaraions.
@@ -22,7 +22,8 @@ template<typename T>
 class CountingBloomFilter
 {
   public:
-	CountingBloomFilter() {}
+	CountingBloomFilter()
+	{}
 	CountingBloomFilter(size_t sz, unsigned hashNum, unsigned kmerSize, unsigned countThreshold)
 	  : m_filter(new T[sz])
 	  , m_size(sz)
@@ -66,25 +67,6 @@ class CountingBloomFilter
 	size_t filtered_popcount() const;
 	double FPR() const;
 	double filtered_FPR() const;
-
-	// Serialization interface
-	// When modifiying the header, never remove any fields.
-	// Always append to the end of the struct.
-	// If there are unused fields, you may rename them,
-	// but never change the type or delete the field.
-	struct FileHeader
-	{
-		char magic[sizeof(uint64_t)];
-		uint32_t hlen;
-		uint64_t size;
-		uint32_t nhash;
-		uint32_t kmer;
-		double dFPR = 0;     // unused
-		uint64_t nEntry = 0; // unused
-		uint64_t tEntry = 0; // unsed
-		uint32_t version;
-		uint32_t bitsPerCounter;
-	};
 	void readHeader(FILE* file);
 	void readFilter(const std::string& path);
 	void writeHeader(std::ostream& out) const;
@@ -114,6 +96,25 @@ class CountingBloomFilter
 	unsigned m_countThreshold = 0;
 	unsigned m_bitsPerCounter = 8;
 	static constexpr const char* MAGIC_HEADER_STRING = "BTLBloom";
+	
+	// Serialization interface
+	// When modifying the header, never remove any fields.
+	// Always append to the end of the struct.
+	// If there are unused fields, you may rename them,
+	// but never change the type or delete the field.
+	struct FileHeader
+	{
+		char magic[sizeof(uint64_t)];
+		uint32_t hlen;
+		uint64_t size;
+		uint32_t nhash;
+		uint32_t kmer;
+		double dFPR = 0;     // unused
+		uint64_t nEntry = 0; // unused
+		uint64_t tEntry = 0; // unused
+		uint32_t version;
+		uint32_t bitsPerCounter;
+	};
 };
 
 // Method definitions
