@@ -5,8 +5,8 @@
 #include <cmath>
 #include <cstring>
 #include <fstream>
-#include <ostream>
 #include <limits>
+#include <ostream>
 #include <vector>
 
 // Forward declaraions.
@@ -22,8 +22,7 @@ template<typename T>
 class CountingBloomFilter
 {
   public:
-	CountingBloomFilter()
-	{}
+	CountingBloomFilter() {}
 	CountingBloomFilter(size_t sz, unsigned hashNum, unsigned kmerSize, unsigned countThreshold)
 	  : m_filter(new T[sz])
 	  , m_size(sz)
