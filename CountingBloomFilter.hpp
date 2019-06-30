@@ -96,7 +96,7 @@ class CountingBloomFilter
 	unsigned m_countThreshold = 0;
 	unsigned m_bitsPerCounter = 8;
 	static constexpr const char* MAGIC_HEADER_STRING = "BTLBloom";
-	
+	static const unsigned MAGIC_LENGTH = strlen(MAGIC_HEADER_STRING);
 	// Serialization interface
 	// When modifying the header, never remove any fields.
 	// Always append to the end of the struct.
@@ -104,7 +104,7 @@ class CountingBloomFilter
 	// but never change the type or delete the field.
 	struct FileHeader
 	{
-		char magic[sizeof(uint64_t)];
+		char magic[MAGIC_LENGTH];
 		uint32_t hlen;
 		uint64_t size;
 		uint32_t nhash;
@@ -312,7 +312,7 @@ CountingBloomFilter<T>::readHeader(FILE* file)
 		          << " (likely version mismatch)" << std::endl;
 		exit(EXIT_FAILURE);
 	}
-	if (memcmp(header.magic, MAGIC_HEADER_STRING, strlen(MAGIC_HEADER_STRING)) != 0) {
+	if (memcmp(header.magic, MAGIC_HEADER_STRING, MAGIC_LENGTH) != 0) {
 		std::cerr << "Bloom Filter type does not match" << std::endl;
 		exit(EXIT_FAILURE);
 	}
@@ -345,7 +345,7 @@ void
 CountingBloomFilter<T>::writeHeader(std::ostream& out) const
 {
 	FileHeader header;
-	memcpy(header.magic, MAGIC_HEADER_STRING, sizeof(uint64_t));
+	memcpy(header.magic, MAGIC_HEADER_STRING, MAGIC_LENGTH);
 	header.hlen = sizeof(struct FileHeader);
 	header.size = m_size;
 	header.nhash = m_hashNum;
