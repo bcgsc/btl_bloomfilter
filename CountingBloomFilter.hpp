@@ -17,7 +17,7 @@ class CountingBloomFilter;
 // Method declarations.
 template<typename T>
 std::ostream&
-operator<<(std::ostream& os, const CountingBloomFilter<T>& cbf);
+operator<<(std::ostream&, const CountingBloomFilter<T>&);
 
 template<typename T>
 class CountingBloomFilter
@@ -57,9 +57,7 @@ class CountingBloomFilter
 		for (size_t i = 1; i < m_hashNum; ++i) {
 			size_t pos = hashes[i] % m_size;
 			if (m_filter[pos] < min)
-			{
 				min = m_filter[pos];
-			}
 		}
 		return min;
 	}
@@ -73,15 +71,15 @@ class CountingBloomFilter
 	void incrementMin(const U& hashes);
 	template<typename U>
 	void incrementAll(const U& hashes);
-	unsigned getKmerSize() const { return m_kmerSize; };
-	unsigned getHashNum() const { return m_hashNum; };
-	unsigned threshold() const { return m_countThreshold; };
-	size_t size() const { return m_size; };
-	size_t sizeInBytes() const { return m_sizeInBytes; };
+	unsigned getKmerSize(void) const { return m_kmerSize; };
+	unsigned getHashNum(void) const { return m_hashNum; };
+	unsigned threshold(void) const { return m_countThreshold; };
+	size_t size(void) const { return m_size; };
+	size_t sizeInBytes(void) const { return m_sizeInBytes; };
 	size_t popCount() const;
 	size_t filtered_popcount() const;
-	double FPR() const;
-	double filtered_FPR() const;
+	double FPR(void) const;
+	double filtered_FPR(void) const;
 
 	// Serialization interface
 	// When modifiying the header, never remove any fields.
@@ -101,7 +99,7 @@ class CountingBloomFilter
 		uint32_t version;
 		uint32_t bitsPerCounter;
 	};
-	void readHeader(FILE* fp);
+	void readHeader(FILE* file);
 	void readFilter(const string& path);
 	void writeHeader(std::ostream& out) const;
 	void writeFilter(string const& path) const;
@@ -124,15 +122,15 @@ class CountingBloomFilter
 	// m_bitsPerCounter     : Number of bits per counter.
 
 	T* m_filter;
-	size_t m_size = 0;
-	size_t m_sizeInBytes = 0;
-	unsigned m_hashNum = 0;
-	unsigned m_kmerSize = 0;
-	double m_dFPR = 0;     // unused
-	uint64_t m_nEntry = 0; // unused
-	uint64_t m_tEntry = 0; // unused
+	size_t m_size;
+	size_t m_sizeInBytes;
+	unsigned m_hashNum;
+	unsigned m_kmerSize;
+	double m_dFPR;     // unused
+	uint64_t m_nEntry; // unused
+	uint64_t m_tEntry; // unused
 	static const uint32_t BloomFilter_VERSION = 2;
-	unsigned m_countThreshold = 0;
+	unsigned m_countThreshold;
 	unsigned m_bitsPerCounter = 8;
 };
 
@@ -184,6 +182,7 @@ CountingBloomFilter<T>::incrementMin(const U& hashes)
 			minVal = minCount(hashes);
 		}
 	}
+	return;
 }
 
 // Increment all the m_hashNum counters.
@@ -192,17 +191,14 @@ template<typename U>
 inline void
 CountingBloomFilter<T>::incrementAll(const U& hashes)
 {
-	T currentVal; 
-	T newVal;
+	T currentVal, newVal;
 	for (size_t i = 0; i < m_hashNum; ++i) {
 		size_t pos = hashes[i] % m_size;
 		do {
 			currentVal = m_filter[pos];
 			newVal = currentVal + 1;
 			if (newVal < currentVal)
-			{
 				break;
-			}
 		} while (!__sync_bool_compare_and_swap(&m_filter[pos], currentVal, newVal));
 	}
 }
@@ -246,9 +242,7 @@ CountingBloomFilter<T>::popCount() const
 	size_t count = 0;
 	for (size_t i = 0; i < m_size; ++i) {
 		if (m_filter[i] != 0)
-		{
 			++count;
-		}
 	}
 	return count;
 }
@@ -261,23 +255,21 @@ CountingBloomFilter<T>::filtered_popcount() const
 	size_t count = 0;
 	for (size_t i = 0; i < m_size; ++i) {
 		if (m_filter[i] >= m_countThreshold)
-		{
 			++count;
-		}
 	}
 	return count;
 }
 
 template<typename T>
 double
-CountingBloomFilter<T>::FPR() const
+CountingBloomFilter<T>::FPR(void) const
 {
 	return std::pow((double)popCount() / (double)m_size, m_hashNum);
 }
 
 template<typename T>
 double
-CountingBloomFilter<T>::filtered_FPR() const
+CountingBloomFilter<T>::filtered_FPR(void) const
 {
 	return std::pow((double)filtered_popcount() / (double)m_size, m_hashNum);
 }
