@@ -12,6 +12,8 @@ steps:
     sudo apt-add-repository "deb http://apt.llvm.org/xenial/ llvm-toolchain-xenial-7 main"
     sudo apt-get update
     sudo apt-get install -y --no-install-recommends clang-format-8
+    ls
+    ls /usr/bin/clang*
     sudo ln -s clang-format-8 /usr/bin/clang-format
   displayName: Install clang-format
 - script: make clang-format
