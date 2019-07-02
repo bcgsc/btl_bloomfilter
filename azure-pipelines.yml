@@ -19,3 +19,4 @@ steps:
   displayName: Run clang-format
 - script: make clang-tidy
   displayName: Run clang-tidy
+
