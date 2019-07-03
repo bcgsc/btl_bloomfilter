@@ -5,8 +5,8 @@
 #include <cmath>
 #include <cstring>
 #include <fstream>
+#include <iostream>
 #include <limits>
-#include <ostream>
 #include <vector>
 
 // Forward declaraions.
