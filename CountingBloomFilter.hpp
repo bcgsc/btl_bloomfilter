@@ -68,7 +68,7 @@ class CountingBloomFilter
 	size_t filtered_popcount() const;
 	double FPR() const;
 	double filtered_FPR() const;
-	void readHeader(FILE* file);
+	void readHeader(std::istream& file);
 	void readFilter(const std::string& path);
 	void writeHeader(std::ostream& out) const;
 	void writeFilter(const std::string& path) const;
@@ -273,61 +273,41 @@ template<typename T>
 void
 CountingBloomFilter<T>::readFilter(const std::string& path)
 {
-	FILE* file;
-	if ((file = fopen(path.c_str(), "rb")) == nullptr) {
+	std::ifstream file(path);
+	if ( ! file.is_open()) {
 		std::cerr << "ERROR: Failed to open file: " << path << "\n";
 		exit(EXIT_FAILURE);
 	}
 	readHeader(file);
-	struct stat buf;
+	/* struct stat buf;
 	if (fstat(fileno(file), &buf) != 0) {
 		std::cerr << "ERROR: Failed to open file: " << path << "\n";
 		exit(EXIT_FAILURE);
-	}
-	size_t arraySizeOnDisk = buf.st_size - sizeof(struct FileHeader);
-	if (arraySizeOnDisk != m_sizeInBytes) {
-		std::cerr << "ERROR: File size of " << path << " (" << arraySizeOnDisk << " bytes), "
-		          << "does not match size read from its header (" << m_sizeInBytes << " bytes).\n";
-		exit(EXIT_FAILURE);
-	}
-
-	size_t nread = fread(m_filter, arraySizeOnDisk, 1, file);
+	}*/
+	file.close();
+    /* 
+	size_t nread = read(m_filter, currP);
 	if (nread != 1 && fclose(file) != 0) {
 		std::cerr << "ERROR: The byte array could not be read from the file: " << path << "\n";
 		exit(EXIT_FAILURE);
 	}
+	*/
 }
 
 template<typename T>
 void
-CountingBloomFilter<T>::readHeader(FILE* file)
+CountingBloomFilter<T>::readHeader(std::istream& file)
 {
-	FileHeader header;
-	if (fread(&header, sizeof(struct FileHeader), 1, file) != 1) {
-		std::cerr << "Failed to read header\n";
+	if ( ! file.good()) {
+		std::cerr << "ERROR" << "\n";
 		exit(EXIT_FAILURE);
-	}
-	if (header.hlen != sizeof(FileHeader)) {
-		std::cerr << "Bloom Filter header length: " << header.hlen
-		          << " does not match expected length: " << sizeof(FileHeader)
-		          << " (likely version mismatch)" << std::endl;
-		exit(EXIT_FAILURE);
-	}
-	if (memcmp(header.magic, MAGIC_HEADER_STRING, MAGIC_LENGTH) != 0) {
-		std::cerr << "Bloom Filter type does not match" << std::endl;
-		exit(EXIT_FAILURE);
-	}
-	if (header.version != BloomFilter_VERSION) {
-		std::cerr << "Bloom Filter version does not match: " << header.version
-		          << " expected: " << BloomFilter_VERSION << std::endl;
-		exit(EXIT_FAILURE);
-	}
-	m_size = header.size;
-	m_hashNum = header.nhash;
-	m_kmerSize = header.kmer;
-	m_sizeInBytes = m_size * sizeof(T);
-	m_filter = new T[m_size]();
-	m_bitsPerCounter = header.bitsPerCounter;
+	}	
+	m_size = 0;
+	m_hashNum = 0;
+	m_kmerSize = 0;
+	m_sizeInBytes = 0 * sizeof(T);
+	m_filter = new T[0]();
+	m_bitsPerCounter = 0;
 }
 
 template<typename T>
