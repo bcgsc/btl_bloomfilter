@@ -5,9 +5,11 @@
 #include <cmath>
 #include <cstring>
 #include <fstream>
-#include <iostream>
 #include <limits>
+#include <ostream>
 #include <vector>
+
+#include "cpptoml/include/cpptoml.h"
 
 // Forward declaraions.
 template<typename T>
@@ -335,6 +337,7 @@ CountingBloomFilter<T>::writeFilter(const std::string& path) const
 	std::ofstream ofs(path.c_str(), std::ios::out | std::ios::binary);
 	std::cerr << "Writing a " << m_sizeInBytes << " byte filter to a file on disk.\n";
 	ofs << *this;
+	ofs.flush();
 	ofs.close();
 	assert(ofs);
 }
@@ -343,15 +346,28 @@ template<typename T>
 void
 CountingBloomFilter<T>::writeHeader(std::ostream& out) const
 {
-	FileHeader header;
-	memcpy(header.magic, MAGIC_HEADER_STRING, MAGIC_LENGTH);
-	header.hlen = sizeof(struct FileHeader);
-	header.size = m_size;
-	header.nhash = m_hashNum;
-	header.kmer = m_kmerSize;
-	header.version = BloomFilter_VERSION;
-	header.bitsPerCounter = m_bitsPerCounter;
-	out.write(reinterpret_cast<char*>(&header), sizeof(struct FileHeader));
+	/* Initialize cpptoml root table
+	   Note: Tables and fields are unordered 
+	   Ordering of table is maintained by directing the table
+	   to the output stream whenever after completion  */
+    std::shared_ptr<cpptoml::table> root = cpptoml::make_table();
+
+	/* Initialize bloom filter section and insert fields
+	   and output to ostream */
+    auto header = cpptoml::make_table();
+    header->insert("BitsPerCounter", m_bitsPerCounter);
+    header->insert("KmerSize",m_kmerSize);
+    header->insert("BloomFilterSize", m_size);
+	std::string s(MAGIC_HEADER_STRING);
+    root->insert(s, header);
+	out << (*root);
+
+    /* Initalize new cpptoml root table and HeaderEnd section,
+	   and output to ostream */
+    root = cpptoml::make_table();
+    auto ender = cpptoml::make_table();
+    root->insert(std::string("HeaderEnd"), ender);
+	out << (*root);
 	assert(out);
 }
 
