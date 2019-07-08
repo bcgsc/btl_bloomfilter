@@ -9,7 +9,7 @@
 #include <cstring>
 #include <fstream>
 #include <limits>
-#include <ostream>
+#include <iostream>
 #include <vector>
 
 #include "cpptoml/include/cpptoml.h"
