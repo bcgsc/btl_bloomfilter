@@ -8,9 +8,11 @@
 #include <cmath>
 #include <cstring>
 #include <fstream>
-#include <iostream>
 #include <limits>
+#include <ostream>
 #include <vector>
+
+#include "cpptoml/include/cpptoml.h"
 
 // Forward declaraions.
 template<typename T>
