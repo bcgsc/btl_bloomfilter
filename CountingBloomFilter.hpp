@@ -274,11 +274,14 @@ template<typename T>
 void
 CountingBloomFilter<T>::readHeader(std::istream& file)
 {
-	std::string magic(MAGIC_HEADER_STRING);
+	std::string magic_header(MAGIC_HEADER_STRING); 
+	(magic_header.insert(0, "[")).append("]");
 	std::string line;
 	std::getline(file, line);
-	if (line.compare(magic) != 0){
-		std::cerr << "ERROR: magic header string does not match (likely version mismatch) \n";
+	if (line.compare(magic_header) != 0){
+		std::cerr << "ERROR: magic string does not match (likely version mismatch) \n";
+		std::cerr << "Your magic string:                " << line << "\n";
+		std::cerr << "CountingBloomFilter magic string: " << magic_header << std::endl;
 		exit(EXIT_FAILURE);
 	}
 
@@ -309,6 +312,7 @@ CountingBloomFilter<T>::readHeader(std::istream& file)
     auto header_config = toml_parser.parse();
 
 	// Obtain header values from toml parser and assign them to class members
+	std::string magic(MAGIC_HEADER_STRING);
     auto bloomFilterTable = header_config->get_table(magic);	
 	auto toml_size = bloomFilterTable->get_as<size_t>("BloomFilterSize");
 	auto toml_kmerSize = bloomFilterTable->get_as<unsigned>("KmerSize");
