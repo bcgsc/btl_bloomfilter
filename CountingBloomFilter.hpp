@@ -254,7 +254,7 @@ void
 CountingBloomFilter<T>::readFilter(const std::string& path)
 {
 	std::ifstream file(path);
-	if (!file.is_open()) {
+	if (!file) {
 		std::cerr << "ERROR: Failed to open file: " << path << "\n";
 		exit(EXIT_FAILURE);
 	}
