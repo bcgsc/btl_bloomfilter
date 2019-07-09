@@ -263,35 +263,17 @@ CountingBloomFilter<T>::readFilter(const std::string& path)
     filter = new char [m_sizeInBytes];
     file.read(filter, m_sizeInBytes);
     m_filter = reinterpret_cast<T*>(filter);
-	/* struct stat buf;
-	if (fstat(fileno(file), &buf) != 0) {
-		std::cerr << "ERROR: Failed to open file: " << path << "\n";
-		exit(EXIT_FAILURE);
-	}*/
-    if (!file)
-	{
+    if (!file) {
     	std::cerr << "ERROR: The byte array could not be read from the file: " << path << "\n";
 		exit(EXIT_FAILURE);
 	}
 	file.close();
-    /* 
-	size_t nread = read(m_filter, currP);
-	if (nread != 1 && fclose(file) != 0) {
-		std::cerr << "ERROR: The byte array could not be read from the file: " << path << "\n";
-		exit(EXIT_FAILURE);
-	}
-	*/
 }
 
 template<typename T>
 void
 CountingBloomFilter<T>::readHeader(std::istream& file)
 {
-	if ( ! file.good()) {
-		std::cerr << "ERROR" << "\n";
-		exit(EXIT_FAILURE);
-	}
-
 	std::string magic(MAGIC_HEADER_STRING);
 	std::string line;
 	std::getline(file, line);
@@ -299,8 +281,6 @@ CountingBloomFilter<T>::readHeader(std::istream& file)
 		std::cerr << "ERROR: magic header string does not match (likely version mismatch) \n";
 		exit(EXIT_FAILURE);
 	}
-
-
 
 	/* Read bloom filter line by line until it sees "[HeaderEnd]"
 	   which is used to mark the end of the header section and 
