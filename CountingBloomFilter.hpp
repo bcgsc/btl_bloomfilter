@@ -358,7 +358,6 @@ CountingBloomFilter<T>::writeHeader(std::ostream& out) const
 
 	/* Initialize bloom filter section and insert fields
 	   and output to ostream */
-<<<<<<< HEAD
 	auto header = cpptoml::make_table();
 	header->insert("BitsPerCounter", m_bitsPerCounter);
 	header->insert("KmerSize", m_kmerSize);
@@ -370,18 +369,6 @@ CountingBloomFilter<T>::writeHeader(std::ostream& out) const
 	out << *root;
 
 	/* Initalize new cpptoml root table and HeaderEnd section,
-=======
-    auto header = cpptoml::make_table();
-    header->insert("BitsPerCounter", m_bitsPerCounter);
-    header->insert("KmerSize",m_kmerSize);
-    header->insert("HashNum",m_hashNum);
-    header->insert("BloomFilterSize", m_size);
-	std::string magic(MAGIC_HEADER_STRING);
-    root->insert(magic, header);
-	out << (*root);
-
-    /* Initalize new cpptoml root table and HeaderEnd section,
->>>>>>> CountingBloomFilter: update readHeader to read toml formatted header
 	   and output to ostream */
 	root = cpptoml::make_table();
 	auto ender = cpptoml::make_table();
