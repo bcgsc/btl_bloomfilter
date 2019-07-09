@@ -9,8 +9,8 @@
 #include <limits>
 #include <vector>
 
-#include "cpptoml/include/cpptoml.h"
 #include "IOUtil.h"
+#include "cpptoml/include/cpptoml.h"
 
 // Forward declaraions.
 template<typename T>
@@ -259,7 +259,7 @@ CountingBloomFilter<T>::readFilter(const std::string& path)
 		exit(EXIT_FAILURE);
 	}
 	readHeader(file);
-	char* filter = new char[m_sizeInBytes]; 
+	char* filter = new char[m_sizeInBytes];
 	file.read(filter, m_sizeInBytes);
 	m_filter = reinterpret_cast<T*>(filter);
 	if (!file) {
