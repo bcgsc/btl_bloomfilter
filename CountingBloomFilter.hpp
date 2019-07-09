@@ -5,8 +5,8 @@
 #include <cmath>
 #include <cstring>
 #include <fstream>
-#include <limits>
 #include <iostream>
+#include <limits>
 #include <vector>
 
 #include "cpptoml/include/cpptoml.h"
@@ -254,17 +254,17 @@ void
 CountingBloomFilter<T>::readFilter(const std::string& path)
 {
 	std::ifstream file(path);
-	if ( ! file.is_open()) {
+	if (!file.is_open()) {
 		std::cerr << "ERROR: Failed to open file: " << path << "\n";
 		exit(EXIT_FAILURE);
 	}
 	readHeader(file);
 	char* filter;
-    filter = new char [m_sizeInBytes];
-    file.read(filter, m_sizeInBytes);
-    m_filter = reinterpret_cast<T*>(filter);
-    if (!file) {
-    	std::cerr << "ERROR: The byte array could not be read from the file: " << path << "\n";
+	filter = new char[m_sizeInBytes];
+	file.read(filter, m_sizeInBytes);
+	m_filter = reinterpret_cast<T*>(filter);
+	if (!file) {
+		std::cerr << "ERROR: The byte array could not be read from the file: " << path << "\n";
 		exit(EXIT_FAILURE);
 	}
 	file.close();
@@ -274,11 +274,11 @@ template<typename T>
 void
 CountingBloomFilter<T>::readHeader(std::istream& file)
 {
-	std::string magic_header(MAGIC_HEADER_STRING); 
+	std::string magic_header(MAGIC_HEADER_STRING);
 	(magic_header.insert(0, "[")).append("]");
 	std::string line;
 	std::getline(file, line);
-	if (line.compare(magic_header) != 0){
+	if (line.compare(magic_header) != 0) {
 		std::cerr << "ERROR: magic string does not match (likely version mismatch) \n";
 		std::cerr << "Your magic string:                " << line << "\n";
 		std::cerr << "CountingBloomFilter magic string: " << magic_header << std::endl;
@@ -286,34 +286,34 @@ CountingBloomFilter<T>::readHeader(std::istream& file)
 	}
 
 	/* Read bloom filter line by line until it sees "[HeaderEnd]"
-	   which is used to mark the end of the header section and 
+	   which is used to mark the end of the header section and
 	   assigns the header to a char array*/
-	std::string headerEnd = "[HeaderEnd]"; 
-    char * toml_buffer = new char [0]; 
-    while (std::getline(file, line)){
-		if (line == headerEnd){
+	std::string headerEnd = "[HeaderEnd]";
+	char* toml_buffer = new char[0];
+	while (std::getline(file, line)) {
+		if (line == headerEnd) {
 			int currPos = file.tellg();
-			if (toml_buffer != nullptr){
+			if (toml_buffer != nullptr) {
 				delete[] toml_buffer;
 			}
-            toml_buffer = new char [currPos];
-            file.seekg (0, file.beg);
-            file.read (toml_buffer, currPos);
-            file.seekg (currPos, file.beg);
-            break;
-        }
+			toml_buffer = new char[currPos];
+			file.seekg(0, file.beg);
+			file.read(toml_buffer, currPos);
+			file.seekg(currPos, file.beg);
+			break;
+		}
 	}
 
-    // Send the char array to a stringstream for the cpptoml parser to parse
-    std::stringstream toml_stream;
-    toml_stream << toml_buffer;
+	// Send the char array to a stringstream for the cpptoml parser to parse
+	std::stringstream toml_stream;
+	toml_stream << toml_buffer;
 	delete[] toml_buffer;
-    cpptoml::parser toml_parser{toml_stream};
-    auto header_config = toml_parser.parse();
+	cpptoml::parser toml_parser{ toml_stream };
+	auto header_config = toml_parser.parse();
 
 	// Obtain header values from toml parser and assign them to class members
 	std::string magic(MAGIC_HEADER_STRING);
-    auto bloomFilterTable = header_config->get_table(magic);	
+	auto bloomFilterTable = header_config->get_table(magic);
 	auto toml_size = bloomFilterTable->get_as<size_t>("BloomFilterSize");
 	auto toml_kmerSize = bloomFilterTable->get_as<unsigned>("KmerSize");
 	auto toml_bitsPerCounter = bloomFilterTable->get_as<unsigned>("BitsPerCounter");
@@ -342,27 +342,27 @@ void
 CountingBloomFilter<T>::writeHeader(std::ostream& out) const
 {
 	/* Initialize cpptoml root table
-	   Note: Tables and fields are unordered 
+	   Note: Tables and fields are unordered
 	   Ordering of table is maintained by directing the table
 	   to the output stream whenever after completion  */
-    std::shared_ptr<cpptoml::table> root = cpptoml::make_table();
+	std::shared_ptr<cpptoml::table> root = cpptoml::make_table();
 
 	/* Initialize bloom filter section and insert fields
 	   and output to ostream */
-    auto header = cpptoml::make_table();
-    header->insert("BitsPerCounter", m_bitsPerCounter);
-    header->insert("KmerSize",m_kmerSize);
-    header->insert("HashNum",m_hashNum);
-    header->insert("BloomFilterSize", m_size);
+	auto header = cpptoml::make_table();
+	header->insert("BitsPerCounter", m_bitsPerCounter);
+	header->insert("KmerSize", m_kmerSize);
+	header->insert("HashNum", m_hashNum);
+	header->insert("BloomFilterSize", m_size);
 	std::string magic(MAGIC_HEADER_STRING);
-    root->insert(magic, header);
+	root->insert(magic, header);
 	out << (*root);
 
-    /* Initalize new cpptoml root table and HeaderEnd section,
+	/* Initalize new cpptoml root table and HeaderEnd section,
 	   and output to ostream */
-    root = cpptoml::make_table();
-    auto ender = cpptoml::make_table();
-    root->insert(std::string("HeaderEnd"), ender);
+	root = cpptoml::make_table();
+	auto ender = cpptoml::make_table();
+	root->insert(std::string("HeaderEnd"), ender);
 	out << (*root);
 	assert(out);
 }
