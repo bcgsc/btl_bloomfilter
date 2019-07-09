@@ -10,6 +10,7 @@
 #include <vector>
 
 #include "cpptoml/include/cpptoml.h"
+#include "IOUtil.h"
 
 // Forward declaraions.
 template<typename T>
@@ -258,8 +259,7 @@ CountingBloomFilter<T>::readFilter(const std::string& path)
 		exit(EXIT_FAILURE);
 	}
 	readHeader(file);
-	char* filter;
-	filter = new char[m_sizeInBytes];
+	char* filter = new char[m_sizeInBytes]; 
 	file.read(filter, m_sizeInBytes);
 	m_filter = reinterpret_cast<T*>(filter);
 	if (!file) {
@@ -329,7 +329,7 @@ CountingBloomFilter<T>::writeFilter(const std::string& path) const
 	std::cerr << "Writing a " << m_sizeInBytes << " byte filter to a file on disk.\n";
 	ofs << *this;
 	ofs.close();
-	assert(ofs);
+	assert_good(ofs, path);
 }
 
 template<typename T>
