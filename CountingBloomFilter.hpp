@@ -344,7 +344,7 @@ CountingBloomFilter<T>::writeHeader(std::ostream& out) const
 	/* Initialize cpptoml root table
 	   Note: Tables and fields are unordered
 	   Ordering of table is maintained by directing the table
-	   to the output stream whenever after completion  */
+	   to the output stream immediately after completion  */
 	std::shared_ptr<cpptoml::table> root = cpptoml::make_table();
 
 	/* Initialize bloom filter section and insert fields
