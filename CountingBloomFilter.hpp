@@ -279,11 +279,20 @@ CountingBloomFilter<T>::readFilter(const std::string& path)
 		exit(EXIT_FAILURE);
 	}
 	readHeader(file);
+	char* filter;
+    filter = new char [m_sizeInBytes];
+    file.read(filter, m_sizeInBytes);
+    m_filter = reinterpret_cast<T*>(filter);
 	/* struct stat buf;
 	if (fstat(fileno(file), &buf) != 0) {
 		std::cerr << "ERROR: Failed to open file: " << path << "\n";
 		exit(EXIT_FAILURE);
 	}*/
+    if (!file)
+	{
+    	std::cerr << "ERROR: The byte array could not be read from the file: " << path << "\n";
+		exit(EXIT_FAILURE);
+	}
 	file.close();
     /* 
 	size_t nread = read(m_filter, currP);
@@ -301,13 +310,55 @@ CountingBloomFilter<T>::readHeader(std::istream& file)
 	if ( ! file.good()) {
 		std::cerr << "ERROR" << "\n";
 		exit(EXIT_FAILURE);
-	}	
-	m_size = 0;
-	m_hashNum = 0;
-	m_kmerSize = 0;
-	m_sizeInBytes = 0 * sizeof(T);
-	m_filter = new T[0]();
-	m_bitsPerCounter = 0;
+	}
+
+	std::string magic(MAGIC_HEADER_STRING);
+	std::string line;
+	std::getline(file, line);
+	if (line.compare(magic) != 0){
+		std::cerr << "ERROR: magic header string does not match (likely version mismatch) \n";
+		exit(EXIT_FAILURE);
+	}
+
+
+
+	/* Read bloom filter line by line until it sees "[HeaderEnd]"
+	   which is used to mark the end of the header section and 
+	   assigns the header to a char array*/
+	std::string headerEnd = "[HeaderEnd]"; 
+    char * toml_buffer = new char [0]; 
+    while (std::getline(file, line)){
+		if (line == headerEnd){
+			int currPos = file.tellg();
+			if (toml_buffer != nullptr){
+				delete[] toml_buffer;
+			}
+            toml_buffer = new char [currPos];
+            file.seekg (0, file.beg);
+            file.read (toml_buffer, currPos);
+            file.seekg (currPos, file.beg);
+            break;
+        }
+	}
+
+    // Send the char array to a stringstream for the cpptoml parser to parse
+    std::stringstream toml_stream;
+    toml_stream << toml_buffer;
+	delete[] toml_buffer;
+    cpptoml::parser toml_parser{toml_stream};
+    auto header_config = toml_parser.parse();
+
+	// Obtain header values from toml parser and assign them to class members
+    auto bloomFilterTable = header_config->get_table(magic);	
+	auto toml_size = bloomFilterTable->get_as<size_t>("BloomFilterSize");
+	auto toml_kmerSize = bloomFilterTable->get_as<unsigned>("KmerSize");
+	auto toml_bitsPerCounter = bloomFilterTable->get_as<unsigned>("BitsPerCounter");
+	auto toml_hashNum = bloomFilterTable->get_as<unsigned>("HashNum");
+	m_size = *toml_size;
+	m_hashNum = *toml_hashNum;
+	m_kmerSize = *toml_kmerSize;
+	m_sizeInBytes = m_size * sizeof(T);
+	m_bitsPerCounter = *toml_bitsPerCounter;
 }
 
 template<typename T>
@@ -337,9 +388,10 @@ CountingBloomFilter<T>::writeHeader(std::ostream& out) const
     auto header = cpptoml::make_table();
     header->insert("BitsPerCounter", m_bitsPerCounter);
     header->insert("KmerSize",m_kmerSize);
+    header->insert("HashNum",m_hashNum);
     header->insert("BloomFilterSize", m_size);
-	std::string s(MAGIC_HEADER_STRING);
-    root->insert(s, header);
+	std::string magic(MAGIC_HEADER_STRING);
+    root->insert(magic, header);
 	out << (*root);
 
     /* Initalize new cpptoml root table and HeaderEnd section,
@@ -351,7 +403,7 @@ CountingBloomFilter<T>::writeHeader(std::ostream& out) const
 	assert(out);
 }
 
-// Serialize the bloom filter to a C++ stream */
+// Serialize the bloom filter to a C++ stream
 template<typename T>
 std::ostream&
 operator<<(std::ostream& os, const CountingBloomFilter<T>& cbf)
