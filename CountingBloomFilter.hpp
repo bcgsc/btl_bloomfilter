@@ -82,7 +82,6 @@ class CountingBloomFilter
 	//                        (m_size * sizeof(T)).
 	// m_hashNum            : Number of hash functions.
 	// m_kmerSize           : Size of a k-mer.
-	// BloomFilter_VERSION  : Size of a k-mer.
 	// m_countThreshold     : A count greater or equal to this threshold
 	//                        establishes existence of an element in the filter.
 	// m_bitsPerCounter     : Number of bits per counter.
