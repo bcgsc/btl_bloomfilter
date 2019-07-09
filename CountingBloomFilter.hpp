@@ -13,6 +13,7 @@
 #include <vector>
 
 #include "cpptoml/include/cpptoml.h"
+#include "IOUtil.h"
 
 // Forward declaraions.
 template<typename T>
