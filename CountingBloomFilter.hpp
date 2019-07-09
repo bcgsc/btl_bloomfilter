@@ -278,9 +278,9 @@ CountingBloomFilter<T>::readHeader(std::istream& file)
 	std::string line;
 	std::getline(file, line);
 	if (line.compare(magic_header) != 0) {
-		std::cerr << "ERROR: magic string does not match (likely version mismatch) \n";
-		std::cerr << "Your magic string:                " << line << "\n";
-		std::cerr << "CountingBloomFilter magic string: " << magic_header << std::endl;
+		std::cerr << "ERROR: magic string does not match (likely version mismatch)\n"
+		          << "Your magic string:                " << line << "\n"
+		          << "CountingBloomFilter magic string: " << magic_header << std::endl;
 		exit(EXIT_FAILURE);
 	}
 
@@ -292,9 +292,7 @@ CountingBloomFilter<T>::readHeader(std::istream& file)
 	while (std::getline(file, line)) {
 		if (line == headerEnd) {
 			int currPos = file.tellg();
-			if (toml_buffer != nullptr) {
-				delete[] toml_buffer;
-			}
+			delete[] toml_buffer;
 			toml_buffer = new char[currPos];
 			file.seekg(0, file.beg);
 			file.read(toml_buffer, currPos);
@@ -304,8 +302,7 @@ CountingBloomFilter<T>::readHeader(std::istream& file)
 	}
 
 	// Send the char array to a stringstream for the cpptoml parser to parse
-	std::stringstream toml_stream;
-	toml_stream << toml_buffer;
+	std::istringstream toml_stream(toml_buffer);
 	delete[] toml_buffer;
 	cpptoml::parser toml_parser{ toml_stream };
 	auto header_config = toml_parser.parse();
@@ -331,7 +328,6 @@ CountingBloomFilter<T>::writeFilter(const std::string& path) const
 	std::ofstream ofs(path.c_str(), std::ios::out | std::ios::binary);
 	std::cerr << "Writing a " << m_sizeInBytes << " byte filter to a file on disk.\n";
 	ofs << *this;
-	ofs.flush();
 	ofs.close();
 	assert(ofs);
 }
@@ -355,7 +351,7 @@ CountingBloomFilter<T>::writeHeader(std::ostream& out) const
 	header->insert("BloomFilterSize", m_size);
 	std::string magic(MAGIC_HEADER_STRING);
 	root->insert(magic, header);
-	out << (*root);
+	out << *root;
 
 	/* Initalize new cpptoml root table and HeaderEnd section,
 	   and output to ostream */
