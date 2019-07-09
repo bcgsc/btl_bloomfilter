@@ -12,8 +12,8 @@
 #include <limits>
 #include <vector>
 
-#include "cpptoml/include/cpptoml.h"
 #include "IOUtil.h"
+#include "cpptoml/include/cpptoml.h"
 
 // Forward declaraions.
 template<typename T>
