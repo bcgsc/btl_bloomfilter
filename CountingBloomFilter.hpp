@@ -93,29 +93,9 @@ class CountingBloomFilter
 	size_t m_sizeInBytes = 0;
 	unsigned m_hashNum = 0;
 	unsigned m_kmerSize = 0;
-	static const uint32_t BloomFilter_VERSION = 2;
 	unsigned m_countThreshold = 0;
 	unsigned m_bitsPerCounter = 8;
 	static constexpr const char* MAGIC_HEADER_STRING = "BTLCountingBloomFilter_v1";
-	static const unsigned MAGIC_LENGTH = strlen(MAGIC_HEADER_STRING);
-	// Serialization interface
-	// When modifying the header, never remove any fields.
-	// Always append to the end of the struct.
-	// If there are unused fields, you may rename them,
-	// but never change the type or delete the field.
-	struct FileHeader
-	{
-		char magic[MAGIC_LENGTH];
-		uint32_t hlen;
-		uint64_t size;
-		uint32_t nhash;
-		uint32_t kmer;
-		double dFPR = 0;     // unused
-		uint64_t nEntry = 0; // unused
-		uint64_t tEntry = 0; // unused
-		uint32_t version;
-		uint32_t bitsPerCounter;
-	};
 };
 
 // Method definitions
