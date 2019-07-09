@@ -366,14 +366,14 @@ CountingBloomFilter<T>::writeHeader(std::ostream& out) const
 // Serialize the bloom filter to a C++ stream
 template<typename T>
 std::ostream&
-operator<<(std::ostream& os, const CountingBloomFilter<T>& cbf)
+operator<<(std::ostream& out, const CountingBloomFilter<T>& bloom)
 {
-	assert(os);
-	cbf.writeHeader(os);
-	assert(os);
-	os.write(reinterpret_cast<char*>(cbf.m_filter), cbf.m_sizeInBytes);
-	assert(os);
-	return os;
+	assert(out);
+	bloom.writeHeader(out);
+	assert(out);
+	out.write(reinterpret_cast<char*>(bloom.m_filter), bloom.m_sizeInBytes);
+	assert(out);
+	return out;
 }
 
 #endif // COUNTINGBLOOM_H
