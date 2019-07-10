@@ -35,7 +35,6 @@ class CountingBloomFilter
 	  , m_countThreshold(countThreshold)
 	{}
 	CountingBloomFilter(const std::string& path, unsigned countThreshold);
-	~CountingBloomFilter() {}
 	T operator[](size_t i) { return m_filter[i]; }
 	template<typename U>
 	T minCount(const U& hashes) const
