@@ -277,7 +277,7 @@ CountingBloomFilter<T>::readHeader(std::istream& file)
 	(magic_header.insert(0, "[")).append("]");
 	std::string line;
 	std::getline(file, line);
-	if (line.compare(magic_header) != 0) {
+	if (line != magic_header) {
 		std::cerr << "ERROR: magic string does not match (likely version mismatch)\n"
 		          << "Your magic string:                " << line << "\n"
 		          << "CountingBloomFilter magic string: " << magic_header << std::endl;
