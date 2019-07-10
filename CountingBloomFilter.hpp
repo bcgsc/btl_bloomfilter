@@ -358,8 +358,7 @@ CountingBloomFilter<T>::writeHeader(std::ostream& out) const
 	root = cpptoml::make_table();
 	auto ender = cpptoml::make_table();
 	root->insert(std::string("HeaderEnd"), ender);
-	out << (*root);
-	assert(out);
+	out << *root;
 }
 
 // Serialize the bloom filter to a C++ stream
@@ -367,11 +366,17 @@ template<typename T>
 std::ostream&
 operator<<(std::ostream& out, const CountingBloomFilter<T>& bloom)
 {
-	assert(out);
+	if (!out) {
+		return out;
+	}
 	bloom.writeHeader(out);
-	assert(out);
+	if (!out) {
+		return out;
+	}
 	out.write(reinterpret_cast<char*>(bloom.m_filter), bloom.m_sizeInBytes);
-	assert(out);
+	if (!out) {
+		return out;
+	}
 	return out;
 }
 
