@@ -298,7 +298,7 @@ CountingBloomFilter<T>::readHeader(std::istream& file)
 	// Send the char array to a stringstream for the cpptoml parser to parse
 	std::istringstream toml_stream(std::string(toml_buffer.begin(), toml_buffer.end()));
 	toml_buffer.clear();
-	cpptoml::parser toml_parser{ toml_stream };
+	cpptoml::parser toml_parser(toml_stream);
 	auto header_config = toml_parser.parse();
 
 	// Obtain header values from toml parser and assign them to class members
