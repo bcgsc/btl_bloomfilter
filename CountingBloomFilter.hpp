@@ -27,17 +27,15 @@ class CountingBloomFilter
   public:
 	CountingBloomFilter() {}
 	CountingBloomFilter(size_t sz, unsigned hashNum, unsigned kmerSize, unsigned countThreshold)
-	  : m_filter(new T[sz])
+	  : m_filter(sz, 0)
 	  , m_size(sz)
 	  , m_sizeInBytes(sz * sizeof(T))
 	  , m_hashNum(hashNum)
 	  , m_kmerSize(kmerSize)
 	  , m_countThreshold(countThreshold)
-	{
-		std::memset(m_filter, 0, m_sizeInBytes);
-	}
+	{}
 	CountingBloomFilter(const std::string& path, unsigned countThreshold);
-	~CountingBloomFilter() { delete[] m_filter; }
+	~CountingBloomFilter() {}
 	T operator[](size_t i) { return m_filter[i]; }
 	template<typename U>
 	T minCount(const U& hashes) const
@@ -88,7 +86,7 @@ class CountingBloomFilter
 	// m_bitsPerCounter     : Number of bits per counter.
 	// MAGIC_HEADER_STRING  : Magic string used to identify the type of bloom filter.
 
-	T* m_filter = nullptr;
+	std::vector<T>  m_filter;
 	size_t m_size = 0;
 	size_t m_sizeInBytes = 0;
 	unsigned m_hashNum = 0;
@@ -259,9 +257,8 @@ CountingBloomFilter<T>::readFilter(const std::string& path)
 		exit(EXIT_FAILURE);
 	}
 	readHeader(file);
-	char* filter = new char[m_sizeInBytes];
-	file.read(filter, m_sizeInBytes);
-	m_filter = reinterpret_cast<T*>(filter);
+	m_filter.resize(m_sizeInBytes);
+	file.read(reinterpret_cast<char*>(m_filter.data()), m_sizeInBytes);
 	if (!file) {
 		std::cerr << "ERROR: The byte array could not be read from the file: " << path << "\n";
 		exit(EXIT_FAILURE);
@@ -294,7 +291,7 @@ CountingBloomFilter<T>::readHeader(std::istream& file)
 			int currPos = file.tellg();
 			toml_buffer.resize(currPos);
 			file.seekg(0, file.beg);
-			file.read (&toml_buffer[0], currPos);
+			file.read (toml_buffer.data(), currPos);
 			file.seekg(currPos, file.beg);
 			break;
 		}
@@ -372,7 +369,7 @@ operator<<(std::ostream& out, const CountingBloomFilter<T>& bloom)
 	if (!out) {
 		return out;
 	}
-	out.write(reinterpret_cast<char*>(bloom.m_filter), bloom.m_sizeInBytes);
+	out.write((const char*)bloom.m_filter.data(), bloom.m_sizeInBytes);
 	if (!out) {
 		return out;
 	}
