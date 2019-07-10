@@ -4,6 +4,9 @@
 #include "IOUtil.h"
 #include "cpptoml/include/cpptoml.h"
 
+#include "IOUtil.h"
+#include "cpptoml/include/cpptoml.h"
+
 #include <cassert>
 #include <cmath>
 #include <cstring>
@@ -11,9 +14,6 @@
 #include <iostream>
 #include <limits>
 #include <vector>
-
-#include "IOUtil.h"
-#include "cpptoml/include/cpptoml.h"
 
 // Forward declaraions.
 template<typename T>
