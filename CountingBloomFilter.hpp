@@ -361,17 +361,8 @@ template<typename T>
 std::ostream&
 operator<<(std::ostream& out, const CountingBloomFilter<T>& bloom)
 {
-	if (!out) {
-		return out;
-	}
 	bloom.writeHeader(out);
-	if (!out) {
-		return out;
-	}
 	out.write((const char*)bloom.m_filter.data(), bloom.m_sizeInBytes);
-	if (!out) {
-		return out;
-	}
 	return out;
 }
 
