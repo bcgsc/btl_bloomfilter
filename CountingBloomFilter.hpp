@@ -86,7 +86,7 @@ class CountingBloomFilter
 	// m_bitsPerCounter     : Number of bits per counter.
 	// MAGIC_HEADER_STRING  : Magic string used to identify the type of bloom filter.
 
-	std::vector<T>  m_filter;
+	std::vector<T> m_filter;
 	size_t m_size = 0;
 	size_t m_sizeInBytes = 0;
 	unsigned m_hashNum = 0;
@@ -291,7 +291,7 @@ CountingBloomFilter<T>::readHeader(std::istream& file)
 			int currPos = file.tellg();
 			toml_buffer.resize(currPos);
 			file.seekg(0, file.beg);
-			file.read (toml_buffer.data(), currPos);
+			file.read(toml_buffer.data(), currPos);
 			file.seekg(currPos, file.beg);
 			break;
 		}
