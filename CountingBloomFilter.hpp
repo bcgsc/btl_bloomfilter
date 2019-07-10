@@ -73,8 +73,7 @@ class CountingBloomFilter
 	friend std::ostream& operator<<<>(std::ostream&, const CountingBloomFilter&);
 
   private:
-	// m_filter             : An array of elements of type T; the bit-array or
-	//                        filter.
+	// m_filter             : A vector of elements of type T.
 	// m_size               : Size of bloom filter (size of m_filter array).
 	// m_sizeInBytes        : Size of the bloom filter in bytes, that is,
 	//                        (m_size * sizeof(T)).
