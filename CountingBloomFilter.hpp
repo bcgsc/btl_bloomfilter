@@ -1,6 +1,9 @@
 #ifndef COUNTINGBLOOM_H
 #define COUNTINGBLOOM_H
 
+#include "IOUtil.h"
+#include "cpptoml/include/cpptoml.h"
+
 #include <cassert>
 #include <cmath>
 #include <cstring>
@@ -8,9 +11,6 @@
 #include <iostream>
 #include <limits>
 #include <vector>
-
-#include "IOUtil.h"
-#include "cpptoml/include/cpptoml.h"
 
 // Forward declaraions.
 template<typename T>
@@ -287,7 +287,8 @@ CountingBloomFilter<T>::readHeader(std::istream& file)
 		}
 	}
 	if (headerEndCheck == false) {
-		std::cerr << "ERROR: pre-built bloom filter does not have the correct header end." << std::endl;
+		std::cerr << "ERROR: pre-built bloom filter does not have the correct header end."
+		          << std::endl;
 		exit(EXIT_FAILURE);
 	}
 
