@@ -284,11 +284,17 @@ CountingBloomFilter<T>::readHeader(std::istream& file)
 	   assigns the header to a char array*/
 	std::string headerEnd = "[HeaderEnd]";
 	std::string toml_buffer((line + "\n"));
+	bool headerEndCheck = false;
 	while (std::getline(file, line)) {
 		toml_buffer.append(line + "\n");
 		if (line == headerEnd) {
+			headerEndCheck = true;
 			break;
 		}
+	}
+	if (headerEndCheck == false) {
+		std::cerr << "ERROR: pre-built bloom filter does not have the correct header end." << std::endl;
+		exit(EXIT_FAILURE);
 	}
 
 	// Send the char array to a stringstream for the cpptoml parser to parse
