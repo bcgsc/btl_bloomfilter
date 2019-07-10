@@ -283,21 +283,16 @@ CountingBloomFilter<T>::readHeader(std::istream& file)
 	   which is used to mark the end of the header section and
 	   assigns the header to a char array*/
 	std::string headerEnd = "[HeaderEnd]";
-	std::vector<char> toml_buffer;
+	std::string toml_buffer((line + "\n"));
 	while (std::getline(file, line)) {
+		toml_buffer.append(line + "\n");
 		if (line == headerEnd) {
-			int currPos = file.tellg();
-			toml_buffer.resize(currPos);
-			file.seekg(0, file.beg);
-			file.read(toml_buffer.data(), currPos);
-			file.seekg(currPos, file.beg);
 			break;
 		}
 	}
 
 	// Send the char array to a stringstream for the cpptoml parser to parse
-	std::istringstream toml_stream(std::string(toml_buffer.begin(), toml_buffer.end()));
-	toml_buffer.clear();
+	std::istringstream toml_stream(toml_buffer);
 	cpptoml::parser toml_parser(toml_stream);
 	auto header_config = toml_parser.parse();
 
