@@ -250,17 +250,11 @@ void
 CountingBloomFilter<T>::readFilter(const std::string& path)
 {
 	std::ifstream file(path);
-	if (!file) {
-		std::cerr << "ERROR: Failed to open file: " << path << "\n";
-		exit(EXIT_FAILURE);
-	}
+	assert_good(file, path);
 	readHeader(file);
 	m_filter.resize(m_sizeInBytes);
 	file.read(reinterpret_cast<char*>(m_filter.data()), m_sizeInBytes);
-	if (!file) {
-		std::cerr << "ERROR: The byte array could not be read from the file: " << path << "\n";
-		exit(EXIT_FAILURE);
-	}
+	assert_good(file, path);
 	file.close();
 }
 
