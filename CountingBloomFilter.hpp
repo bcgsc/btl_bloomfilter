@@ -321,6 +321,7 @@ void
 CountingBloomFilter<T>::writeFilter(const std::string& path) const
 {
 	std::ofstream ofs(path.c_str(), std::ios::out | std::ios::binary);
+	assert_good(ofs, path);
 	std::cerr << "Writing a " << m_sizeInBytes << " byte filter to a file on disk.\n";
 	ofs << *this;
 	ofs.close();
