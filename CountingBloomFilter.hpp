@@ -4,9 +4,6 @@
 #include "IOUtil.h"
 #include "cpptoml/include/cpptoml.h"
 
-#include "IOUtil.h"
-#include "cpptoml/include/cpptoml.h"
-
 #include <cassert>
 #include <cmath>
 #include <cstring>
