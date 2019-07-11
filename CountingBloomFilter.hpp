@@ -1,5 +1,5 @@
-#ifndef COUNTINGBLOOM_H
-#define COUNTINGBLOOM_H
+#ifndef COUNTINGBLOOMFILTER_HPP // NOLINT(llvm-header-guard)
+#define COUNTINGBLOOMFILTER_HPP
 
 #include "IOUtil.h"
 #include "cpptoml/include/cpptoml.h"
@@ -19,13 +19,13 @@ class CountingBloomFilter;
 // Method declarations.
 template<typename T>
 std::ostream&
-operator<<(std::ostream& os, const CountingBloomFilter<T>& cbf);
+operator<<(std::ostream& out, const CountingBloomFilter<T>& bloom);
 
 template<typename T>
 class CountingBloomFilter
 {
   public:
-	CountingBloomFilter() {}
+	CountingBloomFilter() = default;
 	CountingBloomFilter(size_t sz, unsigned hashNum, unsigned kmerSize, unsigned countThreshold)
 	  : m_filter(sz, 0)
 	  , m_size(sz)
@@ -42,8 +42,9 @@ class CountingBloomFilter
 		T min = m_filter[hashes[0] % m_size];
 		for (size_t i = 1; i < m_hashNum; ++i) {
 			size_t pos = hashes[i] % m_size;
-			if (m_filter[pos] < min)
+			if (m_filter[pos] < min) {
 				min = m_filter[pos];
+			}
 		}
 		return min;
 	}
@@ -90,6 +91,7 @@ class CountingBloomFilter
 	unsigned m_hashNum = 0;
 	unsigned m_kmerSize = 0;
 	unsigned m_countThreshold = 0;
+	// NOLINTNEXTLINE(cppcoreguidelines-avoid-magic-numbers, readability-magic-numbers)
 	unsigned m_bitsPerCounter = 8;
 	static constexpr const char* MAGIC_HEADER_STRING = "BTLCountingBloomFilter_v1";
 };
@@ -132,6 +134,7 @@ CountingBloomFilter<T>::incrementMin(const U& hashes)
 			return;
 		}
 		for (size_t i = 0; i < m_hashNum; ++i) {
+			// NOLINTNEXTLINE(cppcoreguidelines-pro-type-vararg, hicpp-vararg)
 			if (__sync_bool_compare_and_swap(&m_filter[hashes[i] % m_size], minVal, newVal)) {
 				updateDone = true;
 			}
@@ -142,7 +145,6 @@ CountingBloomFilter<T>::incrementMin(const U& hashes)
 			minVal = minCount(hashes);
 		}
 	}
-	return;
 }
 
 // Increment all the m_hashNum counters.
@@ -151,7 +153,8 @@ template<typename U>
 inline void
 CountingBloomFilter<T>::incrementAll(const U& hashes)
 {
-	T currentVal, newVal;
+	T currentVal;
+	T newVal;
 	for (size_t i = 0; i < m_hashNum; ++i) {
 		size_t pos = hashes[i] % m_size;
 		do {
@@ -160,6 +163,7 @@ CountingBloomFilter<T>::incrementAll(const U& hashes)
 			if (newVal < currentVal) {
 				break;
 			}
+			// NOLINTNEXTLINE(cppcoreguidelines-pro-type-vararg, hicpp-vararg)
 		} while (!__sync_bool_compare_and_swap(&m_filter[pos], currentVal, newVal));
 	}
 }
@@ -227,6 +231,7 @@ template<typename T>
 double
 CountingBloomFilter<T>::FPR() const
 {
+	// NOLINTNEXTLINE(google-readability-casting)
 	return std::pow((double)popCount() / (double)m_size, m_hashNum);
 }
 
@@ -234,6 +239,7 @@ template<typename T>
 double
 CountingBloomFilter<T>::filtered_FPR() const
 {
+	// NOLINTNEXTLINE(google-readability-casting)
 	return std::pow((double)filtered_popcount() / (double)m_size, m_hashNum);
 }
 
@@ -253,6 +259,7 @@ CountingBloomFilter<T>::readFilter(const std::string& path)
 	assert_good(file, path);
 	readHeader(file);
 	m_filter.resize(m_sizeInBytes);
+	// NOLINTNEXTLINE(cppcoreguidelines-pro-type-reinterpret-cast)
 	file.read(reinterpret_cast<char*>(m_filter.data()), m_sizeInBytes);
 	assert_good(file, path);
 	file.close();
@@ -286,7 +293,7 @@ CountingBloomFilter<T>::readHeader(std::istream& file)
 			break;
 		}
 	}
-	if (headerEndCheck == false) {
+	if (!headerEndCheck) {
 		std::cerr << "ERROR: pre-built bloom filter does not have the correct header end."
 		          << std::endl;
 		exit(EXIT_FAILURE);
@@ -359,8 +366,9 @@ std::ostream&
 operator<<(std::ostream& out, const CountingBloomFilter<T>& bloom)
 {
 	bloom.writeHeader(out);
+	// NOLINTNEXTLINE(google-readability-casting)
 	out.write((const char*)bloom.m_filter.data(), bloom.m_sizeInBytes);
 	return out;
 }
 
-#endif // COUNTINGBLOOM_H
+#endif // COUNTINGBLOOMFILTER_HPP
