@@ -29,7 +29,9 @@ class BitVector
 		return (m_vector[pos] >> (sub_pos * m_bitsPerCounter)) & m_maskingBits;
 	}
 	bool atomicIncrement(size_t hash);
-	unsigned getBitsPerCounter() const { return m_bitsPerCounter; };
+    // Conventional insertion function that calls atomicIncrement()
+    void insert() { atomicIncrement(size_t hash); };
+	unsigned bitsPerCounter() const { return m_bitsPerCounter; };
 	size_t size() const { return m_size; };
 	size_t maxValue() const { return m_maskingBits; };
 	size_t sizeInBytes() const { return m_sizeInBytes; };
