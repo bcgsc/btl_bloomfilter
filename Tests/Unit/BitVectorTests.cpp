@@ -32,53 +32,90 @@ TEST_CASE("test fixture", "[BitVector]")
 
 	/* START COMMON SETUP CODE */
 
+	// Create a 2 bits vector
 	const size_t filterSize = 1000000000;
 	const unsigned bitsPerCounter = 2;
 
-	BitVector<uint8_t> filter(filterSize, bitsPerCounter);
+	BitVector<uint8_t> filter_2bits(filterSize, bitsPerCounter);
 
 	/* Set up values 3,2,1 for element 0,1,LAST respectively */
 
 	for (int i = 0; i < 3; i++) {
-		filter.atomicIncrement(0);
+		filter_2bits.insert(0);
 	}
 
 	for (int i = 0; i < 2; i++) {
-		filter.atomicIncrement(1);
+		filter_2bits.insert(1);
 	}
 
-	long lastElement = (filterSize * 8 * sizeof(uint8_t)/ 2 ) - 1 ;
-	for (int i = 0; i < 1; i++) {
-		filter.atomicIncrement(lastElement);
+	long lastElement = (filterSize * 8 * sizeof(uint8_t) / bitsPerCounter ) - 1 ;
+	filter_2bits.insert(lastElement);
+
+	// Create a 4 bits vector
+	const unsigned bitsPerCounter = 4;
+
+	BitVector<uint8_t> filter_4bits(filterSize, bitsPerCounter);
+
+	for (int i = 0; i < 15; i++) {
+		filter_4bits.insert(0);
 	}
+
+	for (int i = 0; i < 2; i++) {
+		filter_4bits.insert(1);
+	}
+
+	long lastElement = (filterSize * 8 * sizeof(uint8_t) / bitsPerCounter ) - 1 ;
+	filter_4bits.insert(lastElement);
+
+
+
 
 	/* END COMMON SETUP CODE */
 
 	SECTION("query elements")
 	{
-		/* Query elements 0,1,LAST anc check for values 3,2,1, repectively */
-        assert(filter[0] == 3);
-        assert(filter[1] == 2);
-        assert(filter[filter.size() - 1] == 1);
+		/* Query elements 0,1,LAST and check for values 3,2,1, repectively */
+        assert(filter_2bits[0] == 3);
+        assert(filter_2bits[1] == 2);
+        assert(filter_2bits[filter_2bits.size() - 1] == 1);
+
+		/* Query elements 0,1,LAST and check for values 15,2,1, repectively */
+        assert(filter_4bits[0] == 15);
+        assert(filter_4bits[1] == 2);
+        assert(filter_4bits[filter_4bits.size() - 1] == 1);
 	}
 
 	SECTION("query for no presence")
 	{
 		/* Query everyelements besides 0,1,LAST and check they are equal to 0 */
-        for (int i = 2; i < (filter.size() - 1); i++) {
-            assert(filter[i] == 0);
+        for (int i = 2; i < (filter_2bits.size() - 1); i++) {
+            assert(filter_2bits[i] == 0);
+        }
+
+		/* Query everyelements besides 0,1,LAST and check they are equal to 0 */
+        for (int i = 2; i < (filter_4bits.size() - 1); i++) {
+            assert(filter_4bits[i] == 0);
         }
 	}
 
 	SECTION("insert elements and check")
 	{
 		/* Increment and check*/
-		filter.atomicIncrement(2);
-        assert(filter[2] == 1);
+		filter_2bits.insert(2);
+        assert(filter_2bits[2] == 1);
 
         /* check that vector doesn't allow overflow */
-        assert(filter.atomicIncrement(0) == false);
+        assert(filter_2bits.atomicIncrement(0) == false);
         /* check that vector value didn't cahnge */
-        assert(filter[0] == 3);
+        assert(filter_2bits[0] == 3);
+
+		/* Increment and check*/
+		filter_4bits.insert(2);
+        assert(filter_4bits[2] == 1);
+
+        /* check that vector doesn't allow overflow */
+        assert(filter_4bits.atomicIncrement(0) == false);
+        /* check that vector value didn't cahnge */
+        assert(filter_4bits[0] == 15);
 	}
 } /* end test fixture */
