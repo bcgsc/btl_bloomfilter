@@ -11,7 +11,9 @@ include_HEADERS = \
 	vendor/nthash.hpp \
 	vendor/ntHashIterator.hpp \
 	vendor/ssHashIterator.hpp \
-	vendor/stHashIterator.hpp
+	vendor/stHashIterator.hpp \
+	vendor/IOUtil.h \
+	vendor/cpptoml/include/cpptoml.h
 
 dist_doc_DATA = \
 	README.md
