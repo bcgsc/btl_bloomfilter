@@ -42,9 +42,11 @@ TEST_CASE("test fixture", "[BitVector]")
 	for (int i = 0; i < 3; i++) {
 		filter.atomicIncrement(0);
 	}
+
 	for (int i = 0; i < 2; i++) {
 		filter.atomicIncrement(1);
 	}
+
 	long lastElement = (filterSize * 8 * sizeof(uint8_t)/ 2 ) - 1 ;
 	for (int i = 0; i < 1; i++) {
 		filter.atomicIncrement(lastElement);
@@ -58,7 +60,14 @@ TEST_CASE("test fixture", "[BitVector]")
         assert(filter[0] == 3);
         assert(filter[1] == 2);
         assert(filter[filter.size() - 1] == 1);
+	}
 
+	SECTION("query for no presence")
+	{
+		/* Query everyelements besides 0,1,LAST and check they are equal to 0 */
+        for (int i = 2; i < (filter.size() - 1); i++) {
+            assert(filter[i] == 0);
+        }
 	}
 
 	SECTION("insert elements and check")
@@ -71,8 +80,5 @@ TEST_CASE("test fixture", "[BitVector]")
         assert(filter.atomicIncrement(0) == false);
         /* check that vector value didn't cahnge */
         assert(filter[0] == 3);
-
 	}
-
-
 } /* end test fixture */
