@@ -106,24 +106,24 @@ TEST_CASE("test fixture", "[CountingBloomFilter]")
 		/* check size of newly-created file */
 
 		assert(ifile.is_open());
-        /* File header has no fixed element but "[HeaderEnd]"
-           so check for "[HeaderEnd]" in file*/
-        std::string headerEnd = "[HeaderEnd]";
-        std::string line;
-        bool headerEndCheck = false;
-        while (std::getline(ifile, line)) {
-            if (line == headerEnd) {
-                headerEndCheck = true;
-                break;
-            }
-        }
-        assert(headerEndCheck);
+		/* File header has no fixed element but "[HeaderEnd]"
+		   so check for "[HeaderEnd]" in file*/
+		std::string headerEnd = "[HeaderEnd]";
+		std::string line;
+		bool headerEndCheck = false;
+		while (std::getline(ifile, line)) {
+			if (line == headerEnd) {
+				headerEndCheck = true;
+				break;
+			}
+		}
+		assert(headerEndCheck);
 
-        size_t currPos = ifile.tellg();
-        ifile.seekg(0, ios::end);
-        size_t endPos = ifile.tellg();
+		size_t currPos = ifile.tellg();
+		ifile.seekg(0, ios::end);
+		size_t endPos = ifile.tellg();
 		// file size - header should be same as filter size
-        assert((endPos - currPos) == filterSize);
+		assert((endPos - currPos) == filterSize);
 		ifile.close();
 
 		/* check loading of stored filter */
