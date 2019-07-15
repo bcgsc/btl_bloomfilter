@@ -4,6 +4,7 @@ SUBDIRS = \
 
 include_HEADERS = \
 	BloomFilter.hpp \
+	BitVector.hpp \
 	CountingBloomFilter.hpp \
 	KmerBloomFilter.hpp \
 	MIBFQuerySupport.hpp \
