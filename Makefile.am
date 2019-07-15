@@ -3,8 +3,8 @@ SUBDIRS = \
 	Tests/Unit
 
 include_HEADERS = \
-	BloomFilter.hpp \
 	BitVector.hpp \
+	BloomFilter.hpp \
 	CountingBloomFilter.hpp \
 	KmerBloomFilter.hpp \
 	MIBFQuerySupport.hpp \
