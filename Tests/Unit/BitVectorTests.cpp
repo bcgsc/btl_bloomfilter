@@ -56,7 +56,7 @@ TEST_CASE("test fixture", "[BitVector]")
 
 	SECTION("query elements")
 	{
-		/* Query elements 0,1,LAST for values 3,2,1, repectively */
+		/* Query elements 0,1,LAST anc check for values 3,2,1, repectively */
         assert(filter[0] == 3);
         assert(filter[1] == 2);
         assert(filter[filter.size() - 1] == 1);
