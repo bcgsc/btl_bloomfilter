@@ -23,20 +23,20 @@ class BitVector
 	  , m_numPartitions(sizeof(T) * 8 / bitsPerCounter)
 	{
 		switch (bitsPerCounter) {
-
-			case 2 :
-				m_maskingBits = 3; //   equivalent to 0b 0000 0011 if T = uint8_t
-				break;
-			case 4 :
-				m_maskingBits = 15; //  equivalent to 0b 0000 1111 if T = uint8_t
-				break;
-			case 8 :
-				m_maskingBits = 255; // equivalent to 0b 1111 1111 if T = uint8_t
-				break;
-			default :
-				std:cerr << "ERROR: invalid bitsPerCounter value" << "\n"
-						 << "Accepted values are: 2, 4 and 8" << std::endl;
-				exit(EXIT_FAILURE);
+		case 2:
+			m_maskingBits = 3; //   equivalent to 0b 0000 0011 if T = uint8_t
+			break;
+		case 4:
+			m_maskingBits = 15; //  equivalent to 0b 0000 1111 if T = uint8_t
+			break;
+		case 8:
+			m_maskingBits = 255; // equivalent to 0b 1111 1111 if T = uint8_t
+			break;
+		default:
+			std::cerr << "ERROR: invalid bitsPerCounter value"
+			          << "\n"
+			          << "Accepted values are: 2, 4 and 8" << std::endl;
+			exit(EXIT_FAILURE);
 		}
 	}
 	T operator[](size_t i)
