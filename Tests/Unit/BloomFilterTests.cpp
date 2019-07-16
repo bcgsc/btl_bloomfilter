@@ -125,7 +125,7 @@ TEST_CASE("test fixture", "[BloomFilter]")
 
 		ntHashIterator queryIt(seq, numHashes, k);
 		while (queryIt != queryIt.end()) {
-			assert(filter.contains(*queryIt));
+			assert(filter2.contains(*queryIt));
 			++queryIt;
 		}
 
