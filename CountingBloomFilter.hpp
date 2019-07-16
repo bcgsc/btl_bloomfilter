@@ -26,7 +26,11 @@ class CountingBloomFilter
 {
   public:
 	CountingBloomFilter() = default;
-	CountingBloomFilter(size_t sizeInBytes, unsigned hashNum, unsigned kmerSize, unsigned countThreshold)
+	CountingBloomFilter(
+	    size_t sizeInBytes,
+	    unsigned hashNum,
+	    unsigned kmerSize,
+	    unsigned countThreshold)
 	  : m_hashNum(hashNum)
 	  , m_kmerSize(kmerSize)
 	  , m_countThreshold(countThreshold)
@@ -36,8 +40,7 @@ class CountingBloomFilter
 			m_sizeInBytes = sizeInBytes;
 			m_size = m_sizeInBytes / sizeof(T);
 			m_filter.resize(m_size, 0);
-		}
-		else {
+		} else {
 			m_sizeInBytes = sizeInBytes + 64 - remainder;
 			m_size = m_sizeInBytes / sizeof(T);
 			m_filter.resize(m_size, 0);

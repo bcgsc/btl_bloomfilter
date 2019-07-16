@@ -101,7 +101,7 @@ TEST_CASE("test fixture", "[CountingBloomFilter]")
 		ntHashIterator queryIt(seq, numHashes, k);
 		while (queryIt != queryIt.end()) {
 			assert(filter.contains(*queryIt));
-            assert(filter_64bit.contains(*queryIt));
+			assert(filter_64bit.contains(*queryIt));
 			++queryIt;
 		}
 
@@ -148,7 +148,7 @@ TEST_CASE("test fixture", "[CountingBloomFilter]")
 
 		// file size - header should be same as filter size rounded to multiple of 64
 
-        int remainder = filterSize % 64;
+		int remainder = filterSize % 64;
 		assert((endPos - currPos) == (filterSize + 64 - remainder));
 		ifile.close();
 
@@ -156,13 +156,13 @@ TEST_CASE("test fixture", "[CountingBloomFilter]")
 
 		CountingBloomFilter<uint8_t> filter2(filename, threshold);
 
-        // Checking if sizeInBytes correspond to filesize-header
+		// Checking if sizeInBytes correspond to filesize-header
 
-        assert((endPos - currPos) == filter2.sizeInBytes());
+		assert((endPos - currPos) == filter2.sizeInBytes());
 
-        // In a 8bit filter, size should be equal to size_in_bytes
+		// In a 8bit filter, size should be equal to size_in_bytes
 
-        assert(filter2.size() == filter2.sizeInBytes());
+		assert(filter2.size() == filter2.sizeInBytes());
 
 		/* check if loaded filter is able to report expected results */
 
@@ -204,9 +204,10 @@ TEST_CASE("test fixture", "[CountingBloomFilter]")
 		size_t currPos = ifile.tellg();
 		ifile.seekg(0, ios::end);
 		size_t endPos = ifile.tellg();
-		// file size - header should be same as filter size rounded to multiple of 64
-        int remainder = filterSize % 64;
 
+		// file size - header should be same as filter size rounded to multiple of 64
+
+		int remainder = filterSize % 64;
 		assert((endPos - currPos) == (filterSize + 64 - remainder));
 
 		ifile.close();
@@ -215,14 +216,13 @@ TEST_CASE("test fixture", "[CountingBloomFilter]")
 
 		CountingBloomFilter<uint64_t> filter_64bit2(filename, threshold);
 
-        // Checking if sizeInBytes correspond to filesize-header
-        
-        std::cerr << filter_64bit2.size() << std::endl;
-        assert((endPos - currPos) == filter_64bit2.sizeInBytes());
+		// Checking if sizeInBytes correspond to filesize-header
 
-        // In a 64bit filter, size * 8should be equal to size_in_bytes
+		assert((endPos - currPos) == filter_64bit2.sizeInBytes());
 
-        assert((filter_64bit2.size() * 8) == filter_64bit2.sizeInBytes());
+		// In a 64bit filter, size * 8should be equal to size_in_bytes
+
+		assert((filter_64bit2.size() * 8) == filter_64bit2.sizeInBytes());
 
 		/* check if loaded filter is able to report expected results */
 
