@@ -26,14 +26,23 @@ class CountingBloomFilter
 {
   public:
 	CountingBloomFilter() = default;
-	CountingBloomFilter(size_t sz, unsigned hashNum, unsigned kmerSize, unsigned countThreshold)
-	  : m_filter(sz, 0)
-	  , m_size(sz / sizeof(T))
-	  , m_sizeInBytes(sz)
-	  , m_hashNum(hashNum)
+	CountingBloomFilter(size_t sizeInBytes, unsigned hashNum, unsigned kmerSize, unsigned countThreshold)
+	  : m_hashNum(hashNum)
 	  , m_kmerSize(kmerSize)
 	  , m_countThreshold(countThreshold)
-	{}
+	{
+		int remainder = sizeInBytes % 64;
+		if (remainder == 0) {
+			m_sizeInBytes = sizeInBytes;
+			m_size = m_sizeInBytes / sizeof(T);
+			m_filter.resize(m_size, 0);
+		}
+		else {
+			m_sizeInBytes = sizeInBytes + 64 - remainder;
+			m_size = m_sizeInBytes / sizeof(T);
+			m_filter.resize(m_size, 0);
+		}
+	}
 	CountingBloomFilter(const std::string& path, unsigned countThreshold);
 	T operator[](size_t i) { return m_filter[i]; }
 	template<typename U>
