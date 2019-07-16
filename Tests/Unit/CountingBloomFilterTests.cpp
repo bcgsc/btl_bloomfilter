@@ -67,7 +67,7 @@ TEST_CASE("test fixture", "[CountingBloomFilter]")
 
 	/* START COMMON SETUP CODE */
 
-	const size_t filterSize = 100000;
+	const size_t filterSize = 100001;
 	const unsigned numHashes = 5;
 	const unsigned threshold = 1;
 	const unsigned k = 8;
@@ -154,8 +154,8 @@ TEST_CASE("test fixture", "[CountingBloomFilter]")
 
 		// file size - header should be same as filter size rounded to multiple of 64
 
-		int remainder = filterSize % 64;
-		assert((endPos - currPos) == (filterSize + 64 - remainder));
+		int remainder = filterSize % 8;
+		assert((endPos - currPos) == (filterSize + 8 - remainder));
 		ifile.close();
 
 		/* check loading of stored filter */
@@ -213,8 +213,8 @@ TEST_CASE("test fixture", "[CountingBloomFilter]")
 
 		// file size - header should be same as filter size rounded to multiple of 64
 
-		int remainder = filterSize % 64;
-		assert((endPos - currPos) == (filterSize + 64 - remainder));
+		int remainder = filterSize % 8;
+		assert((endPos - currPos) == (filterSize + 8 - remainder));
 
 		ifile.close();
 
@@ -226,7 +226,7 @@ TEST_CASE("test fixture", "[CountingBloomFilter]")
 
 		assert((endPos - currPos) == filter_64bit2.sizeInBytes());
 
-		// In a 64bit filter, size * 8should be equal to size_in_bytes
+		// In a 64bit filter, size * 8 should be equal to size_in_bytes
 
 		assert((filter_64bit2.size() * 8) == filter_64bit2.sizeInBytes());
 
