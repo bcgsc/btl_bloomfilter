@@ -317,13 +317,14 @@ CountingBloomFilter<T>::readHeader(std::istream& file)
 	std::string magic(MAGIC_HEADER_STRING);
 	auto bloomFilterTable = header_config->get_table(magic);
 	auto toml_size = bloomFilterTable->get_as<size_t>("BloomFilterSize");
+	auto toml_sizeInBytes = bloomFilterTable->get_as<size_t>("BloomFilterSizeInBytes");
 	auto toml_kmerSize = bloomFilterTable->get_as<unsigned>("KmerSize");
 	auto toml_bitsPerCounter = bloomFilterTable->get_as<unsigned>("BitsPerCounter");
 	auto toml_hashNum = bloomFilterTable->get_as<unsigned>("HashNum");
 	m_size = *toml_size;
 	m_hashNum = *toml_hashNum;
 	m_kmerSize = *toml_kmerSize;
-	m_sizeInBytes = m_size * sizeof(T);
+	m_sizeInBytes = *toml_sizeInBytes;
 	m_bitsPerCounter = *toml_bitsPerCounter;
 }
 
@@ -357,6 +358,7 @@ CountingBloomFilter<T>::writeHeader(std::ostream& out) const
 	header->insert("KmerSize", m_kmerSize);
 	header->insert("HashNum", m_hashNum);
 	header->insert("BloomFilterSize", m_size);
+	header->insert("BloomFilterSizeInBytes", m_sizeInBytes);
 	std::string magic(MAGIC_HEADER_STRING);
 	root->insert(magic, header);
 	out << *root;
