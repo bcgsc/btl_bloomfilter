@@ -28,8 +28,8 @@ class CountingBloomFilter
 	CountingBloomFilter() = default;
 	CountingBloomFilter(size_t sz, unsigned hashNum, unsigned kmerSize, unsigned countThreshold)
 	  : m_filter(sz, 0)
-	  , m_size(sz)
-	  , m_sizeInBytes(sz * sizeof(T))
+	  , m_size(sz / sizeof(T))
+	  , m_sizeInBytes(sz)
 	  , m_hashNum(hashNum)
 	  , m_kmerSize(kmerSize)
 	  , m_countThreshold(countThreshold)
