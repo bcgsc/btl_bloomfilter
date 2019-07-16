@@ -109,11 +109,11 @@ TEST_CASE("test fixture", "[CountingBloomFilter]")
 		/* check that k-mers were not incorrectly inserted */
 
 		string seq2;
-        string DNA  = "ATCG";
-        srand (time(0));
-        for (int i = 0; i<60; i++) {
-            seq2+=DNA[rand() % 4];
-        }
+		string DNA = "ATCG";
+		srand(time(0));
+		for (int i = 0; i < 60; i++) {
+			seq2 += DNA[rand() % 4];
+		}
 		ntHashIterator queryIt2(seq2.c_str(), numHashes, k);
 		while (queryIt2 != queryIt2.end()) {
 			assert(!filter.contains(*queryIt2));
