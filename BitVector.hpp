@@ -21,7 +21,24 @@ class BitVector
 	  , m_sizeInBytes(sz)
 	  , m_bitsPerCounter(bitsPerCounter)
 	  , m_numPartitions(sizeof(T) * 8 / bitsPerCounter)
-	{}
+	{
+		switch (bitsPerCounter) {
+
+			case 2 :
+				m_maskingBits = 3; //   equivalent to 0b 0000 0011 if T = uint8_t
+				break;
+			case 4 :
+				m_maskingBits = 15; //  equivalent to 0b 0000 1111 if T = uint8_t
+				break;
+			case 8 :
+				m_maskingBits = 255; // equivalent to 0b 1111 1111 if T = uint8_t
+				break;
+			default :
+				std:cerr << "ERROR: invalid bitsPerCounter value" << "\n"
+						 << "Accepted values are: 2, 4 and 8" << std::endl;
+				exit(EXIT_FAILURE);
+		}
+	}
 	T operator[](size_t i)
 	{
 		size_t pos = i / m_numPartitions;
@@ -30,7 +47,7 @@ class BitVector
 	}
 	bool atomicIncrement(size_t hash);
 	// Conventional insertion function that calls atomicIncrement()
-	void insert() { atomicIncrement(size_t hash); };
+	void insert(size_t hash) { atomicIncrement(size_t hash); };
 	unsigned bitsPerCounter() const { return m_bitsPerCounter; };
 	size_t size() const { return m_size; };
 	size_t maxValue() const { return m_maskingBits; };
@@ -49,7 +66,7 @@ class BitVector
 	std::vector<T> m_vector;
 	size_t m_size = 0;
 	size_t m_sizeInBytes = 0;
-	size_t m_maskingBits = 3;
+	size_t m_maskingBits = 0;
 	unsigned m_bitsPerCounter = 0;
 	unsigned m_numPartitions = 0;
 	size_t m_incrementUnit = 1;
