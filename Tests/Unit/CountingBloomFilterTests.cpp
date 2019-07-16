@@ -1,6 +1,7 @@
 /*
  * CountingBloomFilterTests.cpp
  * Unit Tests for CountingBloomFilter class
+ * Adapted from BloomFilterTests.cpp
  *  Created on: July 15, 2019
  *      Author: Johnathan Wong
  */
@@ -69,8 +70,8 @@ TEST_CASE("test fixture", "[CountingBloomFilter]")
 	const size_t filterSize = 100000;
 	const unsigned numHashes = 5;
 	const unsigned threshold = 1;
-	const unsigned k = 4;
-	const char* seq = "ACGTAC";
+	const unsigned k = 8;
+	const char* seq = "ACGTACACTGGACTGAGTCT";
 
 	CountingBloomFilter<uint8_t> filter(filterSize, numHashes, k, threshold);
 
@@ -107,8 +108,13 @@ TEST_CASE("test fixture", "[CountingBloomFilter]")
 
 		/* check that k-mers were not incorrectly inserted */
 
-		const char* seq2 = "TCGAGG";
-		ntHashIterator queryIt2(seq2, numHashes, k);
+		string seq2;
+        string DNA  = "ATCG";
+        srand (time(0));
+        for (int i = 0; i<60; i++) {
+            seq2+=DNA[rand() % 4];
+        }
+		ntHashIterator queryIt2(seq2.c_str(), numHashes, k);
 		while (queryIt2 != queryIt2.end()) {
 			assert(!filter.contains(*queryIt2));
 			assert(!filter_64bit.contains(*queryIt2));
