@@ -35,13 +35,13 @@ class CountingBloomFilter
 	  , m_kmerSize(kmerSize)
 	  , m_countThreshold(countThreshold)
 	{
-		int remainder = sizeInBytes % 64;
+		int remainder = sizeInBytes % 8;
 		if (remainder == 0) {
 			m_sizeInBytes = sizeInBytes;
 			m_size = m_sizeInBytes / sizeof(T);
 			m_filter.resize(m_size, 0);
 		} else {
-			m_sizeInBytes = sizeInBytes + 64 - remainder;
+			m_sizeInBytes = sizeInBytes + 8 - remainder;
 			m_size = m_sizeInBytes / sizeof(T);
 			m_filter.resize(m_size, 0);
 		}
