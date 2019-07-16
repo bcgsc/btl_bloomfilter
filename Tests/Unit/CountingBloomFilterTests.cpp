@@ -94,10 +94,10 @@ TEST_CASE("test fixture", "[CountingBloomFilter]")
 			++queryIt;
 		}
 
-        /* check that k-mers were not incorrectly inserted */
+		/* check that k-mers were not incorrectly inserted */
 
-        const char* seq2 = "TCGAGG";
-        ntHashIterator queryIt2(seq2, numHashes, k);
+		const char* seq2 = "TCGAGG";
+		ntHashIterator queryIt2(seq2, numHashes, k);
 		while (queryIt2 != queryIt2.end()) {
 			assert(!filter.contains(*queryIt2));
 			++queryIt2;
