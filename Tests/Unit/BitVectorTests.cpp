@@ -64,7 +64,7 @@ TEST_CASE("test fixture", "[BitVector]")
 		filter_4bits.insert(1);
 	}
 
-	long lastElement = (filterSize * 8 * sizeof(uint8_t) / bitsPerCounter ) - 1 ;
+	lastElement = (filterSize * 8 * sizeof(uint8_t) / bitsPerCounter ) - 1 ;
 	filter_4bits.insert(lastElement);
 
 	// Create a 8 bits vector
@@ -81,7 +81,7 @@ TEST_CASE("test fixture", "[BitVector]")
 		filter_8bits.insert(1);
 	}
 
-	long lastElement = (filterSize * 8 * sizeof(uint8_t) / bitsPerCounter ) - 1 ;
+	lastElement = (filterSize * 8 * sizeof(uint8_t) / bitsPerCounter ) - 1 ;
 	filter_8bits.insert(lastElement);
 
 
@@ -110,17 +110,17 @@ TEST_CASE("test fixture", "[BitVector]")
 	SECTION("query for no presence")
 	{
 		/* Query every elements besides 0,1,LAST and check they are equal to 0 */
-        for (int i = 2; i < (filter_2bits.size() - 1); i++) {
+        for (unsigned int i = 2; i < (filter_2bits.size() - 1); i++) {
             assert(filter_2bits[i] == 0);
         }
 
 		/* Query every elements besides 0,1,LAST and check they are equal to 0 */
-        for (int i = 2; i < (filter_4bits.size() - 1); i++) {
+        for (unsigned int i = 2; i < (filter_4bits.size() - 1); i++) {
             assert(filter_4bits[i] == 0);
         }
 
 		/* Query every elements besides 0,1,LAST and check they are equal to 0 */
-        for (int i = 2; i < (filter_8bits.size() - 1); i++) {
+        for (unsigned int i = 2; i < (filter_8bits.size() - 1); i++) {
             assert(filter_8bits[i] == 0);
         }
 	}
