@@ -1,3 +1,5 @@
+// Written by Johnathan Wong and Sauparna Palchowdhury.
+
 #ifndef COUNTINGBLOOMFILTER_HPP // NOLINT(llvm-header-guard)
 #define COUNTINGBLOOMFILTER_HPP
 
