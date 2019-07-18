@@ -3,6 +3,7 @@
 
 #include <cstddef>
 #include <vector>
+#include <iostream>
 
 using std::size_t;
 
@@ -47,7 +48,7 @@ class BitVector
 	}
 	bool atomicIncrement(size_t hash);
 	// Conventional insertion function that calls atomicIncrement()
-	void insert(size_t hash) { atomicIncrement(size_t hash); };
+	void insert(size_t hash) { atomicIncrement(hash); };
 	unsigned bitsPerCounter() const { return m_bitsPerCounter; };
 	size_t size() const { return m_size; };
 	size_t maxValue() const { return m_maskingBits; };
