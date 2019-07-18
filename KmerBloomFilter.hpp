@@ -9,7 +9,7 @@
 #ifndef KMERBLOOMFILTER_H_
 #define KMERBLOOMFILTER_H_
 #include "BloomFilter.hpp"
-#include "nthash.hpp"
+#include "vendor/nthash.hpp"
 
 using namespace std;
 
