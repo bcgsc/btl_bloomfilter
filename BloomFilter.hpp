@@ -436,10 +436,6 @@ class BloomFilter
 	uint64_t m_nEntry;
 	uint64_t m_tEntry;
 	static constexpr const char* MAGIC_HEADER_STRING = "BTLBloomFilter_v1";
-<<<<<<< HEAD
-=======
-	static const uint32_t BloomFilter_VERSION = 1;
->>>>>>> BloomFilter.hpp: write header with cpptoml
 };
 
 #endif /* BLOOMFILTER_H_ */
