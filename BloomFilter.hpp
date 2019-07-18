@@ -40,21 +40,6 @@ popCnt(unsigned char x)
 class BloomFilter
 {
   public:
-#pragma pack(push)
-#pragma pack(1) // to maintain consistent values across platforms
-	struct FileHeader
-	{
-		char magic[8];
-		uint32_t hlen;
-		uint64_t size;
-		uint32_t nhash;
-		uint32_t kmer;
-		double dFPR;
-		uint64_t nEntry;
-		uint64_t tEntry;
-		uint32_t version;
-	};
-#pragma pack(pop)
 
 	/*
 	 * Default constructor.
@@ -451,7 +436,6 @@ class BloomFilter
 	uint64_t m_nEntry;
 	uint64_t m_tEntry;
 	static constexpr const char* MAGIC_HEADER_STRING = "BTLBloomFilter_v1";
-	static const uint32_t BloomFilter_VERSION = 1;
 };
 
 #endif /* BLOOMFILTER_H_ */
