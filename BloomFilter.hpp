@@ -8,6 +8,10 @@
 
 #ifndef BLOOMFILTER_H_
 #define BLOOMFILTER_H_
+
+#include "IOUtil.h"
+#include "cpptoml/include/cpptoml.h"
+
 #include <cassert>
 #include <cstdlib>
 #include <cstring>
@@ -271,7 +275,33 @@ class BloomFilter
 
 	void writeHeader(std::ostream& out) const
 	{
-		FileHeader header;
+		/* Initialize cpptoml root table
+		   Note: Tables and fields are unordered
+		   Ordering of table is maintained by directing the table
+		   to the output stream immediately after completion  */
+		std::shared_ptr<cpptoml::table> root = cpptoml::make_table();
+
+		/* Initialize bloom filter section and insert fields
+		   and output to ostream */
+		auto header = cpptoml::make_table();
+		header->insert("KmerSize", m_kmerSize);
+		header->insert("HashNum", m_hashNum);
+		header->insert("BloomFilterSize", m_size);
+		header->insert("BloomFilterSizeInBytes", m_sizeInBytes);
+		header->insert("dFPR", m_dFPR);
+		header->insert("nEntry", m_nEntry);
+		header->insert("Entry", m_tEntry);
+		std::string magic(MAGIC_HEADER_STRING);
+		root->insert(magic, header);
+		out << *root;
+
+		/* Initalize new cpptoml root table and HeaderEnd section,
+		   and output to ostream */
+		root = cpptoml::make_table();
+		auto ender = cpptoml::make_table();
+		root->insert(std::string("HeaderEnd"), ender);
+		out << *root;
+		/*FileHeader header;
 		memcpy(header.magic, "BLOOMFXX", 8);
 
 		header.hlen = sizeof(struct FileHeader);
@@ -285,13 +315,13 @@ class BloomFilter
 		header.version = BloomFilter_VERSION;
 
 		out.write(reinterpret_cast<char*>(&header), sizeof(struct FileHeader));
-		assert(out);
+		assert(out);*/
 	}
 
 	/** Serialize the Bloom filter to a stream */
-	friend std::ostream& operator<<(std::ostream& out, const BloomFilter& o)
+	friend std::ostream& operator<<(std::ostream& out, const BloomFilter& bloom)
 	{
-		assert(out);
+		/* assert(out);
 		o.writeHeader(out);
 		assert(out);
 
@@ -299,6 +329,10 @@ class BloomFilter
 		out.write(reinterpret_cast<char*>(o.m_filter), o.m_sizeInBytes);
 
 		assert(out);
+		return out;*/
+		bloom.writeHeader(out);
+		// NOLINTNEXTLINE(google-readability-casting)
+		out.write(reinterpret_cast<char*>(bloom.m_filter), bloom.m_sizeInBytes);
 		return out;
 	}
 
@@ -307,16 +341,23 @@ class BloomFilter
 	 * Stores uncompressed because the random data tends to
 	 * compress poorly anyway
 	 */
-	void storeFilter(string const& filterFilePath) const
+	void storeFilter(const string& filterFilePath) const
 	{
-		ofstream myFile(filterFilePath.c_str(), ios::out | ios::binary);
+		/* ofstream myFile(filterFilePath.c_str(), ios::out | ios::binary);
 
 		//		cerr << "Storing filter. Filter is " << m_sizeInBytes << " bytes."
 		//				<< endl;
 
 		myFile << *this;
 		myFile.close();
-		assert(myFile);
+		assert(myFile);*/
+		std::ofstream ofs(filterFilePath.c_str(), std::ios::out | std::ios::binary);
+		assert_good(ofs, filterFilePath);
+		std::cerr << "Writing a " << m_sizeInBytes << " byte filter to a file on disk.\n";
+		ofs << *this;
+		ofs.flush();
+		assert_good(ofs, filterFilePath);
+		ofs.close();
 	}
 
 	uint64_t getPop() const
@@ -433,7 +474,7 @@ class BloomFilter
 	double m_dFPR;
 	uint64_t m_nEntry;
 	uint64_t m_tEntry;
-
+	static constexpr const char* MAGIC_HEADER_STRING = "BTLBloomFilter_v1";
 	static const uint32_t BloomFilter_VERSION = 1;
 };
 
