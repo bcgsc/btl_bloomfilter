@@ -40,7 +40,6 @@ popCnt(unsigned char x)
 class BloomFilter
 {
   public:
-
 	/*
 	 * Default constructor.
 	 */
@@ -121,8 +120,8 @@ class BloomFilter
 		std::getline(file, line);
 		if (line != magic_header) {
 			std::cerr << "ERROR: magic string does not match (likely version mismatch)\n"
-					<< "Your magic string:                " << line << "\n"
-					<< "CountingBloomFilter magic string: " << magic_header << std::endl;
+			          << "Your magic string:                " << line << "\n"
+			          << "CountingBloomFilter magic string: " << magic_header << std::endl;
 			exit(EXIT_FAILURE);
 		}
 
@@ -141,7 +140,7 @@ class BloomFilter
 		}
 		if (!headerEndCheck) {
 			std::cerr << "ERROR: pre-built bloom filter does not have the correct header end."
-					<< std::endl;
+			          << std::endl;
 			exit(EXIT_FAILURE);
 		}
 
@@ -314,7 +313,8 @@ class BloomFilter
 	{
 		std::ofstream ofs(filterFilePath.c_str(), std::ios::out | std::ios::binary);
 		assert_good(ofs, filterFilePath);
-		std::cerr << "Writing a " << m_sizeInBytes << " byte filter to " << filterFilePath << " on disk.\n";
+		std::cerr << "Writing a " << m_sizeInBytes << " byte filter to " << filterFilePath
+		          << " on disk.\n";
 		ofs << *this;
 		ofs.flush();
 		assert_good(ofs, filterFilePath);
