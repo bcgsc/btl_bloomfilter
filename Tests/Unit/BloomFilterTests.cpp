@@ -103,18 +103,25 @@ TEST_CASE("test fixture", "[BloomFilter]")
 		ifstream ifile(filename.c_str());
 
 		/* check size of newly-created file */
-
 		assert(ifile.is_open());
-		ifile.seekg(0, ios::end);        // move to end of file
-		size_t fileSize = ifile.tellg(); // file size in bytes
-		// file size should be same as filter size (Round to block size)
-		if (filterSize % 64 > 0) {
-			assert(
-			    (filterSize + (64 - (filterSize % 64))) + sizeof(BloomFilter::FileHeader) * 8 ==
-			    fileSize * 8);
-		} else {
-			assert(filterSize + sizeof(BloomFilter::FileHeader) * 8 == fileSize * 8);
+		/* File header has no fixed element but "[HeaderEnd]"
+		   so check for "[HeaderEnd]" in file*/
+		std::string headerEnd = "[HeaderEnd]";
+		std::string line;
+		bool headerEndCheck = false;
+		while (std::getline(ifile, line)) {
+			if (line == headerEnd) {
+				headerEndCheck = true;
+				break;
+			}
 		}
+		assert(headerEndCheck);
+
+		size_t currPos = ifile.tellg();
+		ifile.seekg(0, ios::end);
+		size_t endPos = ifile.tellg();
+
+
 		ifile.close();
 
 		/* check loading of stored filter */
