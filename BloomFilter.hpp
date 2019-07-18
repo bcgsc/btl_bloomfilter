@@ -119,62 +119,70 @@ class BloomFilter
 
 	void loadFilter(const string& filterFilePath)
 	{
-		FILE* file = fopen(filterFilePath.c_str(), "rb");
-		if (file == NULL) {
-			cerr << "file \"" << filterFilePath << "\" could not be read." << endl;
-			exit(1);
-		}
-
+		std::ifstream file(filterFilePath);
+		assert_good(file, filterFilePath);
 		loadHeader(file);
-
-		long int lCurPos = ftell(file);
-		fseek(file, 0, 2);
-		size_t fileSize = ftell(file) - sizeof(struct FileHeader);
-		fseek(file, lCurPos, 0);
-		if (fileSize != m_sizeInBytes) {
-			cerr << "Error: " << filterFilePath
-			     << " does not match size given by its header. Size: " << fileSize << " vs "
-			     << m_sizeInBytes << " bytes." << endl;
-			exit(1);
-		}
-
-		size_t countRead = fread(m_filter, fileSize, 1, file);
-		if (countRead != 1 && fclose(file) != 0) {
-			cerr << "file \"" << filterFilePath << "\" could not be read." << endl;
-			exit(1);
-		}
+		// NOLINTNEXTLINE(cppcoreguidelines-pro-type-reinterpret-cast)
+		file.read(reinterpret_cast<char*>(m_filter), m_sizeInBytes);
+		assert_good(file, filterFilePath);
+		file.close();
 	}
 
-	void loadHeader(FILE* file)
+	void loadHeader(std::istream& file)
 	{
+		std::string magic_header(MAGIC_HEADER_STRING);
+		(magic_header.insert(0, "[")).append("]");
+		std::string line;
+		std::getline(file, line);
+		if (line != magic_header) {
+			std::cerr << "ERROR: magic string does not match (likely version mismatch)\n"
+					<< "Your magic string:                " << line << "\n"
+					<< "CountingBloomFilter magic string: " << magic_header << std::endl;
+			exit(EXIT_FAILURE);
+		}
 
-		FileHeader header;
-		if (fread(&header, sizeof(struct FileHeader), 1, file) != 1) {
-			cerr << "Failed to header" << endl;
-			exit(1);
+		/* Read bloom filter line by line until it sees "[HeaderEnd]"
+		which is used to mark the end of the header section and
+		assigns the header to a char array*/
+		std::string headerEnd = "[HeaderEnd]";
+		std::string toml_buffer((line + "\n"));
+		bool headerEndCheck = false;
+		while (std::getline(file, line)) {
+			toml_buffer.append(line + "\n");
+			if (line == headerEnd) {
+				headerEndCheck = true;
+				break;
+			}
 		}
-		if (header.hlen != sizeof(FileHeader)) {
-			cerr << "Bloom Filter header length: " << header.hlen
-			     << " does not match expected length: " << sizeof(FileHeader)
-			     << " (likely version mismatch)" << endl;
-			exit(1);
+		if (!headerEndCheck) {
+			std::cerr << "ERROR: pre-built bloom filter does not have the correct header end."
+					<< std::endl;
+			exit(EXIT_FAILURE);
 		}
-		char magic[9];
-		memcpy(magic, header.magic, 8);
-		magic[8] = '\0';
-		if (strcmp(magic, "BLOOMFXX")) {
-			cerr << "Bloom Filter type does not match" << endl;
-			exit(1);
-		}
-		if (header.version != BloomFilter_VERSION) {
-			cerr << "Bloom Filter version does not match: " << header.version
-			     << " expected: " << BloomFilter_VERSION << endl;
-			exit(1);
-		}
-		m_size = header.size;
+
+		// Send the char array to a stringstream for the cpptoml parser to parse
+		std::istringstream toml_stream(toml_buffer);
+		cpptoml::parser toml_parser(toml_stream);
+		auto header_config = toml_parser.parse();
+
+		// Obtain header values from toml parser and assign them to class members
+		std::string magic(MAGIC_HEADER_STRING);
+		auto bloomFilterTable = header_config->get_table(magic);
+		auto toml_size = bloomFilterTable->get_as<size_t>("BloomFilterSize");
+		auto toml_sizeInBytes = bloomFilterTable->get_as<size_t>("BloomFilterSizeInBytes");
+		auto toml_kmerSize = bloomFilterTable->get_as<unsigned>("KmerSize");
+		auto toml_hashNum = bloomFilterTable->get_as<unsigned>("HashNum");
+		auto toml_dFPR = bloomFilterTable->get_as<double>("dFPR");
+		auto toml_nEntry = bloomFilterTable->get_as<uint64_t>("nEntry");
+		auto toml_Entry = bloomFilterTable->get_as<uint64_t>("Entry");
+		m_size = *toml_size;
+		m_hashNum = *toml_hashNum;
+		m_kmerSize = *toml_kmerSize;
+		m_sizeInBytes = *toml_sizeInBytes;
+		m_dFPR = *toml_dFPR;
+		m_nEntry = *toml_nEntry;
+		m_tEntry = *toml_Entry;
 		initSize(m_size);
-		m_hashNum = header.nhash;
-		m_kmerSize = header.kmer;
 	}
 
 	/*
@@ -301,35 +309,11 @@ class BloomFilter
 		auto ender = cpptoml::make_table();
 		root->insert(std::string("HeaderEnd"), ender);
 		out << *root;
-		/*FileHeader header;
-		memcpy(header.magic, "BLOOMFXX", 8);
-
-		header.hlen = sizeof(struct FileHeader);
-		header.size = m_size;
-		header.nhash = m_hashNum;
-		header.kmer = m_kmerSize;
-		header.dFPR = m_dFPR;
-		header.nEntry = m_nEntry;
-		header.tEntry = m_tEntry;
-		header.tEntry = m_tEntry;
-		header.version = BloomFilter_VERSION;
-
-		out.write(reinterpret_cast<char*>(&header), sizeof(struct FileHeader));
-		assert(out);*/
 	}
 
 	/** Serialize the Bloom filter to a stream */
 	friend std::ostream& operator<<(std::ostream& out, const BloomFilter& bloom)
 	{
-		/* assert(out);
-		o.writeHeader(out);
-		assert(out);
-
-		// write out each block
-		out.write(reinterpret_cast<char*>(o.m_filter), o.m_sizeInBytes);
-
-		assert(out);
-		return out;*/
 		bloom.writeHeader(out);
 		// NOLINTNEXTLINE(google-readability-casting)
 		out.write(reinterpret_cast<char*>(bloom.m_filter), bloom.m_sizeInBytes);
@@ -343,17 +327,9 @@ class BloomFilter
 	 */
 	void storeFilter(const string& filterFilePath) const
 	{
-		/* ofstream myFile(filterFilePath.c_str(), ios::out | ios::binary);
-
-		//		cerr << "Storing filter. Filter is " << m_sizeInBytes << " bytes."
-		//				<< endl;
-
-		myFile << *this;
-		myFile.close();
-		assert(myFile);*/
 		std::ofstream ofs(filterFilePath.c_str(), std::ios::out | std::ios::binary);
 		assert_good(ofs, filterFilePath);
-		std::cerr << "Writing a " << m_sizeInBytes << " byte filter to a file on disk.\n";
+		std::cerr << "Writing a " << m_sizeInBytes << " byte filter to " << filterFilePath << " on disk.\n";
 		ofs << *this;
 		ofs.flush();
 		assert_good(ofs, filterFilePath);
