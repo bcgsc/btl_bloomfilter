@@ -143,29 +143,29 @@ This projects uses:
 
 The specification of the Bloom filter file format is as follows:
 
-1. magic
+1. magic header string
   * Description: bf magic string
-  * Type: char[8]
-  * Value: BLOOMFXX
-2. hlen
-  * Description: length of the header text
-  * Type: uint32_t
-  * Value:
-3. header
+  * Type: string
+  * Value: BTLBloomFilter_v1 or BTLCountingBloomFilter_v1
+2. header
   * Description: Plain header text
-  * Type: char[hlen]
+  * Type: string
   * Value:
     * size
       * Description: The size of Bloom filter
-      * Type: char[8]
+      * Type: size_t
       * Value:
-    * nhash
+    * sizeInBytes
+      * Description: The size of Bloom filter in bytes
+      * Type: size_t
+      * Value:
+    * hashNum
       * Description: number of hashes
-      * Type: uint32_t
+      * Type: unsigned
       * Value:
-    * kmer [optional]
+    * kmerSize
       * Description: k-mer size
-      * Type: uint32_t
+      * Type: unsigned
       * Value:
     * dFPR [optional]
       * Description: desired false positve rate
@@ -183,8 +183,11 @@ The specification of the Bloom filter file format is as follows:
       * Description: initial seeds for different hashes
       * Type: uint64_t[nhash]
       * Value: [0,1, ..., nhash-1]
-
-4. filter
+    * bitsPerCounter [optional]
+      * Description: bits per each counter in the counting bloom filter
+      * Type: unsigned
+      * Value: 8
+3. filter
   * Description: Bloom filter content
-  * Type: uchar[size]
+  * Type: uchar[sizeInBytes]
   * Value:
