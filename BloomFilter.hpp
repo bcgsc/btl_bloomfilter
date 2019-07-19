@@ -287,12 +287,8 @@ class BloomFilter
 		root->insert(magic, header);
 		out << *root;
 
-		/* Initalize new cpptoml root table and HeaderEnd section,
-		   and output to ostream */
-		root = cpptoml::make_table();
-		auto ender = cpptoml::make_table();
-		root->insert(std::string("HeaderEnd"), ender);
-		out << *root;
+		// Output [HeaderEnd]\n to ostream to mark the end of the header
+		out << "[HeaderEnd]\n";
 	}
 
 	/** Serialize the Bloom filter to a stream */
