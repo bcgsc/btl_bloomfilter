@@ -127,7 +127,7 @@ TEST_CASE("test fixture", "[CountingBloomFilter]")
 		/* write filter */
 
 		string filename = createTempFile();
-		filter.writeFilter(filename);
+		filter.storeFilter(filename);
 		ifstream ifile(filename.c_str());
 
 		/* check size of newly-created file */
@@ -188,7 +188,7 @@ TEST_CASE("test fixture", "[CountingBloomFilter]")
 		/* write filter */
 
 		string filename = createTempFile();
-		filter_64bit.writeFilter(filename);
+		filter_64bit.storeFilter(filename);
 		ifstream ifile(filename.c_str());
 
 		/* check size of newly-created file */
