@@ -372,6 +372,8 @@ class BloomFilter
 
 	uint64_t getFilterSize() const { return m_size; }
 
+	uint64_t sizeInBytes() const { return m_sizeInBytes; }
+
 	~BloomFilter() { delete[] m_filter; }
 
   protected:
