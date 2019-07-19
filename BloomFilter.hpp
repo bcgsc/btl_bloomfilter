@@ -9,8 +9,8 @@
 #ifndef BLOOMFILTER_H_
 #define BLOOMFILTER_H_
 
-#include "IOUtil.h"
-#include "cpptoml/include/cpptoml.h"
+#include "vendor/IOUtil.h"
+#include "vendor/cpptoml/include/cpptoml.h"
 
 #include <cassert>
 #include <cstdlib>
