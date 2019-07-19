@@ -363,8 +363,7 @@ CountingBloomFilter<T>::writeHeader(std::ostream& out) const
 	root->insert(magic, header);
 	out << *root;
 
-	/* Initalize new cpptoml root table and HeaderEnd section,
-	   and output to ostream */
+	// Output [HeaderEnd]\n to ostream to mark the end of the header
 	out << "[HeaderEnd]\n";
 }
 
