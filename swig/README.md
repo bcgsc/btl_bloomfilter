@@ -5,8 +5,15 @@ Make sure you have swig installed and included in your path.
 To build a Perl5 module (run in swig/):
 ```
 preinst-swig -Wall -c++ -perl5 BloomFilter.i
-g++ -c BloomFilter_wrap.cxx -I/usr/lib64/perl5/CORE -fPIC -Dbool=char
-g++ -Wall -shared BloomFilter_wrap.o -o BloomFilter.so
+g++ -std=c++11 -c BloomFilter_wrap.cxx -I/System/Library/Perl/5.18/darwin-thread-multi-2level/CORE -fPIC
+g++ -std=c++11 -Wall -shared BloomFilter_wrap.o -o BloomFilter.so
+```
+
+On mac you may need to instead run:
+```
+preinst-swig -Wall -c++ -perl5 BloomFilter.i
+g++ -c `perl -MConfig -e 'print join(" ", @Config{qw(ccflags optimize cccdlflags)}, "-I$Config{archlib}/CORE")'` BloomFilter_wrap.cxx -Wno-reserved-user-defined-literal -std=c++11
+g++ `perl -MConfig -e 'print $Config{lddlflags}'` BloomFilter_wrap.o -o BloomFilter.so
 ```
 
 To run tests:

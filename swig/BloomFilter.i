@@ -10,7 +10,7 @@ namespace std {
 
 %{
 #include "../KmerBloomFilter.hpp"
-#include "../ntHashIterator.hpp"
+#include "../vendor/ntHashIterator.hpp"
 #include "../BloomFilterUtil.h"
 %}
 
@@ -22,20 +22,20 @@ class KmerBloomFilter {
 public:
         KmerBloomFilter();
         ~KmerBloomFilter();
-        KmerBloomFilter(size_t filterSize, unsigned hashNum, unsigned kmerSize);
+        KmerBloomFilter(uint64_t filterSize, unsigned hashNum, unsigned kmerSize);
         KmerBloomFilter(const string &filterFilePath);
 
-        void insert(vector<size_t> const &precomputed);
+        void insert(vector<uint64_t> const &precomputed);
         void insert(const char* kmer);
 
-        bool contains(vector<size_t> const &values);
+        bool contains(vector<uint64_t> const &values);
         bool contains(const char* kmer);
 
         void storeFilter(string const &filterFilePath);
-        size_t getPop();
+        uint64_t getPop();
         unsigned getHashNum();
         unsigned getKmerSize();
-        size_t getFilterSize();
+        uint64_t getFilterSize();
 };
 
 /*
