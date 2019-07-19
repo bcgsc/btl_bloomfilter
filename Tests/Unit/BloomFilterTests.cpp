@@ -120,13 +120,15 @@ TEST_CASE("test fixture", "[BloomFilter]")
 		size_t currPos = ifile.tellg();
 		ifile.seekg(0, ios::end);
 		size_t endPos = ifile.tellg();
-
-
 		ifile.close();
 
 		/* check loading of stored filter */
 
 		BloomFilter filter2(filename);
+
+		// Checking if sizeInBytes correspond to filesize - header
+
+		assert((endPos - currPos) == filter2.sizeInBytes());
 
 		/* check if loaded filter is able to report expected results */
 
