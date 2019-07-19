@@ -162,7 +162,7 @@ TEST_CASE("test fixture", "[CountingBloomFilter]")
 
 		CountingBloomFilter<uint8_t> filter2(filename, threshold);
 
-		// Checking if sizeInBytes correspond to filesize-header
+		// Checking if sizeInBytes correspond to filesize - header
 
 		assert((endPos - currPos) == filter2.sizeInBytes());
 
@@ -222,7 +222,7 @@ TEST_CASE("test fixture", "[CountingBloomFilter]")
 
 		CountingBloomFilter<uint64_t> filter_64bit2(filename, threshold);
 
-		// Checking if sizeInBytes correspond to filesize-header
+		// Checking if sizeInBytes correspond to filesize - header
 
 		assert((endPos - currPos) == filter_64bit2.sizeInBytes());
 
