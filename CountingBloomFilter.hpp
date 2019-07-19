@@ -83,6 +83,7 @@ class CountingBloomFilter
 	double filtered_FPR() const;
 	void readHeader(std::istream& file);
 	void readFilter(const std::string& path);
+	void loadFilter(const std::string& path) { readFilter(path); };
 	void writeHeader(std::ostream& out) const;
 	void writeFilter(const std::string& path) const;
 	friend std::ostream& operator<<<>(std::ostream&, const CountingBloomFilter&);
