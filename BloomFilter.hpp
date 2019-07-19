@@ -152,20 +152,13 @@ class BloomFilter
 		// Obtain header values from toml parser and assign them to class members
 		std::string magic(MAGIC_HEADER_STRING);
 		auto bloomFilterTable = header_config->get_table(magic);
-		auto toml_size = bloomFilterTable->get_as<size_t>("BloomFilterSize");
-		auto toml_sizeInBytes = bloomFilterTable->get_as<size_t>("BloomFilterSizeInBytes");
-		auto toml_kmerSize = bloomFilterTable->get_as<unsigned>("KmerSize");
-		auto toml_hashNum = bloomFilterTable->get_as<unsigned>("HashNum");
-		auto toml_dFPR = bloomFilterTable->get_as<double>("dFPR");
-		auto toml_nEntry = bloomFilterTable->get_as<uint64_t>("nEntry");
-		auto toml_Entry = bloomFilterTable->get_as<uint64_t>("Entry");
-		m_size = *toml_size;
-		m_hashNum = *toml_hashNum;
-		m_kmerSize = *toml_kmerSize;
-		m_sizeInBytes = *toml_sizeInBytes;
-		m_dFPR = *toml_dFPR;
-		m_nEntry = *toml_nEntry;
-		m_tEntry = *toml_Entry;
+		m_size = *bloomFilterTable->get_as<size_t>("BloomFilterSize");
+		m_hashNum = *bloomFilterTable->get_as<unsigned>("HashNum");
+		m_kmerSize = *bloomFilterTable->get_as<unsigned>("KmerSize");
+		m_sizeInBytes = *bloomFilterTable->get_as<size_t>("BloomFilterSizeInBytes");
+		m_dFPR = *bloomFilterTable->get_as<double>("dFPR");
+		m_nEntry = *bloomFilterTable->get_as<uint64_t>("nEntry");
+		m_tEntry = *bloomFilterTable->get_as<uint64_t>("Entry");
 		initSize(m_size);
 	}
 
