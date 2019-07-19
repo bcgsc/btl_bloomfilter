@@ -3,11 +3,11 @@ check_PROGRAMS = \
     BloomFilterTests \
     CountingBloomFilterTests
 
-BloomFilterTests_SOURCES = BloomFilterTests.cpp catch.hpp
+BloomFilterTests_SOURCES = BloomFilterTests.cpp
 BloomFilterTests_CPPFLAGS = -I$(top_srcdir) -I$(top_srcdir)/vendor
 BloomFilterTests_CXXFLAGS = $(AM_CXXFLAGS) $(OPENMP_CXXFLAGS) -std=c++11
 
-CountingBloomFilterTests_SOURCES = CountingBloomFilterTests.cpp catch.hpp
+CountingBloomFilterTests_SOURCES = CountingBloomFilterTests.cpp
 CountingBloomFilterTests_CPPFLAGS = -I$(top_srcdir) -I$(top_srcdir)/vendor
 CountingBloomFilterTests_CXXFLAGS = $(AM_CXXFLAGS) $(OPENMP_CXXFLAGS) -std=c++11
 
