@@ -18,8 +18,8 @@
 
 #include "MIBloomFilter.hpp"
 //#include <set>
-#include "ntHashIterator.hpp"
-#include "stHashIterator.hpp"
+#include "vendor/ntHashIterator.hpp"
+#include "vendor/stHashIterator.hpp"
 #include <boost/math/distributions/binomial.hpp>
 
 using namespace std;
