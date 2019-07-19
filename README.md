@@ -10,26 +10,25 @@ Fast Bloom filter loading using the rolling hash function.
 #include "BloomFilter.hpp"
 #include <vector>
 #include <string>
-#include "ntHashIterator.hpp"
+#include "vendor/ntHashIterator.hpp"
 
 using namespace std;
 
 int main(int argc, char** argv)
 {
+    /* test sequence */
+    const string seq = "TAGAATCACCCAAAGA";
+    /* k-mer size */
+    const unsigned k = 5;
+    /* number of Bloom filter hash functions */
+    const unsigned numHashes = 4;
+    /* size of Bloom filter (in bits) */
+    const unsigned size = 1000;
 	//Building the filter
 	{
-		/* test sequence */
-		const string seq = "TAGAATCACCCAAAGA";
-		/* k-mer size */
-		const unsigned k = 5;
-		/* number of Bloom filter hash functions */
-		const unsigned numHashes = 4;
-		/* size of Bloom filter (in bits) */
-		const unsigned size = 1000;
-		
 		/* init Bloom filter */
 		BloomFilter bloom(size, numHashes, k);
-	
+
 		/* init rolling hash state and compute hash values for first k-mer */
 		ntHashIterator itr(seq, numHashes, k);
 		while (itr != itr.end()) {
@@ -39,14 +38,70 @@ int main(int argc, char** argv)
 		/* store the bloom filter */
 		bloom.storeFilter("filterPathname.bf");
 	}
-	
+
 	//After building
 	{
 		/* load the bloom filter */
 		BloomFilter bloom("filterPathname.bf");
-		
+
 		/* query the bloom filter */
-		
+
+		/* init rolling hash state and compute hash values for first k-mer */
+		ntHashIterator itr(seq, numHashes, k);
+		while (itr != itr.end()) {
+			bloom.contains(*itr);
+			++itr;
+		}
+	}
+	return 0;
+}
+```
+
+Fast Counting Bloom filter loading using the rolling hash function.
+
+
+```C++
+#include "CountingBloomFilter.hpp"
+#include <vector>
+#include <string>
+#include "vendor/ntHashIterator.hpp"
+
+using namespace std;
+
+int main(int argc, char** argv)
+{
+    /* test sequence */
+    const string seq = "TAGAATCACCCAAAGA";
+    /* k-mer size */
+    const unsigned k = 5;
+    /* number of Bloom filter hash functions */
+    const unsigned numHashes = 4;
+    /* size of Bloom filter (in bytes) */
+    size_t size = 1000;
+    /* counts to threshold bloom filter on*/
+    const unsigned threshold = 1;
+	//Building the filter
+	{
+		/* init Bloom filter */
+		CountingBloomFilter<uint8_t> bloom(size, numHashes, k, threshold);
+
+		/* init rolling hash state and compute hash values for first k-mer */
+		ntHashIterator itr(seq, numHashes, k);
+		while (itr != itr.end()) {
+			bloom.insert(*itr);
+			++itr;
+		}
+		/* store the bloom filter */
+		bloom.storeFilter("filterPathname.bf");
+	}
+
+	//After building
+	{
+		/* load the bloom filter */
+		CountingBloomFilter<uint8_t> bloom("filterPathname.bf", threshold);
+
+		/* query the bloom filter */
+
 		/* init rolling hash state and compute hash values for first k-mer */
 		ntHashIterator itr(seq, numHashes, k);
 		while (itr != itr.end()) {
@@ -61,7 +116,8 @@ int main(int argc, char** argv)
 # files
 
 * `BloomFilter.hpp`: main Bloom filter class
-* `RollingHashIterator.h`: Enable rolling hashing on a string 
+* `CountingBloomFilter.hpp`: Counting Bloom filter class
+* `RollingHashIterator.h`: Enable rolling hashing on a string
 * `RollingHash.h`: rolling hash interface (required by `RollingHashIterator.h`)
 * `rolling.h`: rolling hash function (required by `BloomFilter.hpp` and `RollingHash.h`)
 * `Tests/Unit`: unit tests
