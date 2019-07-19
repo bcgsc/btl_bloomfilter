@@ -8,6 +8,7 @@ include_HEADERS = \
 	KmerBloomFilter.hpp \
 	MIBFQuerySupport.hpp \
 	MIBloomFilter.hpp \
+	vendor/catch.hpp \
 	vendor/nthash.hpp \
 	vendor/ntHashIterator.hpp \
 	vendor/ssHashIterator.hpp \
