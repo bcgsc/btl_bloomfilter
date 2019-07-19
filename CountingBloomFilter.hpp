@@ -3,8 +3,8 @@
 #ifndef COUNTINGBLOOMFILTER_HPP // NOLINT(llvm-header-guard)
 #define COUNTINGBLOOMFILTER_HPP
 
-#include "IOUtil.h"
-#include "cpptoml/include/cpptoml.h"
+#include "vendor/IOUtil.h"
+#include "vendor/cpptoml/include/cpptoml.h"
 
 #include <cassert>
 #include <cmath>
