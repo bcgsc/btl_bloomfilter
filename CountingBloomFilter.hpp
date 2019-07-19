@@ -81,11 +81,10 @@ class CountingBloomFilter
 	size_t filtered_popcount() const;
 	double FPR() const;
 	double filtered_FPR() const;
-	void readHeader(std::istream& file);
-	void readFilter(const std::string& path);
-	void loadFilter(const std::string& path) { readFilter(path); };
-	void writeHeader(std::ostream& out) const;
-	void writeFilter(const std::string& path) const;
+	void loadHeader(std::istream& file);
+	void loadFilter(const std::string& path);
+	void storeHeader(std::ostream& out) const;
+	void storeFilter(const std::string& path) const;
 	friend std::ostream& operator<<<>(std::ostream&, const CountingBloomFilter&);
 
   private:
@@ -263,16 +262,16 @@ template<typename T>
 CountingBloomFilter<T>::CountingBloomFilter(const std::string& path, unsigned countThreshold)
   : m_countThreshold(countThreshold)
 {
-	readFilter(path);
+	loadFilter(path);
 }
 
 template<typename T>
 void
-CountingBloomFilter<T>::readFilter(const std::string& path)
+CountingBloomFilter<T>::loadFilter(const std::string& path)
 {
 	std::ifstream file(path);
 	assert_good(file, path);
-	readHeader(file);
+	loadHeader(file);
 	m_filter.resize(m_sizeInBytes);
 	// NOLINTNEXTLINE(cppcoreguidelines-pro-type-reinterpret-cast)
 	file.read(reinterpret_cast<char*>(m_filter.data()), m_sizeInBytes);
@@ -282,7 +281,7 @@ CountingBloomFilter<T>::readFilter(const std::string& path)
 
 template<typename T>
 void
-CountingBloomFilter<T>::readHeader(std::istream& file)
+CountingBloomFilter<T>::loadHeader(std::istream& file)
 {
 	std::string magic_header(MAGIC_HEADER_STRING);
 	(magic_header.insert(0, "[")).append("]");
@@ -331,7 +330,7 @@ CountingBloomFilter<T>::readHeader(std::istream& file)
 
 template<typename T>
 void
-CountingBloomFilter<T>::writeFilter(const std::string& path) const
+CountingBloomFilter<T>::storeFilter(const std::string& path) const
 {
 	std::ofstream ofs(path.c_str(), std::ios::out | std::ios::binary);
 	assert_good(ofs, path);
@@ -344,7 +343,7 @@ CountingBloomFilter<T>::writeFilter(const std::string& path) const
 
 template<typename T>
 void
-CountingBloomFilter<T>::writeHeader(std::ostream& out) const
+CountingBloomFilter<T>::storeHeader(std::ostream& out) const
 {
 	/* Initialize cpptoml root table
 	   Note: Tables and fields are unordered
@@ -373,7 +372,7 @@ template<typename T>
 std::ostream&
 operator<<(std::ostream& out, const CountingBloomFilter<T>& bloom)
 {
-	bloom.writeHeader(out);
+	bloom.storeHeader(out);
 	// NOLINTNEXTLINE(google-readability-casting)
 	out.write((const char*)bloom.m_filter.data(), bloom.m_sizeInBytes);
 	return out;
