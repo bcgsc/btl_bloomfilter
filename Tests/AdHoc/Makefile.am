@@ -9,3 +9,6 @@ BloomFilterTests_CXXFLAGS = $(AM_CXXFLAGS) $(OPENMP_CXXFLAGS) -std=c++11
 ParallelFilter_SOURCES = ParallelFilter.cpp
 ParallelFilter_CPPFLAGS = -I$(top_srcdir) -I$(top_srcdir)/vendor
 ParallelFilter_CXXFLAGS = $(AM_CXXFLAGS) $(OPENMP_CXXFLAGS) -std=c++11
+
+# programs that will be run by 'make check' (after compiling)
+TESTS = $(check_PROGRAMS)
