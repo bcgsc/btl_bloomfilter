@@ -10,8 +10,8 @@
 
 /* lightweight unit test framework */
 #include "BloomFilter.hpp"
-#include "catch.hpp"
-#include "ntHashIterator.hpp"
+#include "vendor/catch.hpp"
+#include "vendor/ntHashIterator.hpp"
 
 #include <assert.h>
 #include <cstring>
