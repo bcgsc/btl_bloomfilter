@@ -4,11 +4,11 @@ check_PROGRAMS = \
     CountingBloomFilterTests
 
 BloomFilterTests_SOURCES = BloomFilterTests.cpp
-BloomFilterTests_CPPFLAGS = -I$(top_srcdir) -I$(top_srcdir)/vendor
+BloomFilterTests_CPPFLAGS = -I$(top_srcdir)
 BloomFilterTests_CXXFLAGS = $(AM_CXXFLAGS) $(OPENMP_CXXFLAGS) -std=c++11
 
 CountingBloomFilterTests_SOURCES = CountingBloomFilterTests.cpp
-CountingBloomFilterTests_CPPFLAGS = -I$(top_srcdir) -I$(top_srcdir)/vendor
+CountingBloomFilterTests_CPPFLAGS = -I$(top_srcdir)
 CountingBloomFilterTests_CXXFLAGS = $(AM_CXXFLAGS) $(OPENMP_CXXFLAGS) -std=c++11
 
 # programs that will be run by 'make check' (after compiling)
