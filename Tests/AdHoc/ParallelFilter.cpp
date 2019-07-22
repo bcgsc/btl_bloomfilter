@@ -3,7 +3,7 @@
 #include <string>
 
 #include "BloomFilter.hpp"
-#include "ntHashIterator.hpp"
+#include "vendor/ntHashIterator.hpp"
 #include <algorithm>
 #include <cstdlib>
 #include <fstream>
