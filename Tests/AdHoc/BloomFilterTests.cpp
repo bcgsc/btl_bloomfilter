@@ -6,7 +6,7 @@
  */
 
 #include "BloomFilter.hpp"
-#include "ntHashIterator.hpp"
+#include "vendor/ntHashIterator.hpp"
 #include <assert.h>
 #include <fstream>
 #include <iostream>
@@ -44,7 +44,7 @@ main()
 	// memory usage from before
 	int memUsage = memory_usage();
 
-	size_t filterSize = 1000000000;
+	size_t filterSize = 1000000;
 
 	const unsigned numHashes = 3;
 	const unsigned k = 4;
@@ -78,13 +78,26 @@ main()
 	filter.storeFilter(filename);
 	ifstream ifile(filename.c_str());
 	assert(ifile.is_open());
+	// Read header line by line
+	std::string headerEnd = "[HeaderEnd]";
+	std::string line;
+	bool headerEndCheck = false;
+		while (std::getline(ifile, line)) {
+			if (line == headerEnd) {
+				headerEndCheck = true;
+				break;
+			}
+		}
+	assert(headerEndCheck);
+	// Get header and file size
+	size_t currPos = ifile.tellg();
 	ifile.seekg(0, ios::end);        // move to end of file
 	size_t fileSize = ifile.tellg(); // file size in bytes
-	// file size should be same as filter size (Round to block size)
+	// file size - header size should be same as filter size (Round to block size)
 	if (filterSize % 64 > 0) {
-		assert((filterSize + (64 - (filterSize % 64))) == fileSize * 8);
+		assert((filterSize + (64 - (filterSize % 64))) == (fileSize - currPos)* 8);
 	} else {
-		assert(filterSize == fileSize * 8);
+		assert(filterSize == (fileSize- currPos) * 8);
 	}
 	ifile.close();
 
