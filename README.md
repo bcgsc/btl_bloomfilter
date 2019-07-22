@@ -137,7 +137,7 @@ To see more detailed output for the individual tests, run the binaries in `Tests
 
 This projects uses:
 * [CATCH](https://github.com/philsquared/Catch) unit test framework for C/C++
-* rolling hash implementation by Hamid Mohamadi
+* [nthash](https://github.com/bcgsc/ntHash) rolling hash implementation by Hamid Mohamadi
 
 # Bloom filter file format
 
