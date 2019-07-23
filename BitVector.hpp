@@ -33,7 +33,7 @@ class BitVector
 		unsigned* found = std::find(
 		    std::begin(allowedBitsPerCounter), std::end(allowedBitsPerCounter), bitsPerCounter);
 		if (found != std::end(allowedBitsPerCounter)) {
-			m_maskingBits = (1 << bitsPerCounter) - 1;
+			m_maskingBits = (1ull << bitsPerCounter) - 1ull;
 		} else {
 			std::cerr << "ERROR: invalid bitsPerCounter value"
 			          << "\n"
@@ -57,7 +57,7 @@ class BitVector
 	const std::vector<T>& vector() { return m_data; };
 
   private:
-	// m_data             : A vector of elements of type T.
+	// m_data               : A vector of elements of type T.
 	// m_size               : Size of vector (number of counters).
 	// m_sizeInBytes        : Size of the vector in bytes.
 	// m_maskingBits        : Masking bit used in bit operations. E.g. 0b 0000 0011
@@ -71,7 +71,6 @@ class BitVector
 	T m_maskingBits = 0;
 	unsigned m_bitsPerCounter = 0;
 	unsigned m_numPartitions = 0;
-	T m_incrementUnit = 1;
 };
 
 inline bool
@@ -84,7 +83,7 @@ BitVector::atomicIncrement(size_t hash)
 	if (oldBits == maxValue()) {
 		return false;
 	}
-	T newWord = oldWord + (m_incrementUnit << (sub_pos * m_bitsPerCounter));
+	T newWord = oldWord + (1ull << (sub_pos * m_bitsPerCounter));
 	return __sync_bool_compare_and_swap(&m_data[pos], oldWord, newWord);
 }
 
