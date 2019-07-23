@@ -24,7 +24,7 @@ class BitVector
 	}
 	BitVector() = default;
 	BitVector(size_t sz, unsigned bitsPerCounter)
-	  : m_vector((sz / sizeof(T)), 0)
+	  : m_data((sz / sizeof(T)), 0)
 	  , m_size(sz / sizeof(T) * 8 / bitsPerCounter)
 	  , m_sizeInBytes(sz)
 	  , m_bitsPerCounter(bitsPerCounter)
@@ -45,7 +45,7 @@ class BitVector
 	{
 		size_t pos = i / m_numPartitions;
 		size_t sub_pos = i % m_numPartitions;
-		return (m_vector[pos] >> (sub_pos * m_bitsPerCounter)) & m_maskingBits;
+		return (m_data[pos] >> (sub_pos * m_bitsPerCounter)) & m_maskingBits;
 	}
 	bool atomicIncrement(size_t hash);
 	// Conventional insertion function that calls atomicIncrement()
@@ -54,10 +54,10 @@ class BitVector
 	size_t size() const { return m_size; };
 	T maxValue() const { return m_maskingBits; };
 	size_t sizeInBytes() const { return m_sizeInBytes; };
-	std::vector<T> vector() { return m_vector; };
+	const std::vector<T>& vector() { return m_data; };
 
   private:
-	// m_vector             : A vector of elements of type T.
+	// m_data             : A vector of elements of type T.
 	// m_size               : Size of vector (number of counters).
 	// m_sizeInBytes        : Size of the vector in bytes.
 	// m_maskingBits        : Masking bit used in bit operations. E.g. 0b 0000 0011
@@ -65,7 +65,7 @@ class BitVector
 	// m_numPartitions      : Number of partitions in each element of the vector
 	// m_increment          : Increment Value
 
-	std::vector<T> m_vector;
+	std::vector<T> m_data;
 	size_t m_size = 0;
 	size_t m_sizeInBytes = 0;
 	T m_maskingBits = 0;
@@ -79,13 +79,13 @@ BitVector::atomicIncrement(size_t hash)
 {
 	size_t pos = hash / m_numPartitions;
 	size_t sub_pos = hash % m_numPartitions;
-	T oldWord = m_vector[pos];
-	T oldBits = (m_vector[pos] >> (sub_pos * m_bitsPerCounter)) & m_maskingBits;
+	T oldWord = m_data[pos];
+	T oldBits = (m_data[pos] >> (sub_pos * m_bitsPerCounter)) & m_maskingBits;
 	if (oldBits == maxValue()) {
 		return false;
 	}
 	T newWord = oldWord + (m_incrementUnit << (sub_pos * m_bitsPerCounter));
-	return __sync_bool_compare_and_swap(&m_vector[pos], oldWord, newWord);
+	return __sync_bool_compare_and_swap(&m_data[pos], oldWord, newWord);
 }
 
 #endif // BitVector_HPP
