@@ -79,13 +79,13 @@ BitVector::atomicIncrement(size_t hash)
 {
 	size_t pos = hash / m_numPartitions;
 	size_t sub_pos = hash % m_numPartitions;
-	T oldByte = m_vector[pos];
+	T oldWord = m_vector[pos];
 	T oldBits = (m_vector[pos] >> (sub_pos * m_bitsPerCounter)) & m_maskingBits;
 	if (oldBits == maxValue()) {
 		return false;
 	}
-	T newByte = oldByte + (m_incrementUnit << (sub_pos * m_bitsPerCounter));
-	return __sync_bool_compare_and_swap(&m_vector[pos], oldByte, newByte);
+	T newWord = oldWord + (m_incrementUnit << (sub_pos * m_bitsPerCounter));
+	return __sync_bool_compare_and_swap(&m_vector[pos], oldWord, newWord);
 }
 
 #endif // BitVector_HPP
