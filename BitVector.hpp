@@ -27,20 +27,14 @@ class BitVector
 	  , m_bitsPerCounter(bitsPerCounter)
 	  , m_numPartitions(sizeof(T) * 8 / bitsPerCounter)
 	{
-		switch (bitsPerCounter) {
-		case 2:
-			m_maskingBits = 3; //   equivalent to 0b 0000 0011 if T = uint8_t
-			break;
-		case 4:
-			m_maskingBits = 15; //  equivalent to 0b 0000 1111 if T = uint8_t
-			break;
-		case 8:
-			m_maskingBits = 255; // equivalent to 0b 1111 1111 if T = uint8_t
-			break;
-		default:
+		unsigned* found = std::find(
+		    std::begin(allowedBitsPerCounter), std::end(allowedBitsPerCounter), bitsPerCounter);
+		if (found != std::end(allowedBitsPerCounter)) {
+			m_maskingBits = (1 << bitsPerCounter) - 1;
+		} else {
 			std::cerr << "ERROR: invalid bitsPerCounter value"
 			          << "\n"
-			          << "Accepted values are: 2, 4 and 8" << std::endl;
+			          << "Accepted values are: 2, 4, 8, and 64" << std::endl;
 			exit(EXIT_FAILURE);
 		}
 	}
