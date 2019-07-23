@@ -57,18 +57,17 @@ class BitVector
 	const std::vector<T>& vector() { return m_data; };
 
   private:
-	// m_data               : A vector of elements of type T.
-	// m_size               : Size of vector (number of counters).
-	// m_sizeInBytes        : Size of the vector in bytes.
-	// m_maskingBits        : Masking bit used in bit operations. E.g. 0b 0000 0011
-	// m_bitsPerCounter     : Number of bits in each counter
-	// m_numPartitions      : Number of partitions in each element of the vector
-
+	/** A vector of elements of type T. */
 	std::vector<T> m_data;
+	/** Size of vector (number of counters). */
 	size_t m_size = 0;
+	/** Size of the vector in bytes. */
 	size_t m_sizeInBytes = 0;
+	/** Masking bit used in bit operations. E.g. 0b 0000 0011 */
 	T m_maskingBits = 0;
+	/** Number of bits in each counter. */
 	unsigned m_bitsPerCounter = 0;
+	/** Number of partitions in each element of the vector. */
 	unsigned m_numPartitions = 0;
 };
 
