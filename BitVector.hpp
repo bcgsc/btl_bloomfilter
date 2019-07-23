@@ -63,7 +63,6 @@ class BitVector
 	// m_maskingBits        : Masking bit used in bit operations. E.g. 0b 0000 0011
 	// m_bitsPerCounter     : Number of bits in each counter
 	// m_numPartitions      : Number of partitions in each element of the vector
-	// m_increment          : Increment Value
 
 	std::vector<T> m_data;
 	size_t m_size = 0;
