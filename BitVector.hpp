@@ -7,6 +7,8 @@
 
 using std::size_t;
 
+unsigned allowedBitsPerCounter[4] = { 2, 4, 8, 64 };
+
 // Forward declaraions.
 template<typename T>
 class BitVector;
