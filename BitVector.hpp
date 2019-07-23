@@ -2,8 +2,8 @@
 #define BitVector_HPP
 
 #include <cstddef>
-#include <vector>
 #include <iostream>
+#include <vector>
 
 using std::size_t;
 
@@ -15,6 +15,10 @@ template<typename T>
 class BitVector
 {
   public:
+	static inline size_t bytesToElements(size_t bytes, unsigned bitsPerCounter)
+	{
+		return bytes / sizeof(T) * 8 / bitsPerCounter;
+	}
 	BitVector() = default;
 	BitVector(size_t sz, unsigned bitsPerCounter)
 	  : m_vector((sz / sizeof(T)), 0)
