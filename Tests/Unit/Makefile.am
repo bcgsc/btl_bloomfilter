@@ -4,12 +4,12 @@ check_PROGRAMS = \
     BloomFilterTests \
     CountingBloomFilterTests
 
-BitVectorTests_SOURCES = BitVectorTests.cpp catch.hpp
-BitVectorTests_CPPFLAGS = -I$(top_srcdir) -I$(top_srcdir)/vendor
+BitVectorTests_SOURCES = BitVectorTests.cpp
+BitVectorTests_CPPFLAGS = -I$(top_srcdir)
 BitVectorTests_CXXFLAGS = $(AM_CXXFLAGS) $(OPENMP_CXXFLAGS) -std=c++11
 
-BloomFilterTests_SOURCES = BloomFilterTests.cpp catch.hpp
-BloomFilterTests_CPPFLAGS = -I$(top_srcdir) -I$(top_srcdir)/vendor
+BloomFilterTests_SOURCES = BloomFilterTests.cpp
+BloomFilterTests_CPPFLAGS = -I$(top_srcdir)
 BloomFilterTests_CXXFLAGS = $(AM_CXXFLAGS) $(OPENMP_CXXFLAGS) -std=c++11
 
 CountingBloomFilterTests_SOURCES = CountingBloomFilterTests.cpp
