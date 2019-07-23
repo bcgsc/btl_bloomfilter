@@ -10,11 +10,11 @@ using std::size_t;
 
 unsigned allowedBitsPerCounter[4] = { 2, 4, 8, 64 };
 
+typedef uint64_t T;
+
 // Forward declaraions.
-template<typename T>
 class BitVector;
 
-template<typename T>
 class BitVector
 {
   public:
@@ -74,9 +74,8 @@ class BitVector
 	size_t m_incrementUnit = 1;
 };
 
-template<typename T>
 inline bool
-BitVector<T>::atomicIncrement(size_t hash)
+BitVector::atomicIncrement(size_t hash)
 {
 	size_t pos = hash / m_numPartitions;
 	size_t sub_pos = hash % m_numPartitions;
