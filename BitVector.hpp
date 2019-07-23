@@ -1,6 +1,7 @@
 #ifndef BitVector_HPP // NOLINT(llvm-header-guard)
 #define BitVector_HPP
 
+#include <algorithm>
 #include <cstddef>
 #include <iostream>
 #include <vector>
