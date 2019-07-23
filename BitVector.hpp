@@ -52,7 +52,7 @@ class BitVector
 	void insert(size_t hash) { atomicIncrement(hash); };
 	unsigned bitsPerCounter() const { return m_bitsPerCounter; };
 	size_t size() const { return m_size; };
-	size_t maxValue() const { return m_maskingBits; };
+	T maxValue() const { return m_maskingBits; };
 	size_t sizeInBytes() const { return m_sizeInBytes; };
 	std::vector<T> vector() { return m_vector; };
 
@@ -68,10 +68,10 @@ class BitVector
 	std::vector<T> m_vector;
 	size_t m_size = 0;
 	size_t m_sizeInBytes = 0;
-	size_t m_maskingBits = 0;
+	T m_maskingBits = 0;
 	unsigned m_bitsPerCounter = 0;
 	unsigned m_numPartitions = 0;
-	size_t m_incrementUnit = 1;
+	T m_incrementUnit = 1;
 };
 
 inline bool
@@ -79,12 +79,12 @@ BitVector::atomicIncrement(size_t hash)
 {
 	size_t pos = hash / m_numPartitions;
 	size_t sub_pos = hash % m_numPartitions;
-	size_t oldByte = m_vector[pos];
-	size_t oldBits = (m_vector[pos] >> (sub_pos * m_bitsPerCounter)) & m_maskingBits;
+	T oldByte = m_vector[pos];
+	T oldBits = (m_vector[pos] >> (sub_pos * m_bitsPerCounter)) & m_maskingBits;
 	if (oldBits == maxValue()) {
 		return false;
 	}
-	size_t newByte = oldByte + (m_incrementUnit << (sub_pos * m_bitsPerCounter));
+	T newByte = oldByte + (m_incrementUnit << (sub_pos * m_bitsPerCounter));
 	return __sync_bool_compare_and_swap(&m_vector[pos], oldByte, newByte);
 }
 
