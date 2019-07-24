@@ -40,6 +40,9 @@ TEST_CASE("test fixture", "[BitVector]")
 
 	BitVector filter_2bits(filterSize, bitsPerCounter);
 
+	// Check filter is correctly sized
+	assert(filterSizeInBytes == filter_2bits.sizeInBytes());
+
 	/* Set up values 3,2,1 for element 0,1,LAST respectively */
 	for (int i = 0; i < 3; i++) {
 		filter_2bits.insert(0);
@@ -58,6 +61,9 @@ TEST_CASE("test fixture", "[BitVector]")
 
 	BitVector filter_4bits(filterSize, bitsPerCounter);
 
+	// Check filter is correctly sized
+	assert(filterSizeInBytes == filter_4bits.sizeInBytes());
+
 	/* Set up values 15,2,1 for element 0,1,LAST respectively */
 	for (int i = 0; i < 15; i++) {
 		filter_4bits.insert(0);
@@ -75,6 +81,9 @@ TEST_CASE("test fixture", "[BitVector]")
 	filterSize = BitVector::bytesToElements(filterSizeInBytes, bitsPerCounter);
 
 	BitVector filter_8bits(filterSize, bitsPerCounter);
+
+	// Check filter is correctly sized
+	assert(filterSizeInBytes == filter_8bits.sizeInBytes());
 
 	/* Set up values 255,2,1 for element 0,1,LAST respectively */
 	for (int i = 0; i < 255; i++) {
