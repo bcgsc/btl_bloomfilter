@@ -1,8 +1,13 @@
 # programs that will only be compiled with 'make check'
 check_PROGRAMS = \
+    BinTests \
     BitVectorTests \
     BloomFilterTests \
     CountingBloomFilterTests
+
+BinTests_SOURCES = BinTests.cpp
+BinTests_CPPFLAGS = -I$(top_srcdir)
+BinTests_CXXFLAGS = $(AM_CXXFLAGS) $(OPENMP_CXXFLAGS) -std=c++11
 
 BitVectorTests_SOURCES = BitVectorTests.cpp
 BitVectorTests_CPPFLAGS = -I$(top_srcdir)
