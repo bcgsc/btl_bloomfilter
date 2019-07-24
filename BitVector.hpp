@@ -32,7 +32,7 @@ class BitVector
 		unsigned* found = std::find(
 		    std::begin(allowedBitsPerCounter), std::end(allowedBitsPerCounter), bitsPerCounter);
 		if (found != std::end(allowedBitsPerCounter)) {
-			m_maskingBits = (1ull << bitsPerCounter) - 1ull;
+			m_maskingBits = ((T)1 << bitsPerCounter) - (T)1;
 		} else {
 			std::cerr << "ERROR: invalid bitsPerCounter value"
 			          << "\n"
@@ -78,7 +78,7 @@ BitVector::atomicIncrement(size_t hash)
 	if (oldBits == maxValue()) {
 		return false;
 	}
-	T newWord = oldWord + (1ull << (sub_pos * m_bitsPerCounter));
+	T newWord = oldWord + ((T)1 << (sub_pos * m_bitsPerCounter));
 	return __sync_bool_compare_and_swap(&m_data[pos], oldWord, newWord);
 }
 
