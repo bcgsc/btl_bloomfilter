@@ -3,6 +3,7 @@ SUBDIRS = \
 	Tests/Unit
 
 include_HEADERS = \
+	Bin.hpp \
 	BitVector.hpp \
 	BloomFilter.hpp \
 	CountingBloomFilter.hpp \
