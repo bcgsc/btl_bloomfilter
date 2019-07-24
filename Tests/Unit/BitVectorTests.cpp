@@ -34,8 +34,9 @@ TEST_CASE("test fixture", "[BitVector]")
 	/* START COMMON SETUP CODE */
 
 	// Create a 2 bits vector
-	const size_t filterSize = 1000000000;
+	const size_t filterSizeInBytes = 100000;
 	unsigned bitsPerCounter = 2;
+	size_t filterSize = BitVector::bytesToElements(filterSizeInBytes, bitsPerCounter);
 
 	BitVector filter_2bits(filterSize, bitsPerCounter);
 
@@ -48,11 +49,12 @@ TEST_CASE("test fixture", "[BitVector]")
 		filter_2bits.insert(1);
 	}
 
-	long lastElement = (filterSize * 8 / sizeof(T) / bitsPerCounter) - 1;
+	long lastElement = filterSize - 1;
 	filter_2bits.insert(lastElement);
 
 	// Create a 4 bits vector
 	bitsPerCounter = 4;
+	filterSize = BitVector::bytesToElements(filterSizeInBytes, bitsPerCounter);
 
 	BitVector filter_4bits(filterSize, bitsPerCounter);
 
@@ -65,11 +67,12 @@ TEST_CASE("test fixture", "[BitVector]")
 		filter_4bits.insert(1);
 	}
 
-	lastElement = (filterSize * 8 / sizeof(T) / bitsPerCounter) - 1;
+	lastElement = filterSize - 1;
 	filter_4bits.insert(lastElement);
 
 	// Create a 8 bits vector
 	bitsPerCounter = 8;
+	filterSize = BitVector::bytesToElements(filterSizeInBytes, bitsPerCounter);
 
 	BitVector filter_8bits(filterSize, bitsPerCounter);
 
@@ -82,7 +85,7 @@ TEST_CASE("test fixture", "[BitVector]")
 		filter_8bits.insert(1);
 	}
 
-	lastElement = (filterSize * 8 / sizeof(T) / bitsPerCounter) - 1;
+	lastElement = filterSize - 1;
 	filter_8bits.insert(lastElement);
 
 	/* END COMMON SETUP CODE */
