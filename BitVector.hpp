@@ -26,7 +26,6 @@ class BitVector
 	BitVector(size_t sz, unsigned bitsPerCounter)
 	  : m_data((sz / sizeof(T)), 0)
 	  , m_size(sz / sizeof(T) * 8 / bitsPerCounter)
-	  , m_sizeInBytes(sz)
 	  , m_bitsPerCounter(bitsPerCounter)
 	  , m_numPartitions(sizeof(T) * 8 / bitsPerCounter)
 	{
@@ -61,8 +60,6 @@ class BitVector
 	std::vector<T> m_data;
 	/** Size of vector (number of counters). */
 	size_t m_size = 0;
-	/** Size of the vector in bytes. */
-	size_t m_sizeInBytes = 0;
 	/** Masking bit used in bit operations. E.g. 0b 0000 0011 */
 	T m_maskingBits = 0;
 	/** Number of bits in each counter. */
