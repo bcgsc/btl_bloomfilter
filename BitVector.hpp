@@ -53,7 +53,7 @@ class BitVector
 	unsigned bitsPerCounter() const { return m_bitsPerCounter; };
 	size_t size() const { return m_size; };
 	T maxValue() const { return m_maskingBits; };
-	size_t sizeInBytes() const { return m_sizeInBytes; };
+	size_t sizeInBytes() const { return m_size * sizeof(T) / 8 * m_bitsPerCounter; };
 	const std::vector<T>& vector() { return m_data; };
 
   private:
