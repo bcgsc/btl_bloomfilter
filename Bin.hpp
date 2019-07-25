@@ -1,5 +1,5 @@
-#ifndef Bin_HPP // NOLINT(llvm-header-guard)
-#define Bin_HPP
+#ifndef BIN_HPP // NOLINT(llvm-header-guard)
+#define BIN_HPP
 
 #include <cstddef>
 #include <iostream>
@@ -80,4 +80,4 @@ Bin::operator=(const Bin& bin)
 	return *this;
 }
 
-#endif // Bit_HPP
+#endif // BIN_HPP
