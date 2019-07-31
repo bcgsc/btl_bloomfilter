@@ -73,7 +73,7 @@ TEST_CASE("test fixture", "[CountingBloomFilter]")
 	const unsigned k = 8;
 	const char* seq = "ACGTACACTGGACTGAGTCT";
 
-	CountingBloomFilter<uint8_t> filter(filterSize, numHashes, k, threshold);
+	CountingBloomFilter<uint8_t> filter(filterSize, numHashes, k, threshold, 8);
 
 	/* insert k-mers ACGT, CGTA, GTAC */
 
@@ -83,7 +83,7 @@ TEST_CASE("test fixture", "[CountingBloomFilter]")
 		++insertIt;
 	}
 
-	CountingBloomFilter<uint64_t> filter_64bit(filterSize, numHashes, k, threshold);
+	CountingBloomFilter<uint64_t> filter_64bit(filterSize, numHashes, k, threshold, 8);
 
 	/* insert k-mers ACGT, CGTA, GTAC */
 
@@ -167,7 +167,8 @@ TEST_CASE("test fixture", "[CountingBloomFilter]")
 		assert((endPos - currPos) == filter2.sizeInBytes());
 
 		// In a 8bit filter, size should be equal to size_in_bytes
-
+		std::cout << filter2.size() << std::endl;
+		std::cout << filter2.sizeInBytes() << std::endl;
 		assert(filter2.size() == filter2.sizeInBytes());
 
 		/* check if loaded filter is able to report expected results */
@@ -228,7 +229,7 @@ TEST_CASE("test fixture", "[CountingBloomFilter]")
 
 		// In a 64bit filter, size * 8 should be equal to size_in_bytes
 
-		assert((filter_64bit2.size() * 8) == filter_64bit2.sizeInBytes());
+		assert(filter_64bit2.size() == filter_64bit2.sizeInBytes());
 
 		/* check if loaded filter is able to report expected results */
 
