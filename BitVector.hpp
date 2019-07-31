@@ -20,7 +20,7 @@ class BitVector
   public:
 	static inline size_t bytesToElements(size_t bytes, unsigned bitsPerCounter)
 	{
-		return bytes / sizeof(T) * 8 / bitsPerCounter;
+		return bytes * sizeof(T) / bitsPerCounter;
 	}
 	BitVector() = default;
 	BitVector(size_t sz, unsigned bitsPerCounter)
@@ -52,7 +52,7 @@ class BitVector
 	unsigned bitsPerCounter() const { return m_bitsPerCounter; };
 	size_t size() const { return m_size; };
 	T maxValue() const { return m_maskingBits; };
-	size_t sizeInBytes() const { return m_size * sizeof(T) / 8 * m_bitsPerCounter; };
+	size_t sizeInBytes() const { return m_size / sizeof(T) * m_bitsPerCounter; };
 	const std::vector<T>& vector() { return m_data; };
 
   private:
