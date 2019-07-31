@@ -40,7 +40,7 @@ class BitVector
 			exit(EXIT_FAILURE);
 		}
 	}
-	T operator[](size_t i)
+	T operator[](size_t i) const
 	{
 		size_t pos = i / m_numPartitions;
 		size_t sub_pos = i % m_numPartitions;
