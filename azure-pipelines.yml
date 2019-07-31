@@ -29,12 +29,3 @@ jobs:
       ./configure CC=clang-6.0 CXX=clang++-6.0
       make distcheck
     displayName: "Compile btl_bloomfilter with clang 6.0"
-  - script: |
-      curl https://apt.llvm.org/llvm-snapshot.gpg.key | sudo apt-key add -
-      sudo apt-add-repository "deb http://apt.llvm.org/xenial/ llvm-toolchain-xenial-8 main"
-      sudo apt-get update
-      sudo apt-get install -y --no-install-recommends clang-format-8
-      sudo ln -s clang-format-8 /usr/bin/clang-format
-    displayName: Install clang-format
-  - script: make clang-format
-    displayName: Run clang-format
