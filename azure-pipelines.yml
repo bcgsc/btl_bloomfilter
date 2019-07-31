@@ -15,8 +15,8 @@ jobs:
       sudo apt-get install -y --no-install-recommends clang-format-8
       sudo ln -s clang-format-8 /usr/bin/clang-format
     displayName: Install clang-format
-- script: make clang-format
-  displayName: Run clang-format
+  - script: make clang-format
+    displayName: Run clang-format
 
 - job: linux_clang6
   pool:
@@ -36,5 +36,5 @@ jobs:
       sudo apt-get install -y --no-install-recommends clang-format-8
       sudo ln -s clang-format-8 /usr/bin/clang-format
     displayName: Install clang-format
-- script: make clang-format
-  displayName: Run clang-format
+  - script: make clang-format
+    displayName: Run clang-format
