@@ -3,6 +3,7 @@
 #ifndef COUNTINGBLOOMFILTER_HPP // NOLINT(llvm-header-guard)
 #define COUNTINGBLOOMFILTER_HPP
 
+#include "BitVector.hpp"
 #include "vendor/IOUtil.h"
 #include "vendor/cpptoml/include/cpptoml.h"
 
@@ -32,20 +33,22 @@ class CountingBloomFilter
 	    size_t sizeInBytes,
 	    unsigned hashNum,
 	    unsigned kmerSize,
-	    unsigned countThreshold)
+	    unsigned countThreshold,
+	    unsigned bitsPerCounter)
 	  : m_hashNum(hashNum)
 	  , m_kmerSize(kmerSize)
 	  , m_countThreshold(countThreshold)
+	  , m_bitsPerCounter(bitsPerCounter)
 	{
 		int remainder = sizeInBytes % 8;
 		if (remainder == 0) {
 			m_sizeInBytes = sizeInBytes;
-			m_size = m_sizeInBytes / sizeof(T);
-			m_filter.resize(m_size, 0);
+			m_size = BitVector::bytesToElements(m_sizeInBytes, bitsPerCounter);
+			m_filter = BitVector(m_size, bitsPerCounter);
 		} else {
 			m_sizeInBytes = sizeInBytes + 8 - remainder;
-			m_size = m_sizeInBytes / sizeof(T);
-			m_filter.resize(m_size, 0);
+			m_size = BitVector::bytesToElements(m_sizeInBytes, bitsPerCounter);
+			m_filter = BitVector(m_size, bitsPerCounter);
 		}
 	}
 	CountingBloomFilter(const std::string& path, unsigned countThreshold);
@@ -99,7 +102,7 @@ class CountingBloomFilter
 	// m_bitsPerCounter     : Number of bits per counter.
 	// MAGIC_HEADER_STRING  : Magic string used to identify the type of bloom filter.
 
-	std::vector<T> m_filter;
+	BitVector m_filter;
 	size_t m_size = 0;
 	size_t m_sizeInBytes = 0;
 	unsigned m_hashNum = 0;
@@ -139,17 +142,18 @@ CountingBloomFilter<T>::incrementMin(const U& hashes)
 {
 	// update flag to track if increment is done on at least one counter
 	bool updateDone = false;
-	T newVal;
 	T minVal = minCount(hashes);
 	while (!updateDone) {
 		// Simple check to deal with overflow
-		newVal = minVal + 1;
-		if (minVal > newVal) {
+		if (minVal == m_filter.maxValue()) {
 			return;
 		}
 		for (size_t i = 0; i < m_hashNum; ++i) {
 			// NOLINTNEXTLINE(cppcoreguidelines-pro-type-vararg, hicpp-vararg)
-			if (__sync_bool_compare_and_swap(&m_filter[hashes[i] % m_size], minVal, newVal)) {
+			if (minVal != m_filter[hashes[i] % m_size]) {
+				continue;
+			}
+			if (m_filter.atomicIncrement(hashes[i] % m_size)) {
 				updateDone = true;
 			}
 		}
@@ -272,7 +276,7 @@ CountingBloomFilter<T>::loadFilter(const std::string& path)
 	std::ifstream file(path);
 	assert_good(file, path);
 	loadHeader(file);
-	m_filter.resize(m_sizeInBytes);
+	m_filter = BitVector(m_sizeInBytes, m_bitsPerCounter);
 	// NOLINTNEXTLINE(cppcoreguidelines-pro-type-reinterpret-cast)
 	file.read(reinterpret_cast<char*>(m_filter.data()), m_sizeInBytes);
 	assert_good(file, path);
