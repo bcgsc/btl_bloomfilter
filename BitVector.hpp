@@ -46,6 +46,8 @@ class BitVector
 		size_t sub_pos = i % m_numPartitions;
 		return (m_data[pos] >> (sub_pos * m_bitsPerCounter)) & m_maskingBits;
 	}
+	T* data() { return m_data.data(); }
+	const T* data() const { return m_data.data(); }
 	bool atomicIncrement(size_t hash);
 	// Conventional insertion function that calls atomicIncrement()
 	void insert(size_t hash) { atomicIncrement(hash); };
