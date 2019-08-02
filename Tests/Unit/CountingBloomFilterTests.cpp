@@ -73,7 +73,7 @@ TEST_CASE("test fixture", "[CountingBloomFilter]")
 	const unsigned k = 8;
 	const char* seq = "ACGTACACTGGACTGAGTCT";
 
-	CountingBloomFilter<uint8_t> filter(filterSize, numHashes, k, threshold, 8);
+	CountingBloomFilter filter(filterSize, numHashes, k, threshold, 8);
 
 	/* insert k-mers ACGT, CGTA, GTAC */
 
@@ -83,7 +83,7 @@ TEST_CASE("test fixture", "[CountingBloomFilter]")
 		++insertIt;
 	}
 
-	CountingBloomFilter<uint64_t> filter_64bit(filterSize, numHashes, k, threshold, 8);
+	CountingBloomFilter filter_64bit(filterSize, numHashes, k, threshold, 8);
 
 	/* insert k-mers ACGT, CGTA, GTAC */
 
@@ -160,7 +160,7 @@ TEST_CASE("test fixture", "[CountingBloomFilter]")
 
 		/* check loading of stored filter */
 
-		CountingBloomFilter<uint8_t> filter2(filename, threshold);
+		CountingBloomFilter filter2(filename, threshold);
 
 		// Checking if sizeInBytes correspond to filesize - header
 
@@ -221,7 +221,7 @@ TEST_CASE("test fixture", "[CountingBloomFilter]")
 
 		/* check loading of stored filter */
 
-		CountingBloomFilter<uint64_t> filter_64bit2(filename, threshold);
+		CountingBloomFilter filter_64bit2(filename, threshold);
 
 		// Checking if sizeInBytes correspond to filesize - header
 
