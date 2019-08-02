@@ -16,15 +16,12 @@
 #include <vector>
 
 // Forward declaraions.
-template<typename T>
 class CountingBloomFilter;
 
 // Method declarations.
-template<typename T>
 std::ostream&
-operator<<(std::ostream& out, const CountingBloomFilter<T>& bloom);
+operator<<(std::ostream& out, const CountingBloomFilter& bloom);
 
-template<typename T>
 class CountingBloomFilter
 {
   public:
@@ -52,9 +49,9 @@ class CountingBloomFilter
 		}
 	}
 	CountingBloomFilter(const std::string& path, unsigned countThreshold);
-	T operator[](size_t i) { return m_filter[i]; }
+	uint64_t operator[](size_t i) { return m_filter[i]; }
 	template<typename U>
-	T minCount(const U& hashes) const
+	uint64_t minCount(const U& hashes) const
 	{
 		T min = m_filter[hashes[0] % m_size];
 		for (size_t i = 1; i < m_hashNum; ++i) {
@@ -88,7 +85,7 @@ class CountingBloomFilter
 	void loadFilter(const std::string& path);
 	void storeHeader(std::ostream& out) const;
 	void storeFilter(const std::string& path) const;
-	friend std::ostream& operator<<<>(std::ostream&, const CountingBloomFilter&);
+	friend std::ostream& operator<<(std::ostream&, const CountingBloomFilter&);
 
   private:
 	// m_filter             : A vector of elements of type T.
@@ -135,14 +132,13 @@ class CountingBloomFilter
 */
 
 // Of the m_hashNum counters, increment all the minimum values.
-template<typename T>
 template<typename U>
 inline void
-CountingBloomFilter<T>::incrementMin(const U& hashes)
+CountingBloomFilter::incrementMin(const U& hashes)
 {
 	// update flag to track if increment is done on at least one counter
 	bool updateDone = false;
-	T minVal = minCount(hashes);
+	uint64_t minVal = minCount(hashes);
 	while (!updateDone) {
 		// Simple check to deal with overflow
 		if (minVal == m_filter.maxValue()) {
@@ -166,13 +162,12 @@ CountingBloomFilter<T>::incrementMin(const U& hashes)
 }
 
 // Increment all the m_hashNum counters.
-template<typename T>
 template<typename U>
 inline void
-CountingBloomFilter<T>::incrementAll(const U& hashes)
+CountingBloomFilter::incrementAll(const U& hashes)
 {
-	T currentVal;
-	T newVal;
+	uint64_t currentVal;
+	uint64_t newVal;
 	for (size_t i = 0; i < m_hashNum; ++i) {
 		size_t pos = hashes[i] % m_size;
 		do {
@@ -191,26 +186,23 @@ CountingBloomFilter<T>::incrementAll(const U& hashes)
 // element is said to be present in the Bloom filter. count() therefore returns
 // true when this condition is satisfied, or else, false.
 
-template<typename T>
 template<typename U>
 inline bool
-CountingBloomFilter<T>::contains(const U& hashes) const
+CountingBloomFilter::contains(const U& hashes) const
 {
 	return minCount(hashes) >= m_countThreshold;
 }
 
-template<typename T>
 template<typename U>
 inline void
-CountingBloomFilter<T>::insert(const U& hashes)
+CountingBloomFilter::insert(const U& hashes)
 {
 	incrementMin(hashes);
 }
 
-template<typename T>
 template<typename U>
 inline bool
-CountingBloomFilter<T>::insertAndCheck(const U& hashes)
+CountingBloomFilter::insertAndCheck(const U& hashes)
 {
 	bool found = contains(hashes);
 	incrementMin(hashes);
@@ -218,9 +210,8 @@ CountingBloomFilter<T>::insertAndCheck(const U& hashes)
 }
 
 /* Count the number of non-zero counters. */
-template<typename T>
 size_t
-CountingBloomFilter<T>::popCount() const
+CountingBloomFilter::popCount() const
 {
 	size_t count = 0;
 	for (size_t i = 0; i < m_size; ++i) {
@@ -232,9 +223,8 @@ CountingBloomFilter<T>::popCount() const
 }
 
 /* Count the number of above threshold counters. */
-template<typename T>
 size_t
-CountingBloomFilter<T>::filtered_popcount() const
+CountingBloomFilter::filtered_popcount() const
 {
 	size_t count = 0;
 	for (size_t i = 0; i < m_size; ++i) {
@@ -245,33 +235,29 @@ CountingBloomFilter<T>::filtered_popcount() const
 	return count;
 }
 
-template<typename T>
 double
-CountingBloomFilter<T>::FPR() const
+CountingBloomFilter::FPR() const
 {
 	// NOLINTNEXTLINE(google-readability-casting)
 	return std::pow((double)popCount() / (double)m_size, m_hashNum);
 }
 
-template<typename T>
 double
-CountingBloomFilter<T>::filtered_FPR() const
+CountingBloomFilter::filtered_FPR() const
 {
 	// NOLINTNEXTLINE(google-readability-casting)
 	return std::pow((double)filtered_popcount() / (double)m_size, m_hashNum);
 }
 
 // Serialization interface.
-template<typename T>
-CountingBloomFilter<T>::CountingBloomFilter(const std::string& path, unsigned countThreshold)
+CountingBloomFilter::CountingBloomFilter(const std::string& path, unsigned countThreshold)
   : m_countThreshold(countThreshold)
 {
 	loadFilter(path);
 }
 
-template<typename T>
 void
-CountingBloomFilter<T>::loadFilter(const std::string& path)
+CountingBloomFilter::loadFilter(const std::string& path)
 {
 	std::ifstream file(path);
 	assert_good(file, path);
@@ -283,9 +269,8 @@ CountingBloomFilter<T>::loadFilter(const std::string& path)
 	file.close();
 }
 
-template<typename T>
 void
-CountingBloomFilter<T>::loadHeader(std::istream& file)
+CountingBloomFilter::loadHeader(std::istream& file)
 {
 	std::string magic_header(MAGIC_HEADER_STRING);
 	(magic_header.insert(0, "[")).append("]");
@@ -332,9 +317,8 @@ CountingBloomFilter<T>::loadHeader(std::istream& file)
 	m_bitsPerCounter = *bloomFilterTable->get_as<unsigned>("BitsPerCounter");
 }
 
-template<typename T>
 void
-CountingBloomFilter<T>::storeFilter(const std::string& path) const
+CountingBloomFilter::storeFilter(const std::string& path) const
 {
 	std::ofstream ofs(path.c_str(), std::ios::out | std::ios::binary);
 	assert_good(ofs, path);
@@ -345,9 +329,8 @@ CountingBloomFilter<T>::storeFilter(const std::string& path) const
 	ofs.close();
 }
 
-template<typename T>
 void
-CountingBloomFilter<T>::storeHeader(std::ostream& out) const
+CountingBloomFilter::storeHeader(std::ostream& out) const
 {
 	/* Initialize cpptoml root table
 	   Note: Tables and fields are unordered
@@ -372,9 +355,8 @@ CountingBloomFilter<T>::storeHeader(std::ostream& out) const
 }
 
 // Serialize the bloom filter to a C++ stream
-template<typename T>
 std::ostream&
-operator<<(std::ostream& out, const CountingBloomFilter<T>& bloom)
+operator<<(std::ostream& out, const CountingBloomFilter& bloom)
 {
 	bloom.storeHeader(out);
 	// NOLINTNEXTLINE(google-readability-casting)
