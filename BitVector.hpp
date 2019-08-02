@@ -24,7 +24,7 @@ class BitVector
 	}
 	BitVector() = default;
 	BitVector(size_t sz, unsigned bitsPerCounter)
-	  : m_data(sz, 0)
+	  : m_data(sz * bitsPerCounter / 64, 0)
 	  , m_size(sz)
 	  , m_bitsPerCounter(bitsPerCounter)
 	  , m_numPartitions(sizeof(T) * 8 / bitsPerCounter)
