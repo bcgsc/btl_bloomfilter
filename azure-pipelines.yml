@@ -35,6 +35,10 @@ jobs:
     vmImage: macOS-10.14
   steps:
   - script: |
+      brew update
+      brew install automake
+    displayName: Install automake
+  - script: |
       ./autogen.sh
       ./configure
       make distcheck
