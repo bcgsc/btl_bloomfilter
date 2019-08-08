@@ -165,12 +165,12 @@ class BloomFilter
 	/*
 	 * Accepts a list of precomputed hash values. Faster than rehashing each time.
 	 */
-	void insert(vector<uint64_t> const& precomputed)
+	void insert(vector<size_t> const& precomputed)
 	{
 
 		// iterates through hashed values adding it to the filter
 		for (unsigned i = 0; i < m_hashNum; ++i) {
-			uint64_t normalizedValue = precomputed.at(i) % m_size;
+			size_t normalizedValue = precomputed.at(i) % m_size;
 			__sync_or_and_fetch(
 			    &m_filter[normalizedValue / bitsPerChar], bitMask[normalizedValue % bitsPerChar]);
 		}
@@ -179,12 +179,12 @@ class BloomFilter
 	/*
 	 * Accepts a list of precomputed hash values. Faster than rehashing each time.
 	 */
-	void insert(const uint64_t precomputed[])
+	void insert(const size_t precomputed[])
 	{
 
 		// iterates through hashed values adding it to the filter
 		for (unsigned i = 0; i < m_hashNum; ++i) {
-			uint64_t normalizedValue = precomputed[i] % m_size;
+			size_t normalizedValue = precomputed[i] % m_size;
 			__sync_or_and_fetch(
 			    &m_filter[normalizedValue / bitsPerChar], bitMask[normalizedValue % bitsPerChar]);
 		}
@@ -194,12 +194,12 @@ class BloomFilter
 	 * Accepts a list of precomputed hash values. Faster than rehashing each time.
 	 * Returns if already inserted
 	 */
-	bool insertAndCheck(const uint64_t precomputed[])
+	bool insertAndCheck(const size_t precomputed[])
 	{
 		// iterates through hashed values adding it to the filter
 		bool found = true;
 		for (unsigned i = 0; i < m_hashNum; ++i) {
-			uint64_t normalizedValue = precomputed[i] % m_size;
+			size_t normalizedValue = precomputed[i] % m_size;
 			found &= __sync_fetch_and_or(
 			             &m_filter[normalizedValue / bitsPerChar],
 			             bitMask[normalizedValue % bitsPerChar]) >>
@@ -213,12 +213,12 @@ class BloomFilter
 	 * Accepts a list of precomputed hash values. Faster than rehashing each time.
 	 * Returns if already inserted
 	 */
-	bool insertAndCheck(vector<uint64_t> const& precomputed)
+	bool insertAndCheck(vector<size_t> const& precomputed)
 	{
 		// iterates through hashed values adding it to the filter
 		bool found = true;
 		for (unsigned i = 0; i < m_hashNum; ++i) {
-			uint64_t normalizedValue = precomputed.at(i) % m_size;
+			size_t normalizedValue = precomputed.at(i) % m_size;
 			found &= __sync_fetch_and_or(
 			             &m_filter[normalizedValue / bitsPerChar],
 			             bitMask[normalizedValue % bitsPerChar]) >>
@@ -231,10 +231,10 @@ class BloomFilter
 	/*
 	 * Accepts a list of precomputed hash values. Faster than rehashing each time.
 	 */
-	bool contains(vector<uint64_t> const& precomputed) const
+	bool contains(vector<size_t> const& precomputed) const
 	{
 		for (unsigned i = 0; i < m_hashNum; ++i) {
-			uint64_t normalizedValue = precomputed.at(i) % m_size;
+			size_t normalizedValue = precomputed.at(i) % m_size;
 			unsigned char bit = bitMask[normalizedValue % bitsPerChar];
 			if ((m_filter[normalizedValue / bitsPerChar] & bit) != bit) {
 				return false;
@@ -246,10 +246,10 @@ class BloomFilter
 	/*
 	 * Accepts a list of precomputed hash values. Faster than rehashing each time.
 	 */
-	bool contains(const uint64_t precomputed[]) const
+	bool contains(const size_t precomputed[]) const
 	{
 		for (unsigned i = 0; i < m_hashNum; ++i) {
-			uint64_t normalizedValue = precomputed[i] % m_size;
+			size_t normalizedValue = precomputed[i] % m_size;
 			unsigned char bit = bitMask[normalizedValue % bitsPerChar];
 			if ((m_filter[normalizedValue / bitsPerChar] & bit) != bit) {
 				return false;
