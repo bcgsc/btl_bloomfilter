@@ -20,7 +20,7 @@ jobs:
 
 - job: linux_clang6
   pool:
-    vmImage: Ubuntu 16.04
+    vmImage: "Ubuntu 16.04"
   steps:
   - script: sudo apt-get install -qq clang-6.0
     displayName: Install clang-6.0
@@ -29,3 +29,13 @@ jobs:
       ./configure CC=clang-6.0 CXX=clang++-6.0
       make distcheck
     displayName: "Compile btl_bloomfilter with clang 6.0"
+
+- job: macOS_gcc_default
+  pool:
+    vmImage: macOS-10.14
+  steps:
+  - script: |
+      ./autogen.sh
+      ./configure
+      make distcheck
+    displayName: "Compile btl_bloomfilter with default gcc"
