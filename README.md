@@ -2,6 +2,9 @@
 
 The BTL C/C++ Common Bloom filters for bioinformatics projects, as well as any APIs created for other programming languages.
 
+## Build Status
+[![Build Status](https://dev.azure.com/bcgsc/btl/_apis/build/status/bcgsc.btl_bloomfilter?branchName=master)](https://dev.azure.com/bcgsc/btl/_build/latest?definitionId=3&branchName=master)
+
 # usage example (C++)
 
 Fast Bloom filter loading using the rolling hash function.
