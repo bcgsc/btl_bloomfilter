@@ -44,7 +44,7 @@ main()
 	// memory usage from before
 	int memUsage = memory_usage();
 
-	size_t filterSize = 1000000;
+	size_t filterSize = 10000000;
 
 	const unsigned numHashes = 3;
 	const unsigned k = 4;
