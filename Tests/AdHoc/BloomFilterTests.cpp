@@ -41,10 +41,14 @@ memory_usage()
 int
 main()
 {
-	// memory usage from before
+	// memory usage from before	ntHashIterator insertIt2(seq, numHashes, k);
+	while (insertIt2 != insertIt2.end()) {
+		filter3->insert(*insertIt2);
+		++insertIt2;
+	}
 	int memUsage = memory_usage();
 
-	size_t filterSize = 1000000;
+	size_t filterSize = 10000000;
 
 	const unsigned numHashes = 3;
 	const unsigned k = 4;
