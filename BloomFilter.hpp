@@ -52,6 +52,7 @@ class BloomFilter
 	  , m_dFPR(0)
 	  , m_nEntry(0)
 	  , m_tEntry(0)
+  	  , m_FPR(0)
 	{}
 
 	/* De novo filter constructor.
@@ -69,6 +70,7 @@ class BloomFilter
 	  , m_dFPR(0)
 	  , m_nEntry(0)
 	  , m_tEntry(0)
+	  , m_FPR(0)
 	{
 		initSize(m_size);
 	}
@@ -85,6 +87,7 @@ class BloomFilter
 	  , m_dFPR(fpr)
 	  , m_nEntry(0)
 	  , m_tEntry(0)
+	  , m_FPR(0)
 	{
 		if (m_hashNum == 0) {
 			m_hashNum = calcOptiHashNum(m_dFPR);
@@ -340,7 +343,19 @@ class BloomFilter
 	/*
 	 * Return FPR based on popcount
 	 */
-	double getFPR() const { return pow(double(getPop()) / double(m_size), double(m_hashNum)); }
+	double getFPR()
+	{
+		m_FPR = pow(double(getPop()) / double(m_size), double(m_hashNum));
+		return m_FPR;
+	}
+
+	/*
+	 * Return FPR based on popcount assuming m_FPR has been already calcuated
+	 */
+	double getFPRPrecompute() const
+	{
+		return m_FPR;
+	}
 
 	/*
 	 * Return FPR based on number of inserted elements
@@ -426,6 +441,7 @@ class BloomFilter
 	double m_dFPR;
 	uint64_t m_nEntry;
 	uint64_t m_tEntry;
+	double m_FPR;
 	static constexpr const char* MAGIC_HEADER_STRING = "BTLBloomFilter_v1";
 };
 
