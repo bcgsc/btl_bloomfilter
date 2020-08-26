@@ -165,7 +165,7 @@ class MIBFQuerySupport
 
 		if (m_miBF.getSeedValues().size() > 0) {
 			stHashIterator itr(
-			    seq, m_miBF.getSeedValues(), m_miBF.getHashNum(), m_miBF.getKmerSize());
+			    seq, m_miBF.getSeedValues(), m_miBF.getHashNum(), 1, m_miBF.getKmerSize());
 			while (itr != itr.end()) {
 				if (m_maxMiss >= m_miBF.atRank(*itr, m_rankPos, m_hits, m_maxMiss)) {
 					vector<T> results = m_miBF.getData(m_rankPos);
