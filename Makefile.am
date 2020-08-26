@@ -7,6 +7,7 @@ include_HEADERS = \
 	CountingBloomFilter.hpp \
 	KmerBloomFilter.hpp \
 	MIBFQuerySupport.hpp \
+	MIBFConstructSupport.hpp \
 	MIBloomFilter.hpp \
 	vendor/catch.hpp \
 	vendor/nthash.hpp \
