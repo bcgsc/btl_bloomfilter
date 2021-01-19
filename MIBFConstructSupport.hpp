@@ -40,8 +40,8 @@ public:
 					expectedEntries), m_k(k), m_h(numHashFunction), m_occupancy(
 					occupancy), m_spacedSeeds(spacedSeeds), m_counts(
 					vector<T>()) {
-		m_filterSize = MIBloomFilter<ID>::calcOptimalSize(m_expectedEntries,
-				opt::hashNum, m_occupancy);
+		m_filterSize = MIBloomFilter<T>::calcOptimalSize(m_expectedEntries,
+				m_h, m_occupancy);
 		m_bv = sdsl::bit_vector(m_filterSize);
 	}
 
@@ -80,8 +80,8 @@ public:
 				uint64_t pos = (*itr)[i] % m_bv.size();
 				uint64_t *dataIndex = m_bv.data() + (pos >> 6);
 				uint64_t bitMaskValue = (uint64_t) 1 << (pos & 0x3F);
-				__sync_fetch_and_or(dataIndex, bitMaskValue) >> (pos & 0x3F)
-						& 1;
+				(void) (__sync_fetch_and_or(dataIndex, bitMaskValue)
+						>> (pos & 0x3F) & 1);
 			}
 		}
 	}
@@ -92,7 +92,7 @@ public:
 	MIBloomFilter<T> *getEmptyMIBF() {
 		assert(!m_isBVMade);
 		m_isBVMade = true;
-		MIBloomFilter<T> *miBF = new MIBloomFilter<T>(opt::hashNum, m_k, m_bv,
+		MIBloomFilter<T> *miBF = new MIBloomFilter<T>(m_h, m_k, m_bv,
 				m_spacedSeeds);
 		m_counts = vector<T>(miBF->getPop(), 0);
 		return miBF;
@@ -112,7 +112,7 @@ public:
 		hashSet values;
 		values.set_empty_key(miBF.size());
 		while (itr != itr.end()) {
-			for (unsigned i = 0; i < opt::hashNum; ++i) {
+			for (unsigned i = 0; i < m_h; ++i) {
 				values.insert((*itr)[i]);
 			}
 			++itr;
@@ -121,8 +121,8 @@ public:
 				itr++) {
 			uint64_t randomSeed = *itr ^ id;
 			uint64_t rank = miBF.getRankPos(*itr);
-			ID count = __sync_add_and_fetch(&m_counts[rank], 1);
-			ID randomNum = std::hash<ID> { }(randomSeed) % count;
+			T count = __sync_add_and_fetch(&m_counts[rank], 1);
+			T randomNum = std::hash<T> { }(randomSeed) % count;
 			if (randomNum == count - 1) {
 				miBF.setData(rank, id);
 			}
@@ -169,12 +169,12 @@ private:
 		while (itr != itr.end()) {
 			//for each set of hash values, check for saturation
 			vector<uint64_t> rankPos = miBF.getRankPos(*itr);
-			vector<ID> results = miBF.getData(rankPos);
-			vector<ID> replacementIDs(opt::hashNum);
+			vector<T> results = miBF.getData(rankPos);
+			vector<T> replacementIDs(m_h);
 			bool valueFound = false;
-			vector<ID> seenSet(opt::hashNum);
-			for (unsigned i = 0; i < opt::hashNum; ++i) {
-				ID currentResult = results[i] & MIBloomFilter<ID>::s_antiMask;
+			vector<T> seenSet(m_h);
+			for (unsigned i = 0; i < m_h; ++i) {
+				T currentResult = results[i] & MIBloomFilter<T>::s_antiMask;
 				if (currentResult == id) {
 					valueFound = true;
 					break;
@@ -188,10 +188,10 @@ private:
 			}
 			if (!valueFound) {
 				uint64_t replacementPos = m_counts.size();
-				ID minCount = numeric_limits<ID>::min();
-				for (unsigned i = 0; i < opt::hashNum; ++i) {
-					ID currentResult = results[i]
-							& MIBloomFilter<ID>::s_antiMask;
+				T minCount = numeric_limits<T>::min();
+				for (unsigned i = 0; i < m_h; ++i) {
+					T currentResult = results[i]
+							& MIBloomFilter<T>::s_antiMask;
 					if (find(replacementIDs.begin(), replacementIDs.end(),
 							currentResult) != replacementIDs.end()) {
 						if (minCount < m_counts[rankPos[i]]) {
