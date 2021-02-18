@@ -52,7 +52,7 @@ public:
 	/*
 	 * Returns count of collisions (counts unique k-mers)
 	 */
-	inline size_t insertBVColli(H itr) {
+	inline size_t insertBVColli(H &itr) {
 		assert(!m_isBVMade);
 		size_t count = 0;
 		/* init rolling hash state and compute hash values for first k-mer */
@@ -72,7 +72,7 @@ public:
 		return count;
 	}
 
-	void insertBV(H itr) {
+	void insertBV(H &itr) {
 		assert(!m_isBVMade);
 		/* init rolling hash state and compute hash values for first k-mer */
 		for (; itr != itr.end(); ++itr) {
@@ -106,7 +106,7 @@ public:
 	 *
 	 * Once saturation is set, insertions are prevented
 	 */
-	void insertMIBF(MIBloomFilter<T> &miBF, H itr, T id) {
+	void insertMIBF(MIBloomFilter<T> &miBF, H &itr, T id) {
 		assert(m_isBVMade & !m_isMIBFMade);
 		//get positions
 		hashSet values;
@@ -129,7 +129,7 @@ public:
 		}
 	}
 
-	void insertSaturation(MIBloomFilter<T> &miBF, H itr, T id) {
+	void insertSaturation(MIBloomFilter<T> &miBF, H &itr, T id) {
 		if (!m_isMIBFMade) {
 			assert(m_isBVMade);
 			m_isMIBFMade = true;
@@ -165,7 +165,7 @@ private:
 	 * If unable to save values it will saturate values
 	 * Small chance that mutation may erase entries
 	 */
-	inline void setSatIfMissing(MIBloomFilter<T> &miBF, T id, H itr) {
+	inline void setSatIfMissing(MIBloomFilter<T> &miBF, T id, H &itr) {
 		while (itr != itr.end()) {
 			//for each set of hash values, check for saturation
 			vector<uint64_t> rankPos = miBF.getRankPos(*itr);
