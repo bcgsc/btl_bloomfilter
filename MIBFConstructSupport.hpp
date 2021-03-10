@@ -29,7 +29,6 @@
 template<typename T, class H>
 class MIBFConstructSupport {
 public:
-
 	/*
 	 * numhashfunctions may also mean number of spaced seeds
 	 */
@@ -106,30 +105,39 @@ public:
 	 *
 	 * Once saturation is set, insertions are prevented
 	 */
-	void insertMIBF(MIBloomFilter<T> &miBF, H &itr, T id) {
+	//void insertMIBF(MIBloomFilter<T> &miBF, H &itr, T id) {
+	void insertMIBF(MIBloomFilter<T> &miBF, H &itr, unsigned pos) {
+		assert(m_isBVMade & !m_isMIBFMade);
 		assert(m_isBVMade & !m_isMIBFMade);
 		//get positions
 		hashSet values;
 		values.set_empty_key(miBF.size());
 		while (itr != itr.end()) {
 			for (unsigned i = 0; i < m_h; ++i) {
-				values.insert((*itr)[i]);
+		//		values.insert((*itr)[i]);
+		//	}
+			//++itr;
+		//}
+		//for (hashSet::iterator itr = values.begin(); itr != values.end();
+		//		itr++) {
+				//uint64_t randomSeed = *itr ^ id;
+				uint64_t randomSeed = (*itr)[i] ^ pos;
+				//uint64_t rank = miBF.getRankPos(*itr);
+				uint64_t rank = miBF.getRankPos((*itr)[i]);
+				T count = __sync_add_and_fetch(&m_counts[rank], 1);
+				T randomNum = std::hash<T> { }(randomSeed) % count;
+				if (randomNum == count - 1) {
+					//miBF.setData(rank, id);
+					miBF.setData(rank, pos);
+				}	
 			}
 			++itr;
-		}
-		for (hashSet::iterator itr = values.begin(); itr != values.end();
-				itr++) {
-			uint64_t randomSeed = *itr ^ id;
-			uint64_t rank = miBF.getRankPos(*itr);
-			T count = __sync_add_and_fetch(&m_counts[rank], 1);
-			T randomNum = std::hash<T> { }(randomSeed) % count;
-			if (randomNum == count - 1) {
-				miBF.setData(rank, id);
-			}
+			++pos;
 		}
 	}
-
-	void insertSaturation(MIBloomFilter<T> &miBF, H &itr, T id) {
+		
+	//void insertSaturation(MIBloomFilter<T> &miBF, H &itr, T id, unsigned start_pos) {
+	void insertSaturation(MIBloomFilter<T> &miBF, H &itr, unsigned start_pos) {
 		if (!m_isMIBFMade) {
 			assert(m_isBVMade);
 			m_isMIBFMade = true;
@@ -137,7 +145,8 @@ public:
 		typedef google::dense_hash_set<uint64_t> SatSet;
 		SatSet satVal;
 		satVal.set_empty_key(miBF.size());
-		setSatIfMissing(miBF, id, itr);
+		//setSatIfMissing(miBF, id, itr);
+		setSatIfMissing(miBF, itr, start_pos);
 	}
 
 	/*
@@ -165,7 +174,8 @@ private:
 	 * If unable to save values it will saturate values
 	 * Small chance that mutation may erase entries
 	 */
-	inline void setSatIfMissing(MIBloomFilter<T> &miBF, T id, H &itr) {
+	//inline void setSatIfMissing(MIBloomFilter<T> &miBF, T id, H &itr, unsigned pos) {
+	inline void setSatIfMissing(MIBloomFilter<T> &miBF, H &itr, unsigned pos) {
 		while (itr != itr.end()) {
 			//for each set of hash values, check for saturation
 			vector<uint64_t> rankPos = miBF.getRankPos(*itr);
@@ -175,7 +185,8 @@ private:
 			vector<T> seenSet(m_h);
 			for (unsigned i = 0; i < m_h; ++i) {
 				T currentResult = results[i] & MIBloomFilter<T>::s_antiMask;
-				if (currentResult == id) {
+				//if (currentResult == id) {
+				if (currentResult == pos){
 					valueFound = true;
 					break;
 				}
@@ -202,7 +213,8 @@ private:
 				}
 				//mutate if possible
 				if (replacementPos != m_counts.size()) {
-					miBF.setData(replacementPos, id);
+					//miBF.setData(replacementPos, id);
+					miBF.setData(replacementPos, pos);
 #pragma omp atomic update
 					++m_counts[replacementPos];
 				} else {
@@ -210,6 +222,7 @@ private:
 				}
 			}
 			++itr;
+			++pos;
 		}
 	}
 };
