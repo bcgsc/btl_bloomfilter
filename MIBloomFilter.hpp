@@ -633,6 +633,22 @@ class MIBloomFilter
 		} while (!__sync_bool_compare_and_swap(&m_data[pos], oldValue, id));
 	}
 
+	// overwrites existing value CAS
+	void setData(uint64_t pos, T id, bool strand)
+	{
+		assert(id < s_strand);
+		T oldValue;
+		do {
+			oldValue = m_data[pos];
+			if (oldValue > s_mask) {
+				id |= s_mask;
+			}
+			if (strand) {
+				id |= s_strand;
+			}
+		} while (!__sync_bool_compare_and_swap(&m_data[pos], oldValue, id));
+	}
+
 	// saturates values
 	void saturateData(uint64_t pos)
 	{

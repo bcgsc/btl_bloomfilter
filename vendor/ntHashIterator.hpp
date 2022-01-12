@@ -36,7 +36,7 @@ public:
      * @param h number of hashes
     */
     ntHashIterator(const std::string& seq, unsigned h, unsigned k, size_t pos = 0):
-        m_seq(seq), m_h(h), m_k(k), m_hVec(new uint64_t[h]), m_pos(pos)
+        m_seq(seq), m_h(h), m_k(k), m_hVec(new uint64_t[h]), m_pos(pos), m_strand(false)
     {
         init();
     }
@@ -52,6 +52,7 @@ public:
         m_pos = nth.m_pos;
         m_fhVal = nth.m_fhVal;
         m_rhVal = nth.m_rhVal;
+        m_strand = nth.m_strand;
     }
     
 
@@ -63,7 +64,7 @@ public:
             return;
         }
         unsigned locN=0;
-        while (m_pos<m_seq.length()-m_k+1 && !NTMC64(m_seq.data()+m_pos, m_k, m_h, m_fhVal, m_rhVal, locN, m_hVec))
+        while (m_pos<m_seq.length()-m_k+1 && !NTMC64(m_seq.data()+m_pos, m_k, m_h, m_fhVal, m_rhVal, locN, m_hVec, m_strand))
             m_pos+=locN+1;
         if (m_pos >= m_seq.length()-m_k+1)
             m_pos = std::numeric_limits<std::size_t>::max();
@@ -82,7 +83,7 @@ public:
             init();
         }
         else
-            NTMC64(m_seq.at(m_pos-1), m_seq.at(m_pos-1+m_k), m_k, m_h, m_fhVal, m_rhVal, m_hVec);
+            NTMC64(m_seq.at(m_pos-1), m_seq.at(m_pos-1+m_k), m_k, m_h, m_fhVal, m_rhVal, m_hVec, m_strand);
     }
     
     size_t pos() const{
@@ -105,6 +106,12 @@ public:
     bool operator!=(const ntHashIterator& it) const
     {
         return !(*this == it);
+    }
+
+    /** strand boolean. forward = 0, reverse = 1 */
+    bool get_strand(const ntHashIterator& it) const
+    {
+        return m_strand;
     }
 
     /** pre-increment operator */
@@ -148,6 +155,9 @@ private:
 
     /** reverse-complement k-mer hash value */
     uint64_t m_rhVal;
+
+    /** strand-aware boolean */
+    bool m_strand;
 };
 
 #endif

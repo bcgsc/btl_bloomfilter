@@ -112,6 +112,8 @@ public:
 		//get positions
 		hashSet values;
 		values.set_empty_key(miBF.size());
+		
+		unsigned base_pos = pos; // more accurate pos calculation
 		while (itr != itr.end()) {
 			for (unsigned i = 0; i < m_h; ++i) {
 		//		values.insert((*itr)[i]);
@@ -122,17 +124,20 @@ public:
 		//		itr++) {
 				//uint64_t randomSeed = *itr ^ id;
 				uint64_t randomSeed = (*itr)[i] ^ pos;
+				bool strand = (itr).get_strand(i);  // get strand info. TODO
 				//uint64_t rank = miBF.getRankPos(*itr);
 				uint64_t rank = miBF.getRankPos((*itr)[i]);
 				T count = __sync_add_and_fetch(&m_counts[rank], 1);
 				T randomNum = std::hash<T> { }(randomSeed) % count;
 				if (randomNum == count - 1) {
 					//miBF.setData(rank, id);
-					miBF.setData(rank, pos);
+					//miBF.setData(rank, pos);
+					miBF.setData(rank, pos, strand); // send strand info TODO
 				}	
 			}
 			++itr;
-			++pos;
+			++pos; // not sure if pos is accurate
+			//pos = base_pos + itr.pos(); // more accurate pos calculation
 		}
 	}
 		
