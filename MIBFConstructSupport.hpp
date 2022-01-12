@@ -124,7 +124,7 @@ public:
 		//		itr++) {
 				//uint64_t randomSeed = *itr ^ id;
 				uint64_t randomSeed = (*itr)[i] ^ pos;
-				bool strand = (itr).get_strand(i);  // get strand info. TODO
+				bool strand = (itr).get_strand();  // get strand info. TODO
 				//uint64_t rank = miBF.getRankPos(*itr);
 				uint64_t rank = miBF.getRankPos((*itr)[i]);
 				T count = __sync_add_and_fetch(&m_counts[rank], 1);

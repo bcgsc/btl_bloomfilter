@@ -109,7 +109,7 @@ public:
     }
 
     /** strand boolean. forward = 0, reverse = 1 */
-    bool get_strand(const ntHashIterator& it) const
+    bool get_strand() const
     {
         return m_strand;
     }

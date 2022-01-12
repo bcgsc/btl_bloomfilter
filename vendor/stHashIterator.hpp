@@ -96,6 +96,11 @@ public:
         return m_hStn;
     }
 
+    /** placeholder function to avoid compiler error */
+    const bool get_strand() const
+    {
+        return m_hStn[0];
+    }
 
     /** get pointer to hash values for current k-mer */
     const uint64_t* operator*() const
