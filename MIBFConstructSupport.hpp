@@ -136,8 +136,8 @@ public:
 				}	
 			}
 			++itr;
-			++pos; // not sure if pos is accurate
-			//pos = base_pos + itr.pos(); // more accurate pos calculation
+			//++pos; // not sure if pos is accurate
+			pos = base_pos + itr.pos(); // more accurate pos calculation
 		}
 	}
 		
@@ -181,6 +181,7 @@ private:
 	 */
 	//inline void setSatIfMissing(MIBloomFilter<T> &miBF, T id, H &itr, unsigned pos) {
 	inline void setSatIfMissing(MIBloomFilter<T> &miBF, H &itr, unsigned pos) {
+		unsigned base_pos = pos;
 		while (itr != itr.end()) {
 			//for each set of hash values, check for saturation
 			vector<uint64_t> rankPos = miBF.getRankPos(*itr);
@@ -227,7 +228,8 @@ private:
 				}
 			}
 			++itr;
-			++pos;
+			pos = base_pos + itr.pos();
+
 		}
 	}
 };
