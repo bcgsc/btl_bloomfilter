@@ -124,15 +124,18 @@ public:
 		//		itr++) {
 				//uint64_t randomSeed = *itr ^ id;
 				uint64_t randomSeed = (*itr)[i] ^ pos;
-				bool strand = (itr).get_strand();  // get strand info. TODO
+				//bool strand = (itr).get_strand();  // get strand info. TODO
+				if((itr).get_strand()){
+					pos = pos | MIBloomFilter<T>::s_strand;
+				}
 				//uint64_t rank = miBF.getRankPos(*itr);
 				uint64_t rank = miBF.getRankPos((*itr)[i]);
 				T count = __sync_add_and_fetch(&m_counts[rank], 1);
 				T randomNum = std::hash<T> { }(randomSeed) % count;
 				if (randomNum == count - 1) {
 					//miBF.setData(rank, id);
-					//miBF.setData(rank, pos);
-					miBF.setData(rank, pos, strand); // send strand info TODO
+					miBF.setData(rank, pos);
+					//miBF.setData(rank, pos, strand); // send strand info TODO
 				}	
 			}
 			++itr;
@@ -190,7 +193,8 @@ private:
 			bool valueFound = false;
 			vector<T> seenSet(m_h);
 			for (unsigned i = 0; i < m_h; ++i) {
-				T currentResult = results[i] & MIBloomFilter<T>::s_antiMask;
+				T currentResult = results[i] & (MIBloomFilter<T>::s_antiMask 
+					& MIBloomFilter<T>::s_antiStrand); // doesn't check strand id in saturation
 				//if (currentResult == id) {
 				if (currentResult == pos){
 					valueFound = true;
@@ -220,7 +224,12 @@ private:
 				//mutate if possible
 				if (replacementPos != m_counts.size()) {
 					//miBF.setData(replacementPos, id);
-					miBF.setData(replacementPos, pos);
+					if((itr).get_strand()){
+						miBF.setData(replacementPos, (pos & MIBloomFilter<T>::s_strand));
+					} else {
+						miBF.setData(replacementPos, pos);
+					}
+					
 #pragma omp atomic update
 					++m_counts[replacementPos];
 				} else {
