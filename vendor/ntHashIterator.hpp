@@ -114,6 +114,13 @@ public:
         return m_strand;
     }
 
+    bool* strandArray() const
+    {
+        bool* ret_vec = new bool[1];
+        ret_vec[0] = get_strand();
+        return ret_vec;
+    }
+
     /** pre-increment operator */
     ntHashIterator& operator++()
     {

@@ -125,16 +125,19 @@ public:
 				//uint64_t randomSeed = *itr ^ id;
 				uint64_t randomSeed = (*itr)[i] ^ pos;
 				//bool strand = (itr).get_strand();  // get strand info. TODO
-				if((itr).get_strand()){
-					pos = pos | MIBloomFilter<T>::s_strand;
-				}
+				//if((itr).get_strand()){
+				//	pos = pos | MIBloomFilter<T>::s_strand;
+				//}
 				//uint64_t rank = miBF.getRankPos(*itr);
 				uint64_t rank = miBF.getRankPos((*itr)[i]);
 				T count = __sync_add_and_fetch(&m_counts[rank], 1);
 				T randomNum = std::hash<T> { }(randomSeed) % count;
 				if (randomNum == count - 1) {
 					//miBF.setData(rank, id);
-					miBF.setData(rank, pos);
+					miBF.setData(rank, 
+						miBF.getSeedValues().size() > 0 ? 
+							(itr).strandArray()[i] ? pos | MIBloomFilter<T>::s_strand : pos : 
+							(itr).get_strand() ? pos | MIBloomFilter<T>::s_strand : pos);
 					//miBF.setData(rank, pos, strand); // send strand info TODO
 				}	
 			}
@@ -224,11 +227,15 @@ private:
 				//mutate if possible
 				if (replacementPos != m_counts.size()) {
 					//miBF.setData(replacementPos, id);
-					if((itr).get_strand()){
-						miBF.setData(replacementPos, (pos & MIBloomFilter<T>::s_strand));
-					} else {
-						miBF.setData(replacementPos, pos);
-					}
+					// if replaced insert only the first seed -- get_strand() gets the orientation of first seed in ss iterator
+					miBF.setData(replacementPos, 
+						(itr).get_strand() ? pos | MIBloomFilter<T>::s_strand : pos);
+
+					//if((itr).get_strand()){
+					//	miBF.setData(replacementPos, (pos & MIBloomFilter<T>::s_strand));
+					//} else {
+					//	miBF.setData(replacementPos, pos);
+					//}
 					
 #pragma omp atomic update
 					++m_counts[replacementPos];
