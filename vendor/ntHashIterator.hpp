@@ -128,6 +128,9 @@ public:
         for (size_t i = 0; i < m_step; i++)
         {
             next();
+            if(m_pos == std::numeric_limits<std::size_t>::max()){
+                break;
+            }
         }
         return *this;
     }
