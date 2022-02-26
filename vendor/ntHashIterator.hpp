@@ -35,8 +35,8 @@ public:
      * @param k k-mer size
      * @param h number of hashes
     */
-    ntHashIterator(const std::string& seq, unsigned h, unsigned k, size_t pos = 0):
-        m_seq(seq), m_h(h), m_k(k), m_hVec(new uint64_t[h]), m_pos(pos), m_strand(false)
+    ntHashIterator(const std::string& seq, unsigned h, unsigned k, unsigned step_size = 1, size_t pos = 0):
+        m_seq(seq), m_h(h), m_k(k), m_hVec(new uint64_t[h]), m_pos(pos), m_strand(false), m_step(step_size)
     {
         init();
     }
@@ -53,6 +53,7 @@ public:
         m_fhVal = nth.m_fhVal;
         m_rhVal = nth.m_rhVal;
         m_strand = nth.m_strand;
+        m_step = nth.m_step;
     }
     
 
@@ -124,7 +125,10 @@ public:
     /** pre-increment operator */
     ntHashIterator& operator++()
     {
-        next();
+        for (size_t i = 0; i < m_step; i++)
+        {
+            next();
+        }
         return *this;
     }
 
@@ -165,6 +169,9 @@ private:
 
     /** strand-aware boolean */
     bool m_strand;
+
+    /** step_size */
+    unsigned m_step;
 };
 
 #endif

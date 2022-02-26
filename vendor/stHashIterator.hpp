@@ -50,8 +50,8 @@ public:
      * @param h number of seeds
      * @param h2 number of hashes per seed
     */
-    stHashIterator(const std::string& seq, const std::vector<std::vector<unsigned> >& seed, unsigned h, unsigned h2, unsigned k, size_t pos = 0):
-    m_seq(seq), m_seed(seed), m_h(h), m_h2(h2), m_k(k), m_hVec(new uint64_t[h * h2]), m_hStn(new bool[h * h2]), m_pos(pos)
+    stHashIterator(const std::string& seq, const std::vector<std::vector<unsigned> >& seed, unsigned h, unsigned h2, unsigned k, unsigned step_size = 1, size_t pos = 0):
+    m_seq(seq), m_seed(seed), m_h(h), m_h2(h2), m_k(k), m_hVec(new uint64_t[h * h2]), m_hStn(new bool[h * h2]), m_step(step_size), m_pos(pos)
     {
         init();
     }
@@ -124,7 +124,10 @@ public:
     /** pre-increment operator */
     stHashIterator& operator++()
     {
-        next();
+        for (size_t i = 0; i < m_step; i++)
+        {
+            next();
+        }
         return *this;
     }
 
@@ -176,6 +179,9 @@ private:
 
     /** reverse-complement k-mer hash value */
     uint64_t m_rhVal;
+
+    /** step_size taken in next() function */
+    unsigned m_step;
 };
 
 #endif
